@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "jetro": {
+      "label": "JETRO 政府公共調達データベース",
+      "status": "ok",
+      "startedAt": "2026-09-23T17:54:30.170597+00:00",
+      "finishedAt": "2026-09-23T17:58:37.304447+00:00",
+      "durationSeconds": 247.13,
+      "metrics": {
+        "records": 299881,
+        "itRecords": 73059,
+        "awardRecords": 135969,
+        "companies": 15259,
+        "organizations": 168,
+        "fetched": 600,
+        "enriched": 150
+      }
+    },
+    "land_prices": {
+      "label": "国土交通省 地価公示",
+      "status": "ok",
+      "startedAt": "2026-09-23T17:59:47.334740+00:00",
+      "finishedAt": "2026-09-23T17:59:49.830619+00:00",
+      "durationSeconds": 2.5,
+      "metrics": {
+        "records": 25565,
+        "medianPrice": 83000,
+        "averagePrice": 297840
+      },
+      "previousRecordCount": 25565
+    },
+    "jetro_local": {
+      "label": "JETRO 地方政府公共調達データベース",
+      "status": "ok",
+      "startedAt": "2026-09-23T17:58:37.392370+00:00",
+      "finishedAt": "2026-09-23T17:59:47.235858+00:00",
+      "durationSeconds": 69.84,
+      "metrics": {
+        "records": 600,
+        "fetched": 600,
+        "totalRecords": 300481
+      }
+    }
+  }
+}

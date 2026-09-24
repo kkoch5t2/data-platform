@@ -1,0 +1,5 @@
+/markets/* /procurement/markets/:splat 301
+/companies/* /procurement/companies/:splat 301
+/organizations/* /procurement/organizations/:splat 301
+/tags/* /procurement/technologies/:splat 301
+/years/* /procurement/years/:splat 301

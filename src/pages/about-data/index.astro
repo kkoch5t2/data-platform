@@ -1,0 +1,101 @@
+---
+import summary from '../../data/summary';
+import '../../styles/detail.css';
+
+const firstDate = summary.firstDate ?? '2014-03-19';
+const lastDate = summary.lastDate ?? '—';
+const awardCoverage = summary.records ? (summary.awardRecords / summary.records * 100) : 0;
+const fmt = (v) => new Intl.NumberFormat('ja-JP').format(v || 0);
+const fmtDate = (v) => v ? v.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$1年$2月$3日') : '—';
+---
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <meta name="description" content="公共調達、不動産、防災、暮らしデータの収録範囲、出典、集計方法、利用上の注意を説明します。">
+  <title>データについて | DATA</title>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="nav"><a class="brand" href="/">DATA</a><a class="back" href="/">トップへ戻る</a></div>
+  <div class="hero"><div class="eyebrow">About the data</div><h1>データについて</h1><p>収録範囲、分類方法、集計値の意味と限界を明示しています。</p></div>
+</div></header><main class="wrap">
+  <div class="stats">
+    <div class="card"><div class="label">収録期間</div><div class="value" style="font-size:20px">{fmtDate(firstDate)}〜<br>{fmtDate(lastDate)}</div></div>
+    <div class="card"><div class="label">収録レコード</div><div class="value">{fmt(summary.records)}件</div></div>
+    <div class="card"><div class="label">金額確認済み</div><div class="value">{fmt(summary.awardRecords)}件</div><div class="label">全収録レコードの約 {awardCoverage.toFixed(1)}%</div></div>
+  </div>
+
+  <section id="procurement" class="card section">
+    <h2>公共調達データ</h2>
+    <p><strong>2014年3月〜2021年3月</strong>は調達ポータル（GEPS）の公式「落札実績オープンデータ」、<strong>2021年4月以降</strong>はJETRO「政府公共調達データベース」の現行検索から取得できる公開調達情報を収録しています。</p>
+    <p>現在の収録内訳：国・独立行政法人系 <strong>{fmt(summary.nationalRecords ?? summary.records)}件</strong> / 地方政府系 <strong>{fmt(summary.localRecords ?? 0)}件</strong>。</p>
+    <p>JETRO地方政府検索では都道府県・政令指定都市・地方独立行政法人などが対象です。<strong>全国すべての市区町村の入札・契約情報を網羅しているわけではありません。</strong></p>
+    <p>JETRO現行検索から一括取得できる最古は2021年4月1日です。それ以前は、公式GEPS全件データが存在する最古年度（FY2013、実データ最古2014年3月19日）まで落札実績を補完しています。2012年度以前のGEPS全件ファイルは取得できません。</p>
+    <p>データソースによって日付の意味が異なり、GEPSは<strong>落札決定日</strong>、JETROは主に<strong>公示日・公告日</strong>です。そのため、2021年3月以前と4月以降の件数を単純に同一母集団として比較する際は注意が必要です。</p>
+  </section>
+
+  <section class="card section">
+    <h2>分野分類について</h2>
+    <p>「IT・デジタル」「建設・土木」「医療・福祉」などの分野は、案件名に含まれる語句をもとにルールベースで自動分類しています。</p>
+    <p>そのため、複数分野にまたがる案件、表現が特殊な案件、案件名だけでは内容を判断しにくい案件では、誤分類や「その他」への分類が発生する場合があります。</p>
+  </section>  <section class="card section">
+    <h2>落札額・受注企業・契約方式について</h2>
+    <p>GEPSの歴史データは落札価格・受注企業・入札方式を公式オープンデータから取得しています。2021年4月以降のJETROデータでは、これらは詳細ページから取得できた案件だけを集計しています。</p>
+    <p><strong>「確認済み落札総額」は、金額を確認できた収録レコードの合計です。日本の公共調達市場全体の総額や、その分野の完全な市場規模を示す数字ではありません。</strong></p>
+  </section>
+
+  <section class="card section">
+    <h2>数字の読み方</h2>
+    <table>
+      <thead><tr><th>表示</th><th>意味</th></tr></thead>
+      <tbody>
+        <tr><td>収録レコード</td><td>当サイトに取り込んだ公開調達・落札実績情報の件数。データソースによって1レコードの意味は異なります。</td></tr>
+        <tr><td>確認済み落札総額</td><td>落札額を取得できた収録レコードだけの合計。</td></tr>
+        <tr><td>受注企業</td><td>受注企業を確認できた収録レコードのユニーク企業数。</td></tr>
+        <tr><td>分野別件数</td><td>ルールベース分類による件数。公的な産業分類ではありません。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card section">
+    <h2>このサイトで言えること / 言えないこと</h2>
+    <p><strong>言えること：</strong>収録された政府公共調達の傾向、案件数の推移、発注機関や確認済み受注企業の比較、分野ごとの相対的な動き。</p>
+    <p><strong>そのままでは言えないこと：</strong>日本の公共調達全体の完全な市場規模、全国自治体を含む完全ランキング、未取得案件を含む真の受注総額。</p>
+  </section>
+
+  <section id="realestate" class="card section">
+    <h2>不動産・防災・暮らしマップのデータ</h2>
+    <table>
+      <thead><tr><th>レイヤー</th><th>主な出典 / 年度</th><th>注意点</th></tr></thead>
+      <tbody>
+        <tr><td>地価公示</td><td>国土交通省 国土数値情報 / 2026</td><td>個別物件の成約価格ではなく標準地の公示価格。</td></tr>
+        <tr><td>洪水・津波・土砂災害</td><td>ハザードマップポータルサイト</td><td>公開範囲・精度・更新時点は地域や情報種別で異なる。</td></tr>
+        <tr><td>人口・高齢化率</td><td>SSDSE-A-2026 / 元統計2020</td><td>表示年度はデータ項目の元統計年度に基づく。</td></tr>
+        <tr><td>犯罪率</td><td>警察庁 / 2025刑法犯認知件数</td><td>2024人口を分母にした都道府県単位の参考値。</td></tr>
+        <tr><td>交通事故</td><td>警察庁 交通事故統計オープンデータ / 2024</td><td>地点情報を約0.01度グリッドに集約して表示。</td></tr>
+        <tr><td>病院・学校・駅</td><td>国土数値情報 / 病院2020・学校2023・駅2025</td><td>施設の開廃や移転が最新状況と一致しない場合がある。</td></tr>
+        <tr><td>飲食店</td><td>OpenStreetMap / OpenMapTiles</td><td>ユーザー編集型データのため網羅性・最新性は保証されない。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card section">
+    <h2>免責・利用上の注意</h2>
+    <p><strong>当サイトの表示だけで、住宅購入、契約、避難、移動その他の重要な判断を行わないでください。</strong> 公開データの時点差、欠損、位置誤差、集計方法による差があり、地図上に表示がないことはリスクや施設が存在しないことを意味しません。</p>
+    <p>災害リスクは、国・自治体などが公開する最新のハザードマップや避難情報を必ず確認してください。犯罪率・交通事故・人口等は比較用の統計であり、個人や地域の「安全」「住みやすさ」を断定する指標ではありません。</p>
+  </section>
+
+  <section class="card section">
+    <h2>出典・ライセンス・更新</h2>
+    <p>公共調達：JETRO 政府公共調達データベース / 調達ポータル（GEPS）。元ページへのリンクを各案件に保持しています。</p>
+    <p>地価・施設：国土交通省「国土数値情報」。地価公示の現行データは CC BY 4.0。個別データに別条件がある場合は、その条件を優先します。</p>
+    <p>防災：国土地理院・国土交通省「ハザードマップポータルサイト」。サイトの利用規約および各データの個別利用条件に従って利用しています。</p>
+    <p>背景地図・飲食店：OpenFreeMap / OpenMapTiles / OpenStreetMap。OpenStreetMap データは ODbL に基づき、地図上の帰属表示からライセンス情報を確認できます。</p>
+    <p>収集・分類ロジックや公開元データが更新された場合、当サイト側の再収集・再集計後に反映されます。</p>
+    <div class="links"><a class="linkchip" href="/">トップへ戻る</a><a class="linkchip" href="/realestate/">不動産・防災・暮らしマップ</a><a class="linkchip" href="/procurement/markets/">分野一覧を見る</a></div>
+  </section>
+</main>
+<footer class="wrap">DATA — データの出典と限界を明示して可視化。</footer>
+</body>
+</html>

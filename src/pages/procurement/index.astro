@@ -1,0 +1,266 @@
+---
+import summary from '../../data/summary';
+---
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <meta name="description" content="日本の公共調達を、分野・企業・発注機関・年度・落札額から横断的に可視化するデータページ。" />
+  <title>公共調達データ | DATA</title>
+  <style is:global>
+    :root{color-scheme:light;--ink:#142033;--muted:#667085;--line:#e5e9f0;--bg:#f4f6f9;--card:#fff;--nav:#0e1b2e;--blue:#1769e0}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Noto Sans JP",sans-serif}a{color:inherit}.wrap{width:min(1320px,calc(100% - 32px));margin:auto}
+    header{background:var(--nav);color:#fff;padding:20px 0 50px}.nav{display:flex;justify-content:space-between;gap:18px;align-items:center}.brand{font-weight:850;letter-spacing:.06em;text-decoration:none}.navlinks{display:flex;gap:8px;flex-wrap:wrap}.navlinks a{font-size:12px;color:#d9e4f4;border:1px solid #ffffff2a;border-radius:999px;padding:7px 11px;text-decoration:none}.hero{margin-top:38px}.hero h1{font-size:clamp(34px,4.2vw,58px);line-height:1.05;letter-spacing:-.045em;margin:0 0 16px}.hero p{margin:0;color:#c7d3e4;font-size:16px;line-height:1.8;max-width:880px}
+    main{margin-top:-26px;padding-bottom:64px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px}.filter-panel{overflow:hidden}.filter-panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 18px;border-bottom:1px solid var(--line)}.filter-panel-title{font-size:14px;font-weight:800}.filter-panel-sub{margin-top:2px;color:var(--muted);font-size:11px}.filter-toggle{border:1px solid #d6dce6;background:#fff;border-radius:9px;height:36px;padding:0 11px;font:inherit;font-size:11px;font-weight:750;cursor:pointer}.filters{padding:16px 18px 17px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end}.filter{min-width:0}.filter-wide{grid-column:span 2}.filter label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin:0 0 6px}.filter select,.filter input{width:100%;height:40px;border:1px solid #d9dee7;border-radius:9px;background:#fff;color:var(--ink);padding:0 10px;font:inherit;font-size:13px;outline:none}.filter select:focus,.filter input:focus{border-color:#8cb7f4;box-shadow:0 0 0 3px #1769e015}.advanced-filters{grid-column:1/-1;border-top:1px solid #eef1f5;padding-top:10px}.advanced-filters summary{cursor:pointer;list-style:none;font-size:11px;font-weight:800;color:var(--blue);width:max-content}.advanced-filters summary::-webkit-details-marker{display:none}.advanced-filters summary::after{content:' ＋'}.advanced-filters[open] summary::after{content:' −'}.advanced-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:12px}.btn{height:36px;padding:0 12px;border:1px solid #d6dce6;background:#fff;border-radius:9px;font-weight:700;font-size:11px;cursor:pointer}.btn:hover{background:#f7f9fc}.filter-status{grid-column:1/-1;display:flex;justify-content:flex-start;gap:10px;align-items:center;border-top:1px solid #eef1f5;padding-top:12px;color:var(--muted);font-size:12px}.filter-status .btn{margin-left:auto}.active-filters{display:flex;gap:6px;flex-wrap:wrap;min-width:0}.chip{background:#eef5ff;color:#185fb9;border-radius:999px;padding:5px 9px}
+    .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:12px}.kpi{padding:18px;min-width:0}.kpi-label{font-size:12px;color:var(--muted)}.kpi-value{font-size:clamp(22px,2.6vw,32px);font-weight:800;letter-spacing:-.03em;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpi-sub{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4}
+    .section-title{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin:28px 2px 10px}.section-title h2{font-size:19px;margin:0}.section-title p{margin:0;color:var(--muted);font-size:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.chart-card{padding:18px;min-width:0;overflow:hidden}.card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:8px}.card-head h3{font-size:15px;margin:0}.card-head span{font-size:11px;color:var(--muted);text-align:right}.chart{height:330px;width:100%;min-width:0}.chart.tall{height:390px}.chart.small{height:300px}
+    .data-note{margin:10px 2px 0;color:var(--muted);font-size:11px;line-height:1.65}.data-note a{color:var(--blue);font-weight:750;text-decoration:none}.data-note a:hover{text-decoration:underline}
+    .view-tabs{display:flex;gap:8px;overflow-x:auto;margin:18px 0 4px;padding:2px 1px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.view-tabs::-webkit-scrollbar{display:none}.view-tab{flex:0 0 auto;border:1px solid #d9dee7;background:#fff;color:var(--muted);border-radius:999px;padding:9px 14px;font:inherit;font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}.view-tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:#fff}.view-tab:focus-visible{outline:3px solid #1769e026;outline-offset:2px}
+    .drill-card{grid-column:1/-1;margin-top:0;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px 14px}.drill-card[hidden]{display:none}.drill-copy{min-width:0}.drill-kicker{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:3px}.drill-title{font-size:14px;font-weight:800;overflow-wrap:anywhere}.drill-meta{margin-top:3px;color:var(--muted);font-size:11px}.drill-actions{display:flex;gap:8px;flex:0 0 auto}.drill-actions button{height:36px;border-radius:9px;border:1px solid #d6dce6;background:#fff;padding:0 11px;font:inherit;font-size:11px;font-weight:750;cursor:pointer}.drill-actions .primary{background:var(--blue);border-color:var(--blue);color:#fff}.drill-cases{grid-column:1/-1;width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.drill-case{min-width:0;border:1px solid #e7ebf1;border-radius:10px;padding:10px 11px;background:#fbfcfe}.drill-case a{display:block;font-size:12px;font-weight:750;line-height:1.45;text-decoration:none;overflow-wrap:anywhere}.drill-case a:hover{text-decoration:underline}.drill-case-meta{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.45}.drill-case-money{font-weight:750;color:var(--ink)}
+    .table-card{overflow:hidden}.table-head{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:17px 18px;border-bottom:1px solid var(--line)}.table-head h3{font-size:15px;margin:0}.table-head span{font-size:11px;color:var(--muted)}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:940px}th,td{padding:12px 14px;border-bottom:1px solid #eef1f5;text-align:left;vertical-align:top;font-size:12px}th{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:#fbfcfd}.money{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.title-link{font-weight:650;text-decoration:none}.title-link:hover{text-decoration:underline}.badge{display:inline-block;border:1px solid #dce4ef;border-radius:999px;padding:3px 7px;background:#f8fafc;white-space:nowrap}.empty{padding:40px;text-align:center;color:var(--muted)}
+    footer{padding:26px 0 50px;color:var(--muted);font-size:11px;line-height:1.7}
+    @media(max-width:1100px){.filters{grid-template-columns:repeat(3,1fr)}.filter-wide{grid-column:span 1}.advanced-grid{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(3,1fr)}.grid3{grid-template-columns:1fr 1fr}}
+    @media(max-width:780px){
+      .wrap{width:min(100% - 28px,1320px)}
+      header{padding:18px 0 34px}
+      .nav{display:block}
+      .brand{display:block;font-size:17px;margin-bottom:16px}
+      .navlinks{display:flex;width:calc(100vw - 14px);margin-right:-14px;gap:7px;flex-wrap:nowrap;overflow-x:auto;padding:0 14px 3px 0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+      .navlinks::-webkit-scrollbar{display:none}
+      .navlinks a{flex:0 0 auto;white-space:nowrap;padding:7px 12px;font-size:12px;background:#ffffff08}
+      .hero{margin-top:32px}
+      .hero h1{font-size:36px;line-height:1.12;letter-spacing:-.04em;margin-bottom:14px}
+      .hero p{font-size:14px;line-height:1.8;max-width:none}
+      main{margin-top:-16px;padding-bottom:48px}
+      .card{border-radius:14px}
+      .filter-panel-head{padding:13px 14px}.filter-panel-title{font-size:13px}.filter-panel-sub{font-size:10px}.filter-toggle{height:34px}
+      .filters{grid-template-columns:1fr;gap:13px;padding:14px}
+      .filters .filter{grid-column:1/-1!important}
+      .advanced-grid{grid-template-columns:1fr;gap:11px}
+      .filter label{font-size:12px;margin-bottom:7px}
+      .filter select,.filter input{height:46px;border-radius:11px;font-size:14px;padding:0 12px}
+      .btn{width:100%;height:42px;border-radius:11px}
+      .filter-status{align-items:flex-start;flex-direction:column;padding-top:14px}.filter-status .btn{margin-left:0}
+      .kpis{grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+      .kpi{padding:15px}
+      .grid2,.grid3{grid-template-columns:1fr}
+      .section-title{align-items:flex-start;flex-direction:column;gap:4px;margin-top:24px}
+      .chart{height:300px}
+      .chart-card{padding:15px}
+      .data-note{margin-top:8px;font-size:10.5px}
+      .view-tabs{position:sticky;top:0;z-index:5;background:var(--bg);margin:14px -2px 2px;padding:8px 2px 8px}
+      .drill-card{grid-template-columns:1fr;align-items:flex-start;padding:13px 14px}
+      .drill-actions{width:100%}.drill-actions button{flex:1;height:40px}
+      .drill-cases{grid-column:1;grid-template-columns:1fr}
+    }
+    @media(max-width:480px){
+      .wrap{width:min(100% - 24px,1320px)}
+      header{padding-top:16px;padding-bottom:30px}
+      .brand{font-size:16px;margin-bottom:14px}
+      .navlinks{width:calc(100vw - 12px);margin-right:-12px;padding-right:12px}
+      .hero{margin-top:27px}
+      .hero h1{font-size:32px;line-height:1.14;margin-bottom:13px}
+      .hero p{font-size:13.5px;line-height:1.78}
+      main{margin-top:-12px}
+      .filters{padding:14px;gap:12px}
+      .kpis{grid-template-columns:1fr 1fr}
+      .kpi{padding:13px}
+      .kpi-label{font-size:11px}
+      .kpi-value{font-size:21px}
+      .kpi-sub{font-size:10px}
+      .chart{height:280px}
+      .chart-card{padding:14px}
+    }
+  </style>
+</head>
+<body>
+<header><div class="wrap"><div class="nav"><a class="brand" href="/">DATA</a><div class="navlinks"><a href="/procurement/markets/">分野</a><a href="/procurement/companies/">企業</a><a href="/procurement/organizations/">発注機関</a><a href="/procurement/technologies/">IT技術</a><a href="/procurement/years/">年別</a><a href="/realestate/">不動産×防災・暮らし</a><a href="/about-data/#procurement">データについて</a></div></div><div class="hero"><h1>日本の公共調達を、データで見渡す。</h1><p>国・独立行政法人に加え、都道府県・政令指定都市・地方独立行政法人などの公開調達を横断分析。IT、建設、医療、調査、教育、施設管理などの分野から市場を見渡せます。</p></div></div></header>
+<main class="wrap">
+  <section class="card filter-panel" aria-label="ダッシュボードフィルター">
+    <div class="filter-panel-head">
+      <div><div class="filter-panel-title">条件を絞る</div><div class="filter-panel-sub">グラフ・KPI・案件一覧がすべて連動します</div></div>
+      <button id="filter-toggle" class="filter-toggle" type="button" aria-expanded="true">条件を閉じる</button>
+    </div>
+    <div id="filter-body" class="filters">
+      <div class="filter"><label for="f-year">年</label><select id="f-year"><option value="">すべて</option></select></div>
+      <div class="filter"><label for="f-scope">対象区分</label><select id="f-scope"><option value="">すべて</option><option value="national">国・独法</option><option value="local">地方政府系</option></select></div>
+      <div class="filter"><label for="f-category">分野</label><select id="f-category"><option value="">すべて</option></select></div>
+      <div class="filter"><label for="f-agency">発注機関</label><select id="f-agency"><option value="">すべて</option></select></div>
+      <div class="filter filter-wide"><label for="f-query">案件名キーワード</label><input id="f-query" type="search" placeholder="例: 医療、工事、クラウド、調査" /></div>
+
+      <details class="advanced-filters">
+        <summary>詳細条件</summary>
+        <div class="advanced-grid">
+          <div class="filter"><label for="f-source">データソース</label><select id="f-source"><option value="">すべて</option><option value="jetro">JETRO</option><option value="geps">調達ポータル</option></select></div>
+          <div class="filter"><label for="f-tag">IT技術カテゴリ</label><select id="f-tag"><option value="">すべて</option></select></div>
+          <div class="filter"><label for="f-method">契約方式</label><select id="f-method"><option value="">すべて</option></select></div>
+          <div class="filter"><label for="f-company">受注企業</label><select id="f-company"><option value="">すべて</option></select></div>
+          <div class="filter"><label for="f-amount">落札金額</label><select id="f-amount"><option value="">すべて</option><option value="0-10000000">1,000万円未満</option><option value="10000000-50000000">1,000万〜5,000万円</option><option value="50000000-100000000">5,000万〜1億円</option><option value="100000000-500000000">1億〜5億円</option><option value="500000000-1000000000">5億〜10億円</option><option value="1000000000-">10億円以上</option></select></div>
+        </div>
+      </details>
+
+      <div class="filter-status"><div><strong id="result-count">—</strong> 件を表示</div><div id="active-filters" class="active-filters"></div><button id="reset" class="btn" type="button">条件をリセット</button></div>
+    </div>
+  </section>
+
+  <section class="kpis" aria-label="主要指標">
+    <div class="card kpi"><div class="kpi-label">収録レコード</div><div id="kpi-count" class="kpi-value">—</div><div class="kpi-sub">フィルター後の件数</div></div>
+    <div class="card kpi"><div class="kpi-label">確認済み落札総額</div><div id="kpi-total" class="kpi-value">—</div><div id="kpi-awards" class="kpi-sub">—</div></div>
+    <div class="card kpi"><div class="kpi-label">平均落札額</div><div id="kpi-avg" class="kpi-value">—</div><div class="kpi-sub">金額確認済み案件のみ</div></div>
+    <div class="card kpi"><div class="kpi-label">受注企業</div><div id="kpi-companies" class="kpi-value">—</div><div class="kpi-sub">確認済みユニーク企業数</div></div>
+    <div class="card kpi"><div class="kpi-label">発注機関</div><div id="kpi-agencies" class="kpi-value">—</div><div class="kpi-sub">ユニーク機関数</div></div>
+  </section>
+  <div class="data-note">2014年3月〜2021年3月はGEPS公式落札実績、2021年4月以降はJETRO公開情報を中心に収録。分野は自動分類、確認済み落札総額は取得済み案件のみです。 <a href="/about-data/#procurement">データの範囲と注意 →</a></div>
+
+  <nav class="view-tabs" aria-label="分析ビュー">
+    <button class="view-tab" type="button" data-view-target="overview" aria-selected="true">全体像</button>
+    <button class="view-tab" type="button" data-view-target="trend" aria-selected="false">時系列</button>
+    <button class="view-tab" type="button" data-view-target="players" aria-selected="false">発注者・企業</button>
+    <button class="view-tab" type="button" data-view-target="contract" aria-selected="false">契約・金額</button>
+    <button class="view-tab" type="button" data-view-target="records" aria-selected="false">案件一覧</button>
+  </nav>
+  <aside id="drill-card" class="card drill-card" hidden aria-live="polite">
+    <div class="drill-copy"><div class="drill-kicker" id="drill-kicker">選択中</div><div class="drill-title" id="drill-title"></div><div class="drill-meta" id="drill-meta"></div></div>
+    <div id="drill-cases" class="drill-cases"></div>
+    <div class="drill-actions"><button id="drill-clear" type="button">選択解除</button><button id="drill-more" class="primary" type="button">案件一覧を開く</button></div>
+  </aside>
+
+  <div data-view="overview">
+    <div class="section-title"><h2>市場の全体像</h2><p>グラフをタップすると内容を確認・絞り込みできます</p></div>
+    <section class="grid2">
+      <div class="card chart-card"><div class="card-head"><h3>月別 収録件数</h3><span>件数 / タップで詳細</span></div><div id="chart-month-count" class="chart"></div></div>
+      <div class="card chart-card"><div class="card-head"><h3>分野別構成</h3><span>主分類 / 件数</span></div><div id="chart-category" class="chart"></div></div>
+    </section>
+  </div>
+
+  <div data-view="trend" hidden>
+    <div class="section-title"><h2>市場はどう変わっているか</h2><p>金額と分野を時系列で比較</p></div>
+    <section class="grid2">
+      <div class="card chart-card"><div class="card-head"><h3>月別 確認済み落札額</h3><span>金額取得済み案件のみ</span></div><div id="chart-month-amount" class="chart"></div></div>
+      <div class="card chart-card"><div class="card-head"><h3>年別 × 分野</h3><span>収録件数</span></div><div id="chart-year-category" class="chart"></div></div>
+    </section>
+  </div>
+
+  <div data-view="players" hidden>
+    <div class="section-title"><h2>誰が、誰から受注しているか</h2><p>タップした企業・発注機関でクロスフィルターできます</p></div>
+    <section class="grid2">
+      <div class="card chart-card"><div class="card-head"><h3>受注企業 TOP 10</h3><span>確認済み落札額</span></div><div id="chart-companies" class="chart tall"></div></div>
+      <div class="card chart-card"><div class="card-head"><h3>発注機関 TOP 10</h3><span>収録件数</span></div><div id="chart-agencies" class="chart tall"></div></div>
+    </section>
+  </div>
+
+  <div data-view="contract" hidden>
+    <div class="section-title"><h2>どう調達しているか</h2><p>契約・落札方式と金額帯</p></div>
+    <section class="grid3">
+      <div class="card chart-card"><div class="card-head"><h3>契約方式</h3><span>詳細取得済み</span></div><div id="chart-method" class="chart small"></div></div>
+      <div class="card chart-card"><div class="card-head"><h3>落札方式</h3><span>最低価格 / 総合評価など</span></div><div id="chart-award-method" class="chart small"></div></div>
+      <div class="card chart-card"><div class="card-head"><h3>落札金額帯</h3><span>金額確認済み</span></div><div id="chart-amount-dist" class="chart small"></div></div>
+    </section>
+  </div>
+
+  <div data-view="records" hidden>
+    <div class="section-title"><h2>案件を見る</h2><p>現在のフィルター条件に連動</p></div>
+    <section class="card table-card"><div class="table-head"><h3>案件一覧</h3><span id="table-note">—</span></div><div class="table-wrap"><table><thead><tr><th>日付</th><th>分野</th><th>発注機関</th><th>案件</th><th>受注企業</th><th class="money">落札額</th></tr></thead><tbody id="top-awards"></tbody></table></div></section>
+  </div>
+</main>
+<footer class="wrap">データ出典：JETRO 政府公共調達データベース / 調達ポータル（GEPS）、調達ポータル（GEPS）落札実績オープンデータ。現在の収録レコードは {new Intl.NumberFormat('ja-JP').format(summary.records)} 件、金額確認済みは {new Intl.NumberFormat('ja-JP').format(summary.awardRecords)} 件です。</footer>
+
+<script>
+import * as echarts from 'echarts/core';
+import { BarChart, LineChart, PieChart } from 'echarts/charts';
+import { GridComponent, LegendComponent, TitleComponent, TooltipComponent } from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
+echarts.use([BarChart,LineChart,PieChart,GridComponent,LegendComponent,TitleComponent,TooltipComponent,CanvasRenderer]);
+const $=(id)=>document.getElementById(id);
+const controls={year:$('f-year'),scope:$('f-scope'),source:$('f-source'),category:$('f-category'),agency:$('f-agency'),tag:$('f-tag'),method:$('f-method'),company:$('f-company'),amount:$('f-amount'),query:$('f-query')};
+const chartIds=['chart-month-count','chart-category','chart-month-amount','chart-year-category','chart-companies','chart-agencies','chart-method','chart-award-method','chart-amount-dist'];
+const charts=Object.fromEntries(chartIds.map(id=>[id,echarts.init($(id))]));
+let all=[];
+let crossSelection=null;
+const amountRanges={'<1,000万':'0-10000000','1,000万〜5,000万':'10000000-50000000','5,000万〜1億':'50000000-100000000','1億〜5億':'100000000-500000000','5億〜10億':'500000000-1000000000','10億以上':'1000000000-'};
+const fmtInt=(v)=>new Intl.NumberFormat('ja-JP').format(v||0);
+const fmtYen=(v)=>new Intl.NumberFormat('ja-JP').format(Math.round(v||0))+'円';
+const fmtMoney=(v)=>{v=Number(v||0);if(v>=1e8)return (v/1e8).toFixed(v>=1e9?1:2).replace(/\.0$/,'')+'億円';if(v>=1e4)return (v/1e4).toFixed(v>=1e6?0:1).replace(/\.0$/,'')+'万円';return fmtYen(v)};
+const countBy=(rows,fn)=>{const m=new Map();for(const r of rows){const k=fn(r);if(!k)continue;m.set(k,(m.get(k)||0)+1)}return m};
+const sumBy=(rows,keyFn,valFn)=>{const m=new Map();for(const r of rows){const k=keyFn(r),v=valFn(r);if(!k||!v)continue;m.set(k,(m.get(k)||0)+v)}return m};
+const sorted=(map,limit)=>[...map.entries()].sort((a,b)=>b[1]-a[1]).slice(0,limit);
+const emptyOption=(text='該当データなし')=>({title:{text,left:'center',top:'middle',textStyle:{fontSize:13,fontWeight:'normal',color:'#98a2b3'}},series:[]});
+const axisText={color:'#667085',fontSize:11};
+const baseTooltip={trigger:'axis',backgroundColor:'#101828',borderWidth:0,textStyle:{color:'#fff',fontSize:12},padding:[9,11]};
+
+function date8(v){return v&&v.length===8?v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8):''}
+function decodeDashboard(data){
+  if(Array.isArray(data))return data;
+  if(!data||data.v!==1||!Array.isArray(data.r))throw new Error('unsupported dashboard data');
+  return data.r.map(r=>{
+    const parts=String(r[0]||'').split(':');
+    const mask=Number(r[5]||0);
+    const sourceKind=Number(r[11]||0);
+    return {
+      title:r[1]||'', noticeDate:date8(String(r[2]||'')),
+      agency:data.a[r[3]]||'', category:data.c[r[4]]||'その他',
+      tags:(data.t||[]).filter((_,i)=>(mask&(1<<i))!==0),
+      awardDate:date8(String(r[6]||'')), contractMethod:data.m[r[7]]||'',
+      awardMethod:data.am[r[8]]||'', winnerName:data.w[r[9]]||'',
+      awardAmount:Number(r[10]||0)||null,
+      scope:sourceKind===1?'local':'national',
+      source:sourceKind===2?'geps':'jetro',
+      sourceUrl:sourceKind===1
+        ? 'https://www.jetro.go.jp/gov_procurement/local/articles/'+String(r[0]||'')+'.html'
+        : (sourceKind===2
+          ? 'https://www.p-portal.go.jp/pps-web-biz/UAB02/OAB0201?caseNo='+encodeURIComponent(String(r[0]||''))
+          : (parts.length>=2?'https://www.jetro.go.jp/gov_procurement/national/articles/'+parts[0]+'/'+parts.slice(1).join(':')+'.html':'#'))
+    };
+  });
+}
+function fillSelect(select,values){for(const v of values){const o=document.createElement('option');o.value=v;o.textContent=v;select.appendChild(o)}}
+function initFilters(){
+  fillSelect(controls.year,[...new Set(all.map(r=>(r.noticeDate||'').slice(0,4)).filter(Boolean))].sort().reverse());
+  fillSelect(controls.category,sorted(countBy(all,r=>r.category||'その他'),99).map(([k])=>k));
+  fillSelect(controls.agency,sorted(countBy(all,r=>r.agency),999).map(([k])=>k));
+  fillSelect(controls.tag,[...new Set(all.flatMap(r=>r.tags||[]))].sort());
+  fillSelect(controls.method,[...new Set(all.map(r=>r.contractMethod).filter(Boolean))].sort());
+  fillSelect(controls.company,sorted(countBy(all,r=>r.winnerName),999).map(([k])=>k));
+}
+function amountMatch(r,range){if(!range)return true;const a=r.awardAmount;if(!a)return false;const [lo,hi]=range.split('-');return a>=Number(lo||0)&&(!hi||a<Number(hi))}
+function baseFiltered(){
+  const q=controls.query.value.trim().toLowerCase();
+  return all.filter(r=>(!controls.year.value||(r.noticeDate||'').startsWith(controls.year.value))&&(!controls.scope.value||r.scope===controls.scope.value)&&(!controls.source.value||r.source===controls.source.value)&&(!controls.category.value||(r.category||'その他')===controls.category.value)&&(!controls.agency.value||r.agency===controls.agency.value)&&(!controls.tag.value||(r.tags||[]).includes(controls.tag.value))&&(!controls.method.value||r.contractMethod===controls.method.value)&&(!controls.company.value||r.winnerName===controls.company.value)&&amountMatch(r,controls.amount.value)&&(!q||(r.title||'').toLowerCase().includes(q)||(r.agency||'').toLowerCase().includes(q)||(r.winnerName||'').toLowerCase().includes(q)));
+}
+function selectionMatch(r,s){if(!s)return true;switch(s.kind){case'monthNotice':return(r.noticeDate||'').startsWith(s.value);case'monthAward':return(r.awardDate||r.noticeDate||'').startsWith(s.value);case'category':return(r.category||'その他')===s.value;case'company':return r.winnerName===s.value;case'agency':return r.agency===s.value;case'method':return r.contractMethod===s.value;case'awardMethod':return r.awardMethod===s.value;case'amount':return amountMatch(r,s.value);case'tag':return(r.tags||[]).includes(s.value);case'yearCategory':return(r.noticeDate||'').startsWith(s.year)&&(r.category||'その他')===s.category;default:return true}}
+function filtered(){const rows=baseFiltered();return crossSelection?rows.filter(r=>selectionMatch(r,crossSelection)):rows}
+function setKpis(rows){const awards=rows.filter(r=>r.awardAmount);const total=awards.reduce((a,r)=>a+r.awardAmount,0);$('kpi-count').textContent=fmtInt(rows.length);$('kpi-total').textContent=awards.length?fmtMoney(total):'—';$('kpi-awards').textContent='金額確認済み '+fmtInt(awards.length)+'件';$('kpi-avg').textContent=awards.length?fmtMoney(total/awards.length):'—';$('kpi-companies').textContent=fmtInt(new Set(rows.map(r=>r.winnerName).filter(Boolean)).size);$('kpi-agencies').textContent=fmtInt(new Set(rows.map(r=>r.agency).filter(Boolean)).size);$('result-count').textContent=fmtInt(rows.length)}
+function setActiveChips(){const labels=[['年',controls.year],['対象区分',controls.scope],['データソース',controls.source],['分野',controls.category],['発注機関',controls.agency],['IT技術',controls.tag],['契約方式',controls.method],['企業',controls.company],['金額',controls.amount],['検索',controls.query]];const box=$('active-filters');box.innerHTML='';if(crossSelection){const span=document.createElement('span');span.className='chip';span.textContent='グラフ選択: '+crossSelection.label;box.appendChild(span)}for(const [label,el] of labels){if(!el.value)continue;const span=document.createElement('span');span.className='chip';span.textContent=label+': '+(el.options?el.options[el.selectedIndex]?.textContent:el.value);box.appendChild(span)}}
+function monthRange(start,end){if(!start||!end)return[];const out=[];let [y,m]=start.split('-').map(Number);const [ey,em]=end.split('-').map(Number);while(y<ey||(y===ey&&m<=em)){out.push(String(y).padStart(4,'0')+'-'+String(m).padStart(2,'0'));m++;if(m===13){y++;m=1}}return out}
+function timelineMonths(rows,dateFn=(r)=>r.noticeDate){if(!rows.length)return[];if(controls.year.value){const y=controls.year.value;return Array.from({length:12},(_,i)=>y+'-'+String(i+1).padStart(2,'0'))}const vals=rows.map(dateFn).filter(Boolean).map(v=>v.slice(0,7)).sort();return vals.length?monthRange(vals[0],vals.at(-1)):[]}
+function renderMonthly(countRows,amountRows=countRows){if(!countRows.length){charts['chart-month-count'].setOption(emptyOption(),true)}else{const countMonths=timelineMonths(countRows,r=>r.noticeDate);const cm=countBy(countRows,r=>(r.noticeDate||'').slice(0,7));charts['chart-month-count'].setOption({tooltip:baseTooltip,grid:{left:48,right:18,top:18,bottom:45},xAxis:{type:'category',data:countMonths,axisLabel:{...axisText,interval:Math.max(0,Math.floor(countMonths.length/10)-1)},axisLine:{lineStyle:{color:'#dfe4eb'}}},yAxis:{type:'value',min:0,minInterval:1,axisLabel:axisText,splitLine:{lineStyle:{color:'#eef1f5'}}},series:[{type:'line',data:countMonths.map(m=>cm.get(m)||0),smooth:.2,showSymbol:true,symbol:'circle',triggerLineEvent:true,lineStyle:{width:3},emphasis:{focus:'series',scale:1.5},areaStyle:{opacity:.08}}]},true)}if(!amountRows.length){charts['chart-month-amount'].setOption(emptyOption('該当案件なし'),true);return}if(!amountRows.some(r=>r.awardAmount)){charts['chart-month-amount'].setOption(emptyOption('収録データに落札額情報なし'),true);return}const amountMonths=timelineMonths(amountRows,r=>r.awardDate||r.noticeDate);const am=sumBy(amountRows,r=>(r.awardDate||r.noticeDate||'').slice(0,7),r=>r.awardAmount||0);charts['chart-month-amount'].setOption({tooltip:{...baseTooltip,valueFormatter:fmtMoney},grid:{left:60,right:18,top:18,bottom:45},xAxis:{type:'category',data:amountMonths,axisLabel:{...axisText,interval:Math.max(0,Math.floor(amountMonths.length/10)-1)}},yAxis:{type:'value',min:0,axisLabel:{...axisText,formatter:v=>v>=1e8?(v/1e8)+'億':fmtInt(v)},splitLine:{lineStyle:{color:'#eef1f5'}}},series:[{type:'bar',data:amountMonths.map(m=>am.get(m)||0),barMaxWidth:24,itemStyle:{borderRadius:[4,4,0,0]}}]},true)}
+function horizontalBar(chart,items,{money=false,emptyText='収録データに該当情報なし'}={}){if(!items.length){chart.setOption(emptyOption(emptyText),true);return}const mobile=window.innerWidth<600;chart.setOption({tooltip:{trigger:'item',formatter:p=>p.name+'<br><strong>'+(money?fmtMoney(p.value):fmtInt(p.value)+'件')+'</strong>'},grid:{left:mobile?105:175,right:money?85:45,top:8,bottom:12},xAxis:{type:'value',show:false},yAxis:{type:'category',inverse:true,data:items.map(x=>x[0]),axisTick:{show:false},axisLine:{show:false},axisLabel:{...axisText,width:mobile?90:155,overflow:'truncate'}},series:[{type:'bar',data:items.map(x=>x[1]),barWidth:12,itemStyle:{borderRadius:8},label:{show:true,position:'right',distance:7,color:'#667085',fontSize:10,formatter:p=>money?fmtMoney(p.value):fmtInt(p.value)}}]},true)}
+function pie(chart,map,emptyText='収録データに該当情報なし'){const data=sorted(map,12).map(([name,value])=>({name,value}));if(!data.length){chart.setOption(emptyOption(emptyText),true);return}chart.setOption({tooltip:{trigger:'item',formatter:p=>p.name+'<br><strong>'+fmtInt(p.value)+'件</strong> ('+p.percent+'%)'},legend:{bottom:0,type:'scroll',textStyle:axisText},series:[{type:'pie',radius:['45%','70%'],center:['50%','43%'],label:{show:false},emphasis:{label:{show:true,fontSize:12,fontWeight:700}},data}]},true)}
+function renderCategory(rows){pie(charts['chart-category'],countBy(rows,r=>r.category||'その他'));if(!rows.length){charts['chart-year-category'].setOption(emptyOption(),true);return}const years=controls.year.value?[controls.year.value]:[...new Set(rows.map(r=>(r.noticeDate||'').slice(0,4)).filter(Boolean))].sort();const categories=sorted(countBy(rows,r=>r.category||'その他'),12).map(([k])=>k);const series=categories.map(category=>({name:category,type:'bar',stack:'total',data:years.map(y=>rows.filter(r=>(r.noticeDate||'').startsWith(y)&&(r.category||'その他')===category).length),emphasis:{focus:'series'}}));charts['chart-year-category'].setOption({tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},legend:{bottom:0,type:'scroll',textStyle:axisText},grid:{left:48,right:14,top:18,bottom:58},xAxis:{type:'category',data:years,axisLabel:axisText},yAxis:{type:'value',min:0,minInterval:1,axisLabel:axisText,splitLine:{lineStyle:{color:'#eef1f5'}}},series},true)}
+function renderRankings(rows){horizontalBar(charts['chart-companies'],sorted(sumBy(rows,r=>r.winnerName,r=>r.awardAmount||0),10),{money:true,emptyText:rows.length?'収録データに受注企業・落札額情報なし':'該当案件なし'});horizontalBar(charts['chart-agencies'],sorted(countBy(rows,r=>r.agency),10),{emptyText:'該当案件なし'})}
+function renderMethods(rows){pie(charts['chart-method'],countBy(rows,r=>r.contractMethod),rows.length?'収録データに契約方式情報なし':'該当案件なし');pie(charts['chart-award-method'],countBy(rows,r=>r.awardMethod),rows.length?'収録データに落札方式情報なし':'該当案件なし')}
+function renderAmountDist(rows){const awards=rows.filter(r=>r.awardAmount);if(!awards.length){charts['chart-amount-dist'].setOption(emptyOption(rows.length?'収録データに落札額情報なし':'該当案件なし'),true);return}const bands=[['<1,000万',0,1e7],['1,000万〜5,000万',1e7,5e7],['5,000万〜1億',5e7,1e8],['1億〜5億',1e8,5e8],['5億〜10億',5e8,1e9],['10億以上',1e9,Infinity]];const vals=bands.map(([,lo,hi])=>awards.filter(r=>r.awardAmount>=lo&&r.awardAmount<hi).length);charts['chart-amount-dist'].setOption({tooltip:{...baseTooltip,valueFormatter:v=>fmtInt(v)+'件'},grid:{left:45,right:10,top:18,bottom:58},xAxis:{type:'category',data:bands.map(b=>b[0]),axisLabel:{...axisText,rotate:24}},yAxis:{type:'value',axisLabel:axisText,splitLine:{lineStyle:{color:'#eef1f5'}}},series:[{type:'bar',data:vals,barMaxWidth:34,itemStyle:{borderRadius:[5,5,0,0]}}]},true)}
+function renderTable(rows){const data=[...rows].sort((a,b)=>String(b.noticeDate||b.awardDate||'').localeCompare(String(a.noticeDate||a.awardDate||''))||(b.awardAmount||0)-(a.awardAmount||0)).slice(0,100);$('table-note').textContent=fmtInt(rows.length)+'件中 '+fmtInt(data.length)+'件';const body=$('top-awards');body.innerHTML='';if(!data.length){body.innerHTML='<tr><td colspan="6" class="empty">該当する案件がありません</td></tr>';return}for(const r of data){const tr=document.createElement('tr');const date=document.createElement('td');date.textContent=r.awardDate||r.noticeDate||'—';const cat=document.createElement('td');const badge=document.createElement('span');badge.className='badge';badge.textContent=r.category||'その他';cat.appendChild(badge);const agency=document.createElement('td');agency.textContent=r.agency||'—';const title=document.createElement('td');const a=document.createElement('a');a.className='title-link';a.target='_blank';a.rel='noreferrer';a.href=r.sourceUrl||'#';a.textContent=r.title||'名称未取得';title.appendChild(a);const winner=document.createElement('td');winner.textContent=r.winnerName||'—';const money=document.createElement('td');money.className='money';money.textContent=r.awardAmount?fmtYen(r.awardAmount):'—';tr.append(date,cat,agency,title,winner,money);body.appendChild(tr)}}
+function setView(view){const valid=['overview','trend','players','contract','records'];const next=valid.includes(view)?view:'overview';document.querySelectorAll('[data-view]').forEach(el=>{el.hidden=el.dataset.view!==next});document.querySelectorAll('.view-tab').forEach(btn=>btn.setAttribute('aria-selected',String(btn.dataset.viewTarget===next)));if(crossSelection){const host=document.querySelector('[data-view="'+next+'"]');if(host)host.appendChild($('drill-card'))}history.replaceState(null,'','#'+next);requestAnimationFrame(()=>Object.values(charts).forEach(c=>c.resize()))}
+function renderDrillCases(rows){const box=$('drill-cases');box.innerHTML='';const sample=[...rows].sort((a,b)=>(b.awardAmount||0)-(a.awardAmount||0)||String(b.noticeDate||'').localeCompare(String(a.noticeDate||''))).slice(0,6);if(!sample.length){const d=document.createElement('div');d.className='drill-case';d.textContent='該当案件がありません';box.appendChild(d);return}for(const r of sample){const card=document.createElement('div');card.className='drill-case';const a=document.createElement('a');a.href=r.sourceUrl||'#';a.target='_blank';a.rel='noreferrer';a.textContent=r.title||'名称未取得';const meta=document.createElement('div');meta.className='drill-case-meta';const parts=[r.noticeDate||r.awardDate||'',r.agency||'',r.winnerName||''].filter(Boolean);meta.textContent=parts.join(' / ');card.appendChild(a);card.appendChild(meta);if(r.awardAmount){const money=document.createElement('div');money.className='drill-case-meta drill-case-money';money.textContent=fmtMoney(r.awardAmount);card.appendChild(money)}box.appendChild(card)}}
+function showDrill(kicker,title,meta,rows){const detailed=rows.filter(r=>r.awardAmount||r.winnerName||r.contractMethod||r.awardMethod).length;$('drill-kicker').textContent=kicker;$('drill-title').textContent=title;$('drill-meta').textContent=(meta?meta+' / ':'')+'該当 '+fmtInt(rows.length)+'件 / 詳細項目あり '+fmtInt(detailed)+'件';renderDrillCases(rows);$('drill-card').hidden=false}
+function clearCrossSelection(){crossSelection=null;$('drill-card').hidden=true;render()}
+function selectSegment(selection,kicker,title,meta){crossSelection=selection;const rows=filtered();render();const card=$('drill-card');const host=document.querySelector('[data-view]:not([hidden])');if(host)host.appendChild(card);showDrill(kicker,title,meta,rows);requestAnimationFrame(()=>card.scrollIntoView({behavior:'smooth',block:'nearest'}))}
+function bindChartClicks(){
+  charts['chart-month-amount'].on('click',p=>selectSegment({kind:'monthAward',value:p.name,label:p.name},'月別確認済み落札額',p.name,fmtMoney(p.value)));
+  charts['chart-category'].on('click',p=>selectSegment({kind:'category',value:p.name,label:p.name},'分野',p.name,fmtInt(p.value)+'件'));
+  charts['chart-companies'].on('click',p=>selectSegment({kind:'company',value:p.name,label:p.name},'受注企業',p.name,'確認済み落札額 '+fmtMoney(p.value)));
+  charts['chart-agencies'].on('click',p=>selectSegment({kind:'agency',value:p.name,label:p.name},'発注機関',p.name,fmtInt(p.value)+'件'));
+  charts['chart-method'].on('click',p=>selectSegment({kind:'method',value:p.name,label:p.name},'契約方式',p.name,fmtInt(p.value)+'件'));
+  charts['chart-award-method'].on('click',p=>selectSegment({kind:'awardMethod',value:p.name,label:p.name},'落札方式',p.name,fmtInt(p.value)+'件'));
+  charts['chart-amount-dist'].on('click',p=>selectSegment({kind:'amount',value:amountRanges[p.name]||'',label:p.name},'落札金額帯',p.name,fmtInt(p.value)+'件'));
+  charts['chart-year-category'].on('click',p=>selectSegment({kind:'yearCategory',year:p.name,category:p.seriesName,label:p.name+'年 / '+p.seriesName},'年 × 分野',p.name+'年 / '+p.seriesName,fmtInt(p.value)+'件'));
+}
+
+function render(){const rows=filtered();setKpis(rows);setActiveChips();renderMonthly(rows,rows);renderCategory(rows);renderRankings(rows);renderMethods(rows);renderAmountDist(rows);renderTable(rows)}
+function setFiltersOpen(open){const body=$('filter-body');const btn=$('filter-toggle');body.hidden=!open;btn.setAttribute('aria-expanded',String(open));btn.textContent=open?'条件を閉じる':'条件を開く'}
+fetch('/data/dashboard.json').then(r=>{if(!r.ok)throw new Error('data load failed');return r.json()}).then(data=>{all=decodeDashboard(data);initFilters();bindChartClicks();render();const initial=(location.hash||'#overview').slice(1);setView(initial);setFiltersOpen(window.innerWidth>=780);$('filter-toggle').addEventListener('click',()=>setFiltersOpen($('filter-body').hidden));for(const el of Object.values(controls)){el.addEventListener(el===controls.query?'input':'change',()=>{crossSelection=null;$('drill-card').hidden=true;render()})}document.querySelectorAll('.view-tab').forEach(btn=>btn.addEventListener('click',()=>setView(btn.dataset.viewTarget)));$('drill-clear').addEventListener('click',clearCrossSelection);$('drill-more').addEventListener('click',()=>{setView('records');document.querySelector('[data-view="records"]')?.scrollIntoView({behavior:'smooth',block:'start'})});$('reset').addEventListener('click',()=>{for(const el of Object.values(controls))el.value='';crossSelection=null;$('drill-card').hidden=true;render()})}).catch(err=>{console.error(err);$('result-count').textContent='読み込み失敗';for(const c of Object.values(charts))c.setOption(emptyOption('データを読み込めませんでした'),true)});
+let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{Object.values(charts).forEach(c=>c.resize());if(all.length)renderRankings(filtered())},100)});
+</script>
+</body></html>

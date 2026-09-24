@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "jetro": {
+      "label": "JETRO 政府公共調達データベース",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 48,
+      "minRecords": 1000,
+      "acquisition": "official-public-web",
+      "command": [
+        "python3",
+        "collector/collect_jetro.py",
+        "--pages",
+        "20",
+        "--detail-limit",
+        "150"
+      ],
+      "country": "JP",
+      "domain": "procurement"
+    },
+    "jetro_local": {
+      "label": "JETRO 地方政府公共調達データベース",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 48,
+      "minRecords": 100,
+      "acquisition": "official-public-web",
+      "command": [
+        "python3",
+        "collector/collect_jetro_local.py",
+        "--pages",
+        "20"
+      ],
+      "country": "JP",
+      "domain": "procurement"
+    },
+    "land_prices": {
+      "label": "国土交通省 地価公示",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 20000,
+      "acquisition": "official-open-data-csv",
+      "command": [
+        "python3",
+        "collector/collect_land_prices.py"
+      ],
+      "country": "JP",
+      "domain": "realestate"
+    }
+  }
+}

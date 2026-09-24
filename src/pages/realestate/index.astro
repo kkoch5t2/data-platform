@@ -1,0 +1,195 @@
+---
+---
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="全国の地価、不動産、防災、人口、治安、交通事故、病院、学校、駅、飲食店を地図で重ねて見る地域データマップ。" />
+  <meta property="og:title" content="不動産 × 防災 × 暮らしマップ | DATA" />
+  <meta property="og:description" content="地価・防災・人口・治安・交通事故・生活施設を、同じ地図で比較。" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <title>不動産 × 防災 × 暮らしマップ | DATA</title>
+  <link rel="stylesheet" href="/vendor/maplibre-6.11.1/maplibre-gl.css" />
+  <style is:global>
+    :root{--ink:#142033;--muted:#667085;--line:#e4e9f0;--bg:#f4f6f9;--nav:#0e1b2e;--blue:#1769e0}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Noto Sans JP",sans-serif}.wrap{width:min(1440px,calc(100% - 28px));margin:auto}a{color:inherit}header{background:var(--nav);color:white;padding:16px 0}.nav{display:flex;justify-content:space-between;align-items:center;gap:16px}.brand{font-weight:850;letter-spacing:.05em;text-decoration:none}.navlinks{display:flex;gap:8px;flex-wrap:wrap}.navlinks a{font-size:12px;color:#d9e4f4;text-decoration:none;border:1px solid #ffffff28;padding:7px 10px;border-radius:999px}
+    .intro{padding:24px 0 14px}.intro h1{font-size:clamp(28px,4vw,48px);letter-spacing:-.04em;margin:0 0 8px}.intro p{margin:0;color:var(--muted);line-height:1.7}.dashboard{display:grid;grid-template-columns:310px minmax(0,1fr);gap:12px;padding-bottom:40px}.panel,.map-card{background:#fff;border:1px solid var(--line);border-radius:16px}.panel{padding:16px;align-self:start}.panel h2{font-size:14px;margin:0 0 12px}.group{border-top:1px solid #edf0f4;padding-top:14px;margin-top:14px}.group:first-of-type{border-top:0;padding-top:0;margin-top:0}.label{display:block;font-size:11px;font-weight:750;color:var(--muted);margin-bottom:7px}select{width:100%;height:40px;border:1px solid #d9dee7;border-radius:9px;background:#fff;padding:0 10px}.layer{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:9px 0}.layer span{font-size:13px}.keydot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:-1px;box-shadow:0 0 0 1px #ffffff,0 0 0 2px #cfd6df}.keygrad{display:inline-block;width:30px;height:10px;border-radius:999px;margin-right:7px;vertical-align:-1px;box-shadow:0 0 0 1px #cfd6df}.color-key{font-size:11px;color:#475467;line-height:1.6}.color-key .row{display:flex;align-items:center;gap:7px;margin:5px 0}.color-key .swatch{width:12px;height:12px;border-radius:50%;flex:0 0 auto}.color-key .grad{width:48px;height:10px;border-radius:999px;flex:0 0 auto}.toggle{appearance:none;width:42px;height:24px;border-radius:999px;background:#d0d5dd;position:relative;cursor:pointer;transition:.2s}.toggle:after{content:"";width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:.2s;box-shadow:0 1px 3px #0003}.toggle:checked{background:var(--blue)}.toggle:checked:after{left:21px}
+    .kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}.kpi{background:#f8fafc;border:1px solid #edf0f4;border-radius:11px;padding:10px}.kpi b{display:block;font-size:18px;margin-top:4px}.kpi small{color:var(--muted)}.note{font-size:11px;color:var(--muted);line-height:1.65}.map-card{overflow:hidden;position:relative}.map-toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}.map-toolbar strong{font-size:13px}.map-toolbar span{font-size:11px;color:var(--muted)}#map{height:72vh;min-height:560px}.legend{position:absolute;right:12px;bottom:28px;z-index:3;background:#fffffff2;border:1px solid #dfe4eb;border-radius:10px;padding:10px 11px;font-size:10px;box-shadow:0 6px 22px #10182818}.legend div{display:flex;align-items:center;gap:6px;margin:4px 0}.dot{width:11px;height:11px;border-radius:50%;display:inline-block}.loading{position:absolute;inset:55px 0 0;z-index:4;background:#ffffffd9;display:grid;place-items:center;font-weight:750;color:#475467}.maplibregl-popup-content{border-radius:12px;padding:12px 14px;min-width:240px}.popup-title{font-weight:800;margin-bottom:7px}.popup-price{font-size:20px;font-weight:850}.popup-meta{font-size:11px;color:#667085;line-height:1.6;margin-top:5px}
+    @media(max-width:900px){.dashboard{grid-template-columns:1fr}.panel{display:grid;grid-template-columns:1fr 1fr;gap:12px}.panel h2{grid-column:1/-1}.group{margin:0;padding:0;border:0}.note{grid-column:1/-1}#map{height:68vh;min-height:500px}}@media(max-width:560px){.wrap{width:calc(100% - 16px)}.nav{align-items:flex-start;flex-direction:column}.panel{display:block}.group{border-top:1px solid #edf0f4;padding-top:12px;margin-top:12px}.legend{display:none}#map{min-height:520px}}
+  </style>
+</head>
+<body>
+<header><div class="wrap nav"><a class="brand" href="/">DATA</a><div class="navlinks"><a href="/">ホーム</a><a href="/procurement/">公共調達</a><a href="/realestate/">不動産 × 防災・暮らし</a><a href="/about-data/#realestate">データについて</a></div></div></header>
+<main class="wrap">
+  <section class="intro"><h1>街を、価格だけで選ばない。</h1><p>地価・防災に、人口、高齢化率、治安、交通事故、病院、学校、駅、飲食店を重ねて、街をいろいろな角度から見られます。</p></section>
+  <section class="dashboard">
+    <aside class="panel">
+      <h2>表示条件</h2>
+      <div class="group"><label class="label" for="prefecture">都道府県</label><select id="prefecture"><option value="">全国</option></select></div>
+      <div class="group"><span class="label">不動産・防災</span>
+        <label class="layer"><span><i class="keydot" style="background:#1769e0"></i>地価公示</span><input id="layer-price" class="toggle" type="checkbox" checked /></label>
+        <label class="layer"><span><i class="keygrad" style="background:linear-gradient(90deg,#fff7bc,#fed98e,#fc9272,#e34a9a,#c06bd8)"></i>洪水浸水想定</span><input id="layer-flood" class="toggle" type="checkbox" checked /></label>
+        <label class="layer"><span><i class="keygrad" style="background:linear-gradient(90deg,#fff7bc,#fed98e,#fc9272,#e34a9a,#c06bd8)"></i>津波浸水想定</span><input id="layer-tsunami" class="toggle" type="checkbox" /></label>
+        <label class="layer"><span><i class="keygrad" style="background:linear-gradient(90deg,#f1d42b 0 50%,#bd0026 50% 100%)"></i>土砂災害（土石流）</span><input id="layer-sediment" class="toggle" type="checkbox" /></label>
+      </div>
+      <div class="group"><label class="label" for="stat-layer">地域統計</label><select id="stat-layer">
+        <option value="">表示しない</option><option value="population">人口</option><option value="elderly">高齢化率</option><option value="crime">犯罪率</option><option value="accident">交通事故</option>
+      </select></div>
+      <div class="group"><span class="label">施設・生活</span>
+        <label class="layer"><span><i class="keydot" style="background:#0ea5e9"></i>病院（2020）</span><input id="layer-hospital" class="toggle" type="checkbox" /></label>
+        <label class="layer"><span><i class="keydot" style="background:#8b5cf6"></i>学校（2023）</span><input id="layer-school" class="toggle" type="checkbox" /></label>
+        <label class="layer"><span><i class="keydot" style="background:#059669"></i>駅（2025）</span><input id="layer-station" class="toggle" type="checkbox" /></label>
+        <label class="layer"><span><i class="keydot" style="background:#f59e0b"></i>飲食店（OSM・拡大時）</span><input id="layer-restaurant" class="toggle" type="checkbox" /></label>
+      </div>
+      <div class="group"><span class="label">色の見方</span><div class="color-key">
+        <div class="row"><i class="swatch" style="background:#1769e0"></i><span>青：地価公示 / 地価地点のまとまり</span></div>
+        <div class="row"><i class="grad" style="background:linear-gradient(90deg,#fff7bc,#fed98e,#fc9272,#e34a9a,#c06bd8)"></i><span>洪水：浸水浅 ↗ 深</span></div>
+        <div class="row"><i class="grad" style="background:linear-gradient(90deg,#fff7bc,#fed98e,#fc9272,#e34a9a,#c06bd8)"></i><span>津波：浸水浅 ↗ 深</span></div>
+        <div class="row"><i class="grad" style="background:linear-gradient(90deg,#f1d42b 0 50%,#bd0026 50% 100%)"></i><span>土砂災害：警戒区域 ↗ 特別警戒区域</span></div>
+        <div class="row"><i class="swatch" style="background:#ef4444"></i><span>赤：交通事故</span></div>
+        <div class="row"><i class="swatch" style="background:#0ea5e9"></i><span>水色：病院</span></div>
+        <div class="row"><i class="swatch" style="background:#8b5cf6"></i><span>紫：学校</span></div>
+        <div class="row"><i class="swatch" style="background:#059669"></i><span>緑：駅</span></div>
+        <div class="row"><i class="swatch" style="background:#f59e0b"></i><span>橙：飲食店</span></div>
+        <div class="row"><i class="grad" style="background:linear-gradient(90deg,#bfdbfe,#1e3a8a)"></i><span>人口：薄青 ↗ 濃青</span></div>
+        <div class="row"><i class="grad" style="background:linear-gradient(90deg,#86efac,#fde047,#fb923c,#dc2626)"></i><span>高齢化率：緑 ↗ 赤</span></div>
+        <div class="row"><i class="grad" style="background:linear-gradient(90deg,#fde68a,#f97316,#dc2626)"></i><span>犯罪率：黄 ↗ 赤</span></div>
+      </div></div>
+      <div class="group"><span class="label">表示中の地価公示</span><div class="kpis"><div class="kpi"><small>地点数</small><b id="kpi-count">—</b></div><div class="kpi"><small>中央値</small><b id="kpi-median">—</b></div></div></div>
+      <p class="note">各レイヤーは出典年度が異なります。犯罪率は2025年の刑法犯認知件数を2024年人口で割った都道府県単位の参考値。交通事故は2024年の警察庁事故データを約1kmグリッドに集約しています。</p>
+    </aside>
+    <div class="map-card">
+      <div class="map-toolbar"><strong>全国 不動産・防災・暮らしデータマップ</strong><span id="map-status">データを読み込み中</span></div>
+      <div id="map"></div><div id="loading" class="loading">全国25,000地点の地価データを読み込み中…</div>
+      <div id="legend" class="legend"><strong>地価（円/㎡）</strong><div><i class="dot" style="background:#22c55e"></i>10万円未満</div><div><i class="dot" style="background:#eab308"></i>10〜30万円</div><div><i class="dot" style="background:#f97316"></i>30〜100万円</div><div><i class="dot" style="background:#dc2626"></i>100万円以上</div></div>
+    </div>
+  </section>
+</main>
+<script is:inline type="module">
+import * as maplibregl from '/vendor/maplibre-6.11.1/maplibre-gl.mjs';
+maplibregl.setWorkerUrl('/vendor/maplibre-6.11.1/maplibre-gl-worker.mjs');
+const fmt=(v)=>new Intl.NumberFormat('ja-JP').format(Math.round(v||0));
+const $=(id)=>document.getElementById(id);
+const hazardTiles={flood:'https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/{z}/{x}/{y}.png',tsunami:'https://disaportaldata.gsi.go.jp/raster/04_tsunami_newlegend_data/{z}/{x}/{y}.png',sediment:'https://disaportaldata.gsi.go.jp/raster/05_dosekiryukeikaikuiki/{z}/{x}/{y}.png'};
+const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[137.7,36.2],zoom:4.3,minZoom:3,maxZoom:17});
+map.addControl(new maplibregl.NavigationControl(),'top-right');
+let payload,features=[];
+function median(values){if(!values.length)return 0;const a=[...values].sort((x,y)=>x-y),m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
+function makeFeatures(rows){return rows.map(r=>({type:'Feature',geometry:{type:'Point',coordinates:[r[1],r[2]]},properties:{id:r[0],price:r[3],yoy:r[4],name:r[5],address:r[6],prefecture:r[7],station:r[8],stationDistance:r[9],use:r[10],area:r[11]}}))}
+function visibleRows(){const pref=$('prefecture').value;return pref?features.filter(f=>f.properties.prefecture===pref):features}
+function updateStats(rows){$('kpi-count').textContent=fmt(rows.length);$('kpi-median').textContent=rows.length?fmt(median(rows.map(f=>f.properties.price)))+'円':'—';$('map-status').textContent=rows.length?fmt(rows.length)+'地点 / 2026年':'該当地点なし'}
+function setPriceData(rows){const source=map.getSource('land-prices');if(source)source.setData({type:'FeatureCollection',features:rows});updateStats(rows)}
+function fitRows(rows){if(!rows.length)return;const b=new maplibregl.LngLatBounds();rows.forEach(f=>b.extend(f.geometry.coordinates));map.fitBounds(b,{padding:45,maxZoom:10,duration:700})}
+function addHazard(id,url,visible){map.addSource(id,{type:'raster',tiles:[url],tileSize:256,maxzoom:17});map.addLayer({id,source:id,type:'raster',layout:{visibility:visible?'visible':'none'},paint:{'raster-opacity':.43}})}
+function setVisible(id,on){if(map.getLayer(id))map.setLayoutProperty(id,'visibility',on?'visible':'none')}
+function priceColor(){return ['step',['get','price'],'#22c55e',100000,'#eab308',300000,'#f97316',1000000,'#dc2626']}
+const fc=(features=[])=>({type:'FeatureCollection',features});
+const esc=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let municipalityFeatures=[],crimeFeatures=[];
+function statLegend(kind){
+  const box=$('legend');
+  if(kind==='population')box.innerHTML='<strong>人口（2020）</strong><div>● 市区町村の人口規模</div>';
+  else if(kind==='elderly')box.innerHTML='<strong>高齢化率（2020）</strong><div>● 65歳以上人口割合</div>';
+  else if(kind==='crime')box.innerHTML='<strong>犯罪率（2025）</strong><div>● 人口千人当たり / 都道府県</div>';
+  else if(kind==='accident')box.innerHTML='<strong>交通事故（2024）</strong><div>● 約1kmグリッドの事故件数</div>';
+  else box.innerHTML='<strong>地価（円/㎡）</strong><div>緑 10万円未満</div><div>黄 10〜30万円</div><div>橙 30〜100万円</div><div>赤 100万円以上</div>';
+}
+async function initRegionalStats(){
+  const [m,c]=await Promise.all([fetch('/data/municipality-stats-2026.json').then(r=>r.json()),fetch('/data/crime-prefecture-2025.json').then(r=>r.json())]);
+  municipalityFeatures=m.records.filter(x=>x.lon&&x.lat).map(x=>({type:'Feature',geometry:{type:'Point',coordinates:[x.lon,x.lat]},properties:x}));
+  crimeFeatures=c.records.map(x=>({type:'Feature',geometry:{type:'Point',coordinates:[x.lon,x.lat]},properties:x}));
+  map.addSource('municipal-stats',{type:'geojson',data:fc(municipalityFeatures)});
+  map.addSource('crime-stats',{type:'geojson',data:fc(crimeFeatures)});
+  map.addLayer({id:'municipal-stat-points',type:'circle',source:'municipal-stats',layout:{visibility:'none'},paint:{'circle-stroke-color':'#fff','circle-stroke-width':1.2,'circle-opacity':.82}});
+  map.addLayer({id:'crime-stat-points',type:'circle',source:'crime-stats',layout:{visibility:'none'},paint:{'circle-stroke-color':'#fff','circle-stroke-width':1.5,'circle-opacity':.85}});
+  map.on('click','municipal-stat-points',e=>{const p=e.features?.[0]?.properties;if(!p)return;new maplibregl.Popup({offset:10}).setLngLat(e.features[0].geometry.coordinates).setHTML('<div class="popup-title">'+esc(p.prefecture+' '+p.municipality)+'</div><div class="popup-meta">人口 '+fmt(p.population)+'人<br>高齢化率 '+p.elderlyRate+'%<br>病院 '+fmt(p.hospitalCount)+' / 診療所 '+fmt(p.clinicCount)+'</div>').addTo(map)});
+  map.on('click','crime-stat-points',e=>{const p=e.features?.[0]?.properties;if(!p)return;new maplibregl.Popup({offset:10}).setLngLat(e.features[0].geometry.coordinates).setHTML('<div class="popup-title">'+esc(p.prefecture)+'</div><div class="popup-price">'+Number(p.ratePer1000).toFixed(2)+'件/千人</div><div class="popup-meta">2025年 刑法犯認知 '+fmt(p.count)+'件<br>人口は2024年値を使用（都道府県単位）</div>').addTo(map)});
+}
+async function updateStatLayer(){
+  const kind=$('stat-layer').value; setVisible('municipal-stat-points',kind==='population'||kind==='elderly'); setVisible('crime-stat-points',kind==='crime'); if(kind==='accident') await toggleAccidents(true); else if(accidentLoaded) await toggleAccidents(false); statLegend(kind);
+  if(kind==='population'){map.setPaintProperty('municipal-stat-points','circle-color',['step',['get','population'],'#bfdbfe',30000,'#60a5fa',100000,'#2563eb',500000,'#1e3a8a']);map.setPaintProperty('municipal-stat-points','circle-radius',['step',['get','population'],4,30000,6,100000,9,500000,14,1000000,18]);}
+  if(kind==='elderly'){map.setPaintProperty('municipal-stat-points','circle-color',['step',['get','elderlyRate'],'#86efac',25,'#fde047',35,'#fb923c',45,'#dc2626']);map.setPaintProperty('municipal-stat-points','circle-radius',['step',['get','elderlyRate'],5,25,7,35,10,45,13]);}
+  if(kind==='crime'){map.setPaintProperty('crime-stat-points','circle-color',['step',['get','ratePer1000'],'#fde68a',3,'#fbbf24',5,'#f97316',7,'#dc2626']);map.setPaintProperty('crime-stat-points','circle-radius',['step',['get','ratePer1000'],8,3,10,5,13,7,16]);}
+}
+const poiConfig={
+  hospital:{url:'/data/poi-hospitals-2020.json',label:'病院',color:'#0ea5e9'},
+  school:{url:'/data/poi-schools-2023.json',label:'学校',color:'#8b5cf6'},
+  station:{url:'/data/poi-stations-2025.json',label:'駅',color:'#059669'}
+};
+const poiLoaded=new Set();
+function poiFeature(kind,r){
+  const extra=kind==='hospital'?(r[3]||'')+(r[4]?' / 病床 '+fmt(r[4])+'床':''):kind==='school'?(r[4]||''):((r[3]||'')+(r[4]?' / '+r[4]:''));
+  return {type:'Feature',geometry:{type:'Point',coordinates:[r[0],r[1]]},properties:{kind,name:r[2]||poiConfig[kind].label,extra}};
+}
+async function ensurePoi(kind){
+  if(poiLoaded.has(kind))return;
+  const cfg=poiConfig[kind],data=await fetch(cfg.url).then(r=>r.json()),src='poi-'+kind;
+  map.addSource(src,{type:'geojson',data:fc(data.records.map(r=>poiFeature(kind,r))),cluster:true,clusterRadius:42,clusterMaxZoom:13});
+  map.addLayer({id:src+'-clusters',type:'circle',source:src,filter:['has','point_count'],layout:{visibility:'none'},paint:{'circle-color':cfg.color,'circle-radius':['step',['get','point_count'],13,20,17,100,22],'circle-opacity':.82,'circle-stroke-color':'#fff','circle-stroke-width':1.5}});
+  map.addLayer({id:src+'-count',type:'symbol',source:src,filter:['has','point_count'],layout:{visibility:'none','text-field':['get','point_count_abbreviated'],'text-size':10},paint:{'text-color':'#fff'}});
+  map.addLayer({id:src+'-points',type:'circle',source:src,filter:['!', ['has','point_count']],layout:{visibility:'none'},paint:{'circle-color':cfg.color,'circle-radius':['interpolate',['linear'],['zoom'],7,3,13,6,16,8],'circle-opacity':.86,'circle-stroke-color':'#fff','circle-stroke-width':1}});
+  map.on('click',src+'-clusters',async e=>{const f=e.features?.[0];if(!f)return;const z=await map.getSource(src).getClusterExpansionZoom(f.properties.cluster_id);map.easeTo({center:f.geometry.coordinates,zoom:z})});
+  map.on('click',src+'-points',e=>{const p=e.features?.[0]?.properties;if(!p)return;new maplibregl.Popup({offset:10}).setLngLat(e.features[0].geometry.coordinates).setHTML('<div class="popup-title">'+esc(p.name)+'</div><div class="popup-meta">'+esc(p.extra||'')+'</div>').addTo(map)});
+  poiLoaded.add(kind);
+}
+async function togglePoi(kind,on){
+  if(on)await ensurePoi(kind);
+  ['clusters','count','points'].forEach(s=>setVisible('poi-'+kind+'-'+s,on));
+}
+let accidentLoaded=false;
+async function ensureAccidents(){
+  if(accidentLoaded)return;
+  const data=await fetch('/data/traffic-accidents-2024.json').then(r=>r.json());
+  const fs=data.records.map(r=>({type:'Feature',geometry:{type:'Point',coordinates:[r[0],r[1]]},properties:{accidents:r[2],deaths:r[3],injuries:r[4]}}));
+  map.addSource('accident-grid',{type:'geojson',data:fc(fs)});
+  map.addLayer({id:'accident-heat',type:'heatmap',source:'accident-grid',layout:{visibility:'none'},paint:{'heatmap-weight':['interpolate',['linear'],['get','accidents'],1,.2,20,1],'heatmap-intensity':['interpolate',['linear'],['zoom'],4,.5,12,2],'heatmap-radius':['interpolate',['linear'],['zoom'],4,6,12,22],'heatmap-opacity':.7}});
+  map.addLayer({id:'accident-points',type:'circle',source:'accident-grid',minzoom:10,layout:{visibility:'none'},paint:{'circle-color':'#ef4444','circle-radius':['step',['get','accidents'],3,3,5,8,8],'circle-opacity':.65}});
+  map.on('click','accident-points',e=>{const p=e.features?.[0]?.properties;if(!p)return;new maplibregl.Popup({offset:8}).setLngLat(e.features[0].geometry.coordinates).setHTML('<div class="popup-title">交通事故（2024）</div><div class="popup-price">'+fmt(p.accidents)+'件</div><div class="popup-meta">約1kmグリッド集計 / 死者 '+fmt(p.deaths)+'人 / 負傷者 '+fmt(p.injuries)+'人</div>').addTo(map)});
+  accidentLoaded=true;
+}
+async function toggleAccidents(on){if(on)await ensureAccidents();setVisible('accident-heat',on);setVisible('accident-points',on)}
+let restaurantReady=false;
+function initRestaurants(){
+  if(restaurantReady)return;
+  map.addLayer({id:'restaurant-points',type:'circle',source:'openmaptiles','source-layer':'poi',minzoom:14,
+    filter:['match',['get','class'],['restaurant','cafe','fast_food'],true,false],
+    layout:{visibility:'none'},
+    paint:{'circle-color':'#f59e0b','circle-radius':['interpolate',['linear'],['zoom'],14,3,17,7],'circle-stroke-color':'#fff','circle-stroke-width':1,'circle-opacity':.9}});
+  map.on('click','restaurant-points',e=>{const p=e.features?.[0]?.properties;if(!p)return;const kind=p.class==='cafe'?'カフェ':p.class==='fast_food'?'ファストフード':'飲食店';new maplibregl.Popup({offset:8}).setLngLat(e.lngLat).setHTML('<div class="popup-title">'+esc(p.name||p.name_en||'名称未登録')+'</div><div class="popup-meta">'+kind+'<br>OpenStreetMap / OpenMapTiles</div>').addTo(map)});
+  restaurantReady=true;
+}
+function toggleRestaurants(on){
+  if(on&&!restaurantReady)initRestaurants();
+  setVisible('restaurant-points',on);
+  if(on&&map.getZoom()<14)$('map-status').textContent='飲食店はズーム14以上で表示';
+  else if(!on)$('map-status').textContent=fmt(visibleRows().length)+'地点 / 2026年';
+}
+map.on('load',async()=>{
+  addHazard('hazard-flood',hazardTiles.flood,true);addHazard('hazard-tsunami',hazardTiles.tsunami,false);addHazard('hazard-sediment',hazardTiles.sediment,false);
+  try{await initRegionalStats()}catch(e){console.error('regional stats',e)}
+  try{payload=await fetch('/data/land-prices-2026.json').then(r=>{if(!r.ok)throw new Error('地価データ取得失敗');return r.json()});features=makeFeatures(payload.records);
+    map.addSource('land-prices',{type:'geojson',data:{type:'FeatureCollection',features},cluster:true,clusterMaxZoom:10,clusterRadius:45});
+    map.addLayer({id:'price-clusters',type:'circle',source:'land-prices',filter:['has','point_count'],paint:{'circle-color':'#1769e0','circle-radius':['step',['get','point_count'],16,50,20,300,25],'circle-opacity':.88,'circle-stroke-color':'#fff','circle-stroke-width':2}});
+    map.addLayer({id:'cluster-count',type:'symbol',source:'land-prices',filter:['has','point_count'],layout:{'text-field':['get','point_count_abbreviated'],'text-size':11},paint:{'text-color':'#fff'}});
+    map.addLayer({id:'price-points',type:'circle',source:'land-prices',filter:['!', ['has','point_count']],paint:{'circle-color':priceColor(),'circle-radius':['interpolate',['linear'],['zoom'],5,3,10,6,14,9],'circle-stroke-color':'#fff','circle-stroke-width':1.3,'circle-opacity':.92}});
+    const prefs=[...new Set(features.map(f=>f.properties.prefecture).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));prefs.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;$('prefecture').appendChild(o)});updateStats(features);$('loading').style.display='none';
+  }catch(e){console.error(e);$('loading').textContent='地価データを読み込めませんでした';$('map-status').textContent='読み込み失敗'}
+});
+$('prefecture').addEventListener('change',()=>{const rows=visibleRows();setPriceData(rows);fitRows(rows)});
+$('layer-flood').addEventListener('change',e=>setVisible('hazard-flood',e.target.checked));
+$('layer-tsunami').addEventListener('change',e=>setVisible('hazard-tsunami',e.target.checked));
+$('layer-sediment').addEventListener('change',e=>setVisible('hazard-sediment',e.target.checked));
+$('layer-price').addEventListener('change',e=>['price-clusters','cluster-count','price-points'].forEach(id=>setVisible(id,e.target.checked)));
+$('stat-layer').addEventListener('change',updateStatLayer);
+$('layer-hospital').addEventListener('change',e=>togglePoi('hospital',e.target.checked));
+$('layer-school').addEventListener('change',e=>togglePoi('school',e.target.checked));
+$('layer-station').addEventListener('change',e=>togglePoi('station',e.target.checked));
+$('layer-restaurant').addEventListener('change',e=>toggleRestaurants(e.target.checked));
+map.on('click','price-clusters',async e=>{const f=map.queryRenderedFeatures(e.point,{layers:['price-clusters']})[0];if(!f)return;const source=map.getSource('land-prices');const zoom=await source.getClusterExpansionZoom(f.properties.cluster_id);map.easeTo({center:f.geometry.coordinates,zoom})});
+map.on('click','price-points',e=>{const p=e.features?.[0]?.properties;if(!p)return;const yoy=p.yoy===null||p.yoy===''?'—':(Number(p.yoy)>0?'+':'')+Number(p.yoy).toFixed(1)+'%';const station=p.station?p.station+'駅'+(p.stationDistance?' '+fmt(p.stationDistance)+'m':''):'—';new maplibregl.Popup({offset:12}).setLngLat(e.features[0].geometry.coordinates).setHTML('<div class="popup-title">'+(p.name||'地価公示地点')+'</div><div class="popup-price">'+fmt(p.price)+'円/㎡</div><div class="popup-meta">前年比 '+yoy+'<br>'+p.address+'<br>最寄り '+station+'<br>利用現況 '+(p.use||'—')+'</div>').addTo(map)});
+['price-clusters','price-points'].forEach(layer=>{map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='')});
+</script>
+<footer class="wrap" style="padding:0 0 36px;color:#667085;font-size:11px;line-height:1.8">地価：国土交通省 国土数値情報「地価公示（2026年）」CC BY 4.0。防災：ハザードマップポータルサイト。背景地図・飲食店：OpenFreeMap / OpenMapTiles / OpenStreetMap。各データは年度・粒度が異なり、表示がないことはリスクや施設が存在しないことを意味しません。住宅購入・避難等の判断には公開元の最新情報を確認してください。<br><a href="/about-data/#realestate">出典・年度・免責を詳しく見る</a></footer>
+</body>
+</html>

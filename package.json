@@ -1,0 +1,27 @@
+{
+  "name": "data-platform",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "collect": "python3 collector/run_all.py",
+    "collect:realestate": "python3 collector/collect_land_prices.py",
+    "collect:living": "python3 collector/collect_living_layers.py",
+    "health": "python3 collector/check_health.py",
+    "release:check": "npm audit --omit=dev && npm run health && npm run build"
+  },
+  "dependencies": {
+    "astro": "^7.3.4",
+    "echarts": "^6.1.0",
+    "maplibre-gl": "^6.11.1"
+  },
+  "allowScripts": {
+    "esbuild": true
+  }
+}
