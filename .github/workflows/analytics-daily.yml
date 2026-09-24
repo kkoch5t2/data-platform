@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  update-and-deploy:
+  update-analytics:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,15 +37,8 @@ jobs:
             git commit -m "chore: update public site analytics"
             git push origin HEAD:main
           fi
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      - name: Deploy DATLUME
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=datlume --branch=main
+
+      # Do not build or deploy the full site here.
+      # Generated procurement datasets are intentionally excluded from Git,
+      # so a clean GitHub runner does not contain the data required for a
+      # complete DATLUME production build. Full deploys run on the collector host.
