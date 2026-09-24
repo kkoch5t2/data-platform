@@ -62,6 +62,20 @@
       ],
       "country": "JP",
       "domain": "regional"
+    },
+    "employment_economy": {
+      "label": "厚生労働省 賃金構造基本統計 / 統計センター SSDSE",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 47,
+      "acquisition": "official-open-data-csv-xlsx",
+      "command": [
+        "python3",
+        "collector/collect_employment_economy.py"
+      ],
+      "country": "JP",
+      "domain": "employment-economy"
     }
   }
 }
