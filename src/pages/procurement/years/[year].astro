@@ -13,7 +13,7 @@ for(const r of rows){const c=r.category||'その他';marketCounts.set(c,(marketC
 const markets=[...marketCounts].filter(([name,count])=>marketSlugs[name]&&count>=10).sort((a,b)=>b[1]-a[1]);
 const technologies=[...techCounts].filter(([name,count])=>techSlugs[name]&&count>=10).sort((a,b)=>b[1]-a[1]);
 const topAgency=[...agencyCounts].sort((a,b)=>b[1]-a[1]).slice(0,10),maxAgency=Math.max(...topAgency.map(([,v])=>v),1);
-const canonical=`https://datlume.pages.dev/procurement/years/${year}/`;
+const canonical=`https://datlume.com/procurement/years/${year}/`;
 const metaDescription=`${year}年の公共調達データを、案件数・発注機関・分野・IT技術カテゴリ・確認済み落札額から見られる年別データページです。`;
 const jsonLd={"@context":"https://schema.org","@type":"Dataset","name":`${year}年 公共調達データ`,"description":metaDescription,"url":canonical,"temporalCoverage":year,"creator":{"@type":"Organization","name":"DATLUME"},"isBasedOn":["JETRO 政府公共調達データベース","調達ポータル（GEPS）"]};
 ---

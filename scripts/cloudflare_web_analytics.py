@@ -4,7 +4,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ACCOUNT='0889f537a65cecd76c67d146250b6a4b'
-HOST='datlume.pages.dev'
+SITE_HOST='datlume.com'
+HOST='datlume.com'
 TOKEN_FILE=Path.home()/'.datlume-cloudflare-token'
 API='https://api.cloudflare.com/client/v4'
 
@@ -25,7 +26,7 @@ def api(method,path,body=None):
 
 def site_tag():
     x=api('GET',f'/accounts/{ACCOUNT}/rum/site_info/list')
-    site=next((s for s in (x.get('result') or []) if s.get('host')==HOST),None)
+    site=next((s for s in (x.get('result') or []) if SITE_HOST in str(s.get('host') or '')),None)
     if not site: raise RuntimeError('DATLUME Web Analytics site not found')
     return site['site_tag']
 
