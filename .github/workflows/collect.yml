@@ -2,8 +2,6 @@ name: Collect public market data
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '15 21 * * *' # 06:15 JST
 
 permissions:
   contents: write
