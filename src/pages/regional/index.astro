@@ -4,13 +4,115 @@ import path from 'node:path';
 const data=JSON.parse(fs.readFileSync(path.join(process.cwd(),'public/data/regional-trends-2026.json'),'utf8'));
 const latest=Math.max(...data.years);
 const latestRows=data.records.filter((r)=>r.year===latest);
-const fmt=(v)=>new Intl.NumberFormat('ja-JP').format(v||0);
 ---
-<!doctype html><html lang="ja"><head><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta name="description" content="47都道府県の人口、高齢化、人口移動、求人、住宅着工、宿泊、地価などを2012〜2023年の推移で比較。"><link rel="canonical" href="https://datlume.pages.dev/regional/"><title>都道府県トレンド | DATLUME</title><style>
-:root{--ink:#142033;--muted:#667085;--line:#e4e9f0;--bg:#f4f6f9;--card:#fff;--nav:#0e1b2e;--blue:#1769e0}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Noto Sans JP",sans-serif}.wrap{width:min(1240px,calc(100% - 32px));margin:auto}header{background:var(--nav);color:#fff;padding:20px 0 54px}.nav{display:flex;justify-content:space-between;align-items:center;gap:18px}.navlinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}.navlinks a{font-size:12px;color:#d9e4f4;border:1px solid #ffffff2a;border-radius:999px;padding:7px 11px;text-decoration:none}.hero{margin-top:42px}.hero h1{font-size:clamp(36px,5vw,64px);letter-spacing:-.05em;margin:0 0 14px}.hero p{color:#c7d3e4;line-height:1.8;max-width:780px}.brand{text-decoration:none}main{margin-top:-26px;padding-bottom:64px}.card{background:#fff;border:1px solid var(--line);border-radius:16px}.controls{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.control label{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-bottom:6px}.control select{width:100%;height:42px;border:1px solid #d9dee7;border-radius:9px;background:#fff;padding:0 10px;font:inherit}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}.kpi{padding:17px}.kpi-label{font-size:11px;color:var(--muted)}.kpi-value{font-size:24px;font-weight:800;margin-top:5px}.grid{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin-top:12px}.chart-card{padding:18px}.chart-card h2{font-size:16px;margin:0 0 10px}.chart{height:390px}.pref-list{margin-top:28px}.pref-list h2{font-size:20px}.pref-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.pref-grid a{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;text-decoration:none;font-size:12px;font-weight:700}.pref-grid a:hover{border-color:#9abcf0;color:var(--blue)}.note{font-size:11px;color:var(--muted);line-height:1.7;margin-top:12px}footer{padding:26px 0 46px;color:var(--muted);font-size:11px}@media(max-width:800px){.nav{display:block}.navlinks{margin-top:14px;overflow:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0}.navlinks a{white-space:nowrap}.controls{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.pref-grid{grid-template-columns:repeat(3,1fr)}.chart{height:320px}}@media(max-width:460px){.wrap{width:min(100% - 24px,1240px)}.kpis{grid-template-columns:1fr 1fr}.pref-grid{grid-template-columns:repeat(2,1fr)}}
-</style></head><body><header><div class="wrap"><div class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/procurement/">公共調達</a><a href="/realestate/">不動産・防災・暮らし</a><a href="/about-data/">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></div><div class="hero"><h1>都道府県トレンド</h1><p>人口、高齢化、人口移動、求人、住宅着工、宿泊、地価などを、47都道府県×12年の公式統計で比較します。</p></div></div></header><main class="wrap"><section class="card controls"><div class="control"><label for="pref">都道府県</label><select id="pref">{data.prefectures.map((p)=><option value={p}>{p}</option>)}</select></div><div class="control"><label for="metric">指標</label><select id="metric"><option value="population">総人口</option><option value="elderlyRate">高齢化率</option><option value="netMigration">人口純移動</option><option value="jobOpeningRatio">求人倍率（参考）</option><option value="housingStarts">新設住宅着工戸数</option><option value="hotelNights">延べ宿泊者数</option><option value="foreignStayShare">外国人宿泊比率</option><option value="residentialLandPrice">住宅地平均価格</option></select></div></section><section class="kpis"><div class="card kpi"><div class="kpi-label">最新年</div><div class="kpi-value">{latest}年</div></div><div class="card kpi"><div class="kpi-label">都道府県</div><div class="kpi-value">47</div></div><div class="card kpi"><div class="kpi-label">時系列</div><div class="kpi-value">12年</div></div><div class="card kpi"><div class="kpi-label">レコード</div><div class="kpi-value">{fmt(data.records.length)}</div></div></section><section class="grid"><div class="card chart-card"><h2 id="trend-title">推移</h2><div id="trend" class="chart"></div></div><div class="card chart-card"><h2 id="ranking-title">最新年ランキング</h2><div id="ranking" class="chart"></div></div></section><div class="note">出典：独立行政法人 統計センター「SSDSE-B-2026（県別推移）」。「求人倍率（参考）」は月間有効求人数÷月間有効求職者数を当サイトで計算した参考値です。指標ごとに元統計の時点・定義が異なります。</div><section class="pref-list"><h2>指標から見る</h2><div class="pref-grid"><a href="/regional/indicators/population/">総人口</a><a href="/regional/indicators/elderly-rate/">高齢化率</a><a href="/regional/indicators/net-migration/">人口純移動</a><a href="/regional/indicators/job-opening-ratio/">求人倍率（参考）</a><a href="/regional/indicators/housing-starts/">住宅着工</a><a href="/regional/indicators/hotel-nights/">宿泊者数</a><a href="/regional/indicators/foreign-stay-share/">外国人宿泊比率</a><a href="/regional/indicators/land-price/">住宅地価格</a></div></section><section class="pref-list"><h2>都道府県から見る</h2><div class="pref-grid">{data.prefectures.map((p)=><a href={`/regional/prefectures/${encodeURIComponent(p)}/`}>{p}</a>)}</div></section></main><footer class="wrap">DATLUME — 日本の公開データを、比較できる形に。 · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></footer><script define:vars={{latestRows, records:data.records}}>
+<!doctype html>
+<html lang="ja">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <meta name="description" content="47都道府県の人口、高齢化、人口移動、求人、住宅着工、宿泊、地価などを2012〜2023年の推移・全国平均・増減率で比較。">
+  <link rel="canonical" href="https://datlume.pages.dev/regional/">
+  <title>都道府県トレンド | DATLUME</title>
+  <style>
+    :root{--ink:#142033;--muted:#667085;--line:#e4e9f0;--bg:#f4f6f9;--card:#fff;--nav:#0e1b2e;--blue:#1769e0}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Noto Sans JP",sans-serif}.wrap{width:min(1240px,calc(100% - 32px));margin:auto}a{color:inherit}
+    header{background:var(--nav);color:#fff;padding:20px 0 54px}.nav{display:flex;justify-content:space-between;align-items:center;gap:18px}.navlinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}.navlinks a{font-size:12px;color:#d9e4f4;border:1px solid #ffffff2a;border-radius:999px;padding:7px 11px;text-decoration:none}.hero{margin-top:42px}.hero h1{font-size:clamp(36px,5vw,64px);letter-spacing:-.05em;margin:0 0 14px}.hero p{color:#c7d3e4;line-height:1.8;max-width:820px}.brand{text-decoration:none}
+    main{margin-top:-26px;padding-bottom:64px}.card{background:#fff;border:1px solid var(--line);border-radius:16px}.controls{padding:16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.control{min-width:0}.control label{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-bottom:6px}.control select{width:100%;height:42px;border:1px solid #d9dee7;border-radius:9px;background:#fff;padding:0 10px;font:inherit;font-size:13px}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}.kpi{padding:17px;min-width:0}.kpi-label{font-size:11px;color:var(--muted)}.kpi-value{font-size:clamp(20px,2.4vw,28px);font-weight:800;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpi-sub{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.45}.kpi-value.up{color:#067647}.kpi-value.down{color:#b42318}
+    .grid{display:grid;grid-template-columns:1.55fr 1fr;gap:12px;margin-top:12px}.chart-card{padding:18px}.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}.chart-card h2{font-size:16px;margin:0}.chart-sub{font-size:10.5px;color:var(--muted);margin-top:3px}.chart{height:410px}
+    .insight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.insight{padding:15px 16px}.insight strong{display:block;font-size:13px}.insight span{display:block;color:var(--muted);font-size:11px;line-height:1.55;margin-top:5px}
+    .pref-list{margin-top:28px}.pref-list h2{font-size:20px}.pref-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.pref-grid a{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;text-decoration:none;font-size:12px;font-weight:700}.pref-grid a:hover{border-color:#9abcf0;color:var(--blue)}.note{font-size:11px;color:var(--muted);line-height:1.7;margin-top:12px}footer{padding:26px 0 46px;color:var(--muted);font-size:11px}
+    @media(max-width:900px){.controls{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.chart{height:350px}.insight-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:800px){.nav{display:block}.navlinks{margin-top:14px;overflow:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0}.navlinks a{white-space:nowrap}.kpis{grid-template-columns:1fr 1fr}.pref-grid{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:520px){.wrap{width:min(100% - 24px,1240px)}.controls{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.insight-grid{grid-template-columns:1fr}.pref-grid{grid-template-columns:repeat(2,1fr)}.chart{height:330px}}
+  </style>
+</head>
+<body>
+<header><div class="wrap"><div class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/procurement/">公共調達</a><a href="/realestate/">不動産・防災・暮らし</a><a href="/about-data/">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></div><div class="hero"><h1>都道府県トレンド</h1><p>2つの都道府県と全国平均を並べて、人口、高齢化、人口移動、求人、住宅着工、宿泊、地価の「今」と「変化」を比較します。</p></div></div></header>
+<main class="wrap">
+  <section class="card controls">
+    <div class="control"><label for="pref">都道府県 A</label><select id="pref">{data.prefectures.map((p)=><option value={p}>{p}</option>)}</select></div>
+    <div class="control"><label for="compare">都道府県 B</label><select id="compare"><option value="">比較なし</option>{data.prefectures.map((p)=><option value={p}>{p}</option>)}</select></div>
+    <div class="control"><label for="metric">指標</label><select id="metric"><option value="population">総人口</option><option value="elderlyRate">高齢化率</option><option value="netMigration">人口純移動</option><option value="jobOpeningRatio">求人倍率（参考）</option><option value="housingStarts">新設住宅着工戸数</option><option value="hotelNights">延べ宿泊者数</option><option value="foreignStayShare">外国人宿泊比率</option><option value="residentialLandPrice">住宅地平均価格</option></select></div>
+    <div class="control"><label for="rank-mode">ランキング</label><select id="rank-mode"><option value="latest">最新値が高い順</option><option value="change-up">期間で増えた順</option><option value="change-down">期間で減った順</option></select></div>
+  </section>
+  <section class="kpis">
+    <div class="card kpi"><div id="a-label" class="kpi-label">都道府県 A</div><div id="a-value" class="kpi-value">—</div><div id="a-change" class="kpi-sub">—</div></div>
+    <div class="card kpi"><div id="b-label" class="kpi-label">都道府県 B</div><div id="b-value" class="kpi-value">—</div><div id="b-change" class="kpi-sub">比較する都道府県を選択</div></div>
+    <div class="card kpi"><div class="kpi-label">都道府県平均</div><div id="avg-value" class="kpi-value">—</div><div id="avg-meta" class="kpi-sub">—</div></div>
+    <div class="card kpi"><div class="kpi-label">A − 都道府県平均</div><div id="avg-diff" class="kpi-value">—</div><div id="avg-diff-meta" class="kpi-sub">—</div></div>
+  </section>
+  <section class="grid">
+    <div class="card chart-card"><div class="chart-head"><div><h2 id="trend-title">推移比較</h2><div class="chart-sub">破線は47都道府県の単純平均</div></div></div><div id="trend" class="chart"></div></div>
+    <div class="card chart-card"><div class="chart-head"><div><h2 id="ranking-title">ランキング</h2><div id="ranking-sub" class="chart-sub">—</div></div></div><div id="ranking" class="chart"></div></div>
+  </section>
+  <section class="insight-grid">
+    <div class="card insight"><strong>人口減少を見る</strong><span>「総人口」→「期間で減った順」で、2012年から最新年までの人口減少率を比較できます。</span></div>
+    <div class="card insight"><strong>地価上昇を見る</strong><span>「住宅地平均価格」→「期間で増えた順」で、住宅地価格の上昇率を比較できます。</span></div>
+    <div class="card insight"><strong>平均との差を見る</strong><span>選択した都道府県Aの最新値と47都道府県の単純平均との差を上のカードに表示します。</span></div>
+  </section>
+  <div class="note">出典：独立行政法人 統計センター「SSDSE-B-2026（県別推移）」。都道府県平均は各年の収録値の単純平均です。「求人倍率（参考）」は月間有効求人数÷月間有効求職者数を当サイトで計算した参考値です。指標ごとに元統計の時点・定義が異なります。</div>
+  <section class="pref-list"><h2>指標から見る</h2><div class="pref-grid"><a href="/regional/indicators/population/">総人口</a><a href="/regional/indicators/elderly-rate/">高齢化率</a><a href="/regional/indicators/net-migration/">人口純移動</a><a href="/regional/indicators/job-opening-ratio/">求人倍率（参考）</a><a href="/regional/indicators/housing-starts/">住宅着工</a><a href="/regional/indicators/hotel-nights/">宿泊者数</a><a href="/regional/indicators/foreign-stay-share/">外国人宿泊比率</a><a href="/regional/indicators/land-price/">住宅地価格</a></div></section>
+  <section class="pref-list"><h2>都道府県から見る</h2><div class="pref-grid">{data.prefectures.map((p)=><a href={`/regional/prefectures/${encodeURIComponent(p)}/`}>{p}</a>)}</div></section>
+</main>
+<footer class="wrap">DATLUME — 日本の公開データを、比較できる形に。 · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></footer>
+<script define:vars={{latestRows, records:data.records, latest}}>
 import * as echarts from 'echarts';
-const metrics={population:['総人口','人'],elderlyRate:['高齢化率','%'],netMigration:['人口純移動','人'],jobOpeningRatio:['求人倍率（参考）','倍'],housingStarts:['新設住宅着工戸数','戸'],hotelNights:['延べ宿泊者数','人泊'],foreignStayShare:['外国人宿泊比率','%'],residentialLandPrice:['住宅地平均価格','円/㎡']};
-const pref=document.getElementById('pref'),metric=document.getElementById('metric');const trend=echarts.init(document.getElementById('trend'));const ranking=echarts.init(document.getElementById('ranking'));const fmt=(v)=>new Intl.NumberFormat('ja-JP',{maximumFractionDigits:2}).format(v??0);
-function draw(){const key=metric.value,[label,unit]=metrics[key];const rows=records.filter(r=>r.prefecture===pref.value).sort((a,b)=>a.year-b.year);document.getElementById('trend-title').textContent=pref.value+' / '+label+'の推移';trend.setOption({tooltip:{trigger:'axis',valueFormatter:v=>fmt(v)+unit},grid:{left:66,right:20,top:22,bottom:44},xAxis:{type:'category',data:rows.map(r=>r.year)},yAxis:{type:'value',axisLabel:{formatter:v=>fmt(v)}},series:[{type:'line',smooth:.2,data:rows.map(r=>r[key]),symbolSize:7,lineStyle:{width:3},areaStyle:{opacity:.06}}]},true);const rank=latestRows.filter(r=>r[key]!=null).sort((a,b)=>b[key]-a[key]).slice(0,15);document.getElementById('ranking-title').textContent=String(Math.max(...latestRows.map(r=>r.year)))+'年 / '+label+' TOP15';ranking.setOption({tooltip:{trigger:'item',formatter:p=>p.name+'<br><b>'+fmt(p.value)+unit+'</b>'},grid:{left:75,right:55,top:10,bottom:18},xAxis:{type:'value',show:false},yAxis:{type:'category',inverse:true,data:rank.map(r=>r.prefecture)},series:[{type:'bar',data:rank.map(r=>r[key]),barWidth:12,label:{show:true,position:'right',fontSize:10,formatter:p=>fmt(p.value)}}]},true)}pref.addEventListener('change',draw);metric.addEventListener('change',draw);draw();window.addEventListener('resize',()=>{trend.resize();ranking.resize()});
-</script></body></html>
+const defs={
+  population:{label:'総人口',unit:'人',change:'percent'},
+  elderlyRate:{label:'高齢化率',unit:'%',change:'point'},
+  netMigration:{label:'人口純移動',unit:'人',change:'absolute'},
+  jobOpeningRatio:{label:'求人倍率（参考）',unit:'倍',change:'absolute'},
+  housingStarts:{label:'新設住宅着工戸数',unit:'戸',change:'percent'},
+  hotelNights:{label:'延べ宿泊者数',unit:'人泊',change:'percent'},
+  foreignStayShare:{label:'外国人宿泊比率',unit:'%',change:'point'},
+  residentialLandPrice:{label:'住宅地平均価格',unit:'円/㎡',change:'percent'}
+};
+const pref=document.getElementById('pref'),compare=document.getElementById('compare'),metric=document.getElementById('metric'),rankMode=document.getElementById('rank-mode');
+const trend=echarts.init(document.getElementById('trend')),ranking=echarts.init(document.getElementById('ranking'));
+const nfmt=new Intl.NumberFormat('ja-JP',{maximumFractionDigits:2});
+const valid=v=>v!==null&&v!==undefined&&Number.isFinite(Number(v));
+const fmt=(v,unit='')=>valid(v)?nfmt.format(Number(v))+unit:'—';
+const signed=(v,digits=1)=>!valid(v)?'—':(Number(v)>0?'+':'')+Number(v).toFixed(digits);
+const rowsFor=name=>records.filter(r=>r.prefecture===name).sort((a,b)=>a.year-b.year);
+const mean=vals=>{const xs=vals.filter(valid).map(Number);return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null};
+const avgAt=(year,key)=>mean(records.filter(r=>r.year===year).map(r=>r[key]));
+function firstLast(rows,key){const xs=rows.filter(r=>valid(r[key]));return xs.length?[xs[0],xs.at(-1)]:[null,null]}
+function changeFor(rows,key,def){const [first,last]=firstLast(rows,key);if(!first||!last)return null;const a=Number(first[key]),b=Number(last[key]);if(def.change==='percent')return a?((b-a)/Math.abs(a))*100:null;return b-a}
+function changeLabel(value,def){if(!valid(value))return '変化を計算できません';if(def.change==='percent')return signed(value)+'%';if(def.change==='point')return signed(value,2)+'pt';return signed(value,2)+def.unit}
+function setTone(el,v){el.classList.remove('up','down');if(v>0)el.classList.add('up');if(v<0)el.classList.add('down')}
+function setState(){const q=new URLSearchParams();q.set('pref',pref.value);if(compare.value)q.set('compare',compare.value);q.set('metric',metric.value);q.set('rank',rankMode.value);history.replaceState(null,'','?'+q.toString())}
+function restoreState(){const q=new URLSearchParams(location.search);for(const [el,key] of [[pref,'pref'],[compare,'compare'],[metric,'metric'],[rankMode,'rank']]){const v=q.get(key);if(v&&[...el.options].some(o=>o.value===v))el.value=v}if(!q.get('pref')&&[...pref.options].some(o=>o.value==='東京都'))pref.value='東京都'}
+function rankingRows(key,def,mode){if(mode==='latest')return latestRows.filter(r=>valid(r[key])).map(r=>({name:r.prefecture,value:Number(r[key])})).sort((a,b)=>b.value-a.value).slice(0,15);const xs=[];for(const name of [...new Set(records.map(r=>r.prefecture))]){const v=changeFor(rowsFor(name),key,def);if(valid(v))xs.push({name,value:Number(v)})}xs.sort((a,b)=>mode==='change-down'?a.value-b.value:b.value-a.value);return xs.slice(0,15)}
+function draw(){
+  const key=metric.value,def=defs[key],aRows=rowsFor(pref.value),bRows=compare.value?rowsFor(compare.value):[];
+  const years=[...new Set(records.map(r=>r.year))].sort((a,b)=>a-b);
+  const avgSeries=years.map(y=>avgAt(y,key));
+  const aLatest=aRows.findLast(r=>valid(r[key])),bLatest=bRows.findLast(r=>valid(r[key]));
+  const average=avgAt(latest,key),aChange=changeFor(aRows,key,def),bChange=changeFor(bRows,key,def),diff=aLatest&&valid(average)?Number(aLatest[key])-Number(average):null;
+  document.getElementById('a-label').textContent=pref.value+' / '+def.label;
+  document.getElementById('a-value').textContent=aLatest?fmt(aLatest[key],def.unit):'—';
+  document.getElementById('a-change').textContent='期間変化 '+changeLabel(aChange,def);
+  document.getElementById('b-label').textContent=(compare.value||'都道府県 B')+' / '+def.label;
+  document.getElementById('b-value').textContent=bLatest?fmt(bLatest[key],def.unit):'—';
+  document.getElementById('b-change').textContent=compare.value?'期間変化 '+changeLabel(bChange,def):'比較する都道府県を選択';
+  document.getElementById('avg-value').textContent=fmt(average,def.unit);
+  document.getElementById('avg-meta').textContent=latest+'年 / 47都道府県の単純平均';
+  const diffEl=document.getElementById('avg-diff');diffEl.textContent=def.change==='point'?signed(diff,2)+'pt':signed(diff,2)+def.unit;setTone(diffEl,diff||0);
+  document.getElementById('avg-diff-meta').textContent=pref.value+'の最新値との差';
+  const series=[{name:pref.value,type:'line',smooth:.18,data:aRows.map(r=>[r.year,r[key]]),symbolSize:7,lineStyle:{width:3}}];
+  if(compare.value)series.push({name:compare.value,type:'line',smooth:.18,data:bRows.map(r=>[r.year,r[key]]),symbolSize:7,lineStyle:{width:3}});
+  series.push({name:'都道府県平均',type:'line',data:years.map((y,i)=>[y,avgSeries[i]]),symbol:'none',lineStyle:{type:'dashed',width:2}});
+  document.getElementById('trend-title').textContent=def.label+'の推移比較';
+  trend.setOption({tooltip:{trigger:'axis',valueFormatter:v=>fmt(v,def.unit)},legend:{top:0},grid:{left:70,right:22,top:48,bottom:42},xAxis:{type:'value',min:Math.min(...years),max:Math.max(...years),interval:2,axisLabel:{formatter:v=>String(v)}},yAxis:{type:'value',scale:true,axisLabel:{formatter:v=>nfmt.format(v)}},series},true);
+  const rr=rankingRows(key,def,rankMode.value);const changeMode=rankMode.value!=='latest';
+  const rankLabel=rankMode.value==='latest'?'最新値が高い順':rankMode.value==='change-up'?'期間で増えた順':'期間で減った順';
+  document.getElementById('ranking-title').textContent=def.label+' / '+rankLabel;
+  document.getElementById('ranking-sub').textContent=changeMode?Math.min(...records.map(r=>r.year))+'→'+latest+'年':'最新収録年 '+latest+'年';
+  ranking.setOption({tooltip:{trigger:'item',formatter:p=>p.name+'<br><b>'+(changeMode?changeLabel(p.value,def):fmt(p.value,def.unit))+'</b>'},grid:{left:82,right:66,top:10,bottom:18},xAxis:{type:'value',show:false},yAxis:{type:'category',inverse:true,data:rr.map(r=>r.name)},series:[{type:'bar',data:rr.map(r=>r.value),barWidth:12,label:{show:true,position:'right',fontSize:10,formatter:p=>changeMode?changeLabel(p.value,def):fmt(p.value,def.unit)}}]},true);
+  setTone(document.getElementById('a-value'),0);setState();
+}
+restoreState();for(const el of [pref,compare,metric,rankMode])el.addEventListener('change',draw);draw();window.addEventListener('resize',()=>{trend.resize();ranking.resize()});
+</script>
+</body></html>
