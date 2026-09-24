@@ -1,0 +1,33 @@
+name: Update living map data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '45 20 1 * *' # 毎月2日 05:45 JST頃（UTC 1日20:45）
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Collect land-price dataset
+        run: python3 collector/collect_land_prices.py
+      - name: Collect living and regional datasets
+        run: python3 collector/collect_living_layers.py
+      - name: Verify land-price source
+        run: python3 collector/check_health.py --source land_prices
+      - name: Commit changed datasets
+        run: |
+          if [ -z "$(git status --porcelain -- public/data)" ]; then exit 0; fi
+          git config user.name "data-platform-bot"
+          git config user.email "data-platform-bot@users.noreply.github.com"
+          git add public/data/land-prices-2026.json public/data/municipality-stats-2026.json public/data/crime-prefecture-2025.json public/data/traffic-accidents-2024.json
+          git add public/data/poi-schools-2023.json public/data/poi-hospitals-2020.json public/data/poi-stations-2025.json
+          git commit -m "data: update living map datasets"
+          git push
