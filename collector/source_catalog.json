@@ -48,6 +48,20 @@
       ],
       "country": "JP",
       "domain": "realestate"
+    },
+    "regional_trends": {
+      "label": "統計センター SSDSE-県別推移",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 500,
+      "acquisition": "official-open-data-csv",
+      "command": [
+        "python3",
+        "collector/collect_regional_trends.py"
+      ],
+      "country": "JP",
+      "domain": "regional"
     }
   }
 }

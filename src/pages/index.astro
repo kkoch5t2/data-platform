@@ -28,7 +28,7 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
 <body>
 <header>
   <div class="wrap">
-    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME"><img src="/datlume-logo.svg" alt="DATLUME" width="163" height="30" style="display:block;width:auto;height:30px"></a><div class="navlinks"><a href="#datasets">データを見る</a><a href="/procurement/">公共調達</a><a href="/realestate/">不動産・防災・暮らし</a><a href="/about-data/">データについて</a></div></nav>
+    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME"><img src="/datlume-logo.svg" alt="DATLUME" width="163" height="30" style="display:block;width:auto;height:30px"></a><div class="navlinks"><a href="#datasets">データを見る</a><a href="/procurement/">公共調達</a><a href="/realestate/">不動産・防災・暮らし</a><a href="/regional/">都道府県トレンド</a><a href="/about-data/">データについて</a></div></nav>
     <section class="hero">
       <div class="eyebrow">Data Explorer / Japan</div>
       <h1>データから、日本を見る。</h1>
@@ -41,7 +41,7 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
   <section class="intro-card" aria-label="収録状況">
     <div class="metric"><div class="metric-label">公共調達</div><div class="metric-value">{fmt(summary.records)}件</div><div class="metric-sub">収録レコード</div></div>
     <div class="metric"><div class="metric-label">収録開始</div><div class="metric-value">{startYear}年</div><div class="metric-sub">公共調達データ</div></div>
-    <div class="metric"><div class="metric-label">現在のデータ領域</div><div class="metric-value">2領域</div><div class="metric-sub">公共調達 / 不動産・地域</div></div>
+    <div class="metric"><div class="metric-label">現在のデータ領域</div><div class="metric-value">3領域</div><div class="metric-sub">公共調達 / 不動産・地域 / 都道府県トレンド</div></div>
   </section>
 
   <section id="datasets" class="section">
@@ -58,6 +58,12 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
         <h3>不動産 × 防災 × 暮らし</h3>
         <p>地価に、防災、人口、高齢化率、治安、交通事故、病院、学校、駅などを重ね、街を複数の角度から見る。</p>
         <div class="card-meta"><span>全国の地図データ</span><span class="open">開く →</span></div>
+      </a>
+      <a class="data-card" href="/regional/">
+        <span class="card-tag">PREFECTURE TRENDS</span>
+        <h3>都道府県トレンド</h3>
+        <p>人口、高齢化、人口移動、求人、住宅着工、宿泊、地価などを、47都道府県×12年で比較する。</p>
+        <div class="card-meta"><span>47都道府県 / 2012〜2023年</span><span class="open">開く →</span></div>
       </a>
     </div>
   </section>

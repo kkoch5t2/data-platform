@@ -41,6 +41,19 @@
         "fetched": 600,
         "totalRecords": 300481
       }
+    },
+    "regional_trends": {
+      "label": "統計センター SSDSE-県別推移",
+      "status": "ok",
+      "startedAt": "2026-09-24T09:34:48.256499+00:00",
+      "finishedAt": "2026-09-24T09:34:48.533842+00:00",
+      "durationSeconds": 0.28,
+      "metrics": {
+        "records": 564,
+        "prefectures": 47,
+        "years": 12
+      },
+      "previousRecordCount": 564
     }
   }
 }
