@@ -108,6 +108,11 @@ print(sqlite3.connect(sys.argv[1]).execute("select count(*) from procurements").
 PY
 )"
 echo "Records: $before_records -> $after_records (delta=$((after_records-before_records)))"
+if python3 scripts/cloudflare_web_analytics.py --days 7 --save public/data/site-analytics.json; then
+  echo "Cloudflare Web Analytics snapshot updated"
+else
+  echo "WARNING: analytics refresh failed; continuing with the last saved snapshot"
+fi
 npm run build
 bash ./deploy-datlume.sh
 

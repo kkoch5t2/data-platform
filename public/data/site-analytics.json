@@ -1,33 +1,49 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-09-24T17:42:49Z",
+  "generatedAt": "2026-09-24T18:16:04Z",
   "range": {
     "days": 7,
-    "start": "2026-09-17T17:42:49Z",
-    "end": "2026-09-24T17:42:49Z"
+    "start": "2026-09-17T18:16:04Z",
+    "end": "2026-09-24T18:16:04Z"
   },
-  "pageviews": 2,
-  "visits": 2,
+  "pageviews": 19,
+  "visits": 17,
   "topPages": [
     {
       "path": "/",
+      "pageviews": 17,
+      "visits": 17
+    },
+    {
+      "path": "/procurement/",
       "pageviews": 2,
-      "visits": 2
+      "visits": 0
     }
   ],
-  "topReferrers": [],
+  "topReferrers": [
+    {
+      "host": "datlume.com",
+      "pageviews": 2,
+      "visits": 0
+    },
+    {
+      "host": "datlume.pages.dev",
+      "pageviews": 1,
+      "visits": 1
+    }
+  ],
   "daily": [
     {
       "date": "2026-09-24",
-      "pageviews": 2,
-      "visits": 2
+      "pageviews": 19,
+      "visits": 17
     }
   ],
   "history": [
     {
       "date": "2026-09-24",
-      "pageviews": 2,
-      "visits": 2
+      "pageviews": 19,
+      "visits": 17
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",

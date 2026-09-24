@@ -10,6 +10,21 @@ if [ ! -s "$ACCOUNT_FILE" ]; then echo 'Cloudflare account-id file is missing.';
 export CLOUDFLARE_API_TOKEN="$(tr -d '\r\n' < "$TOKEN_FILE")"
 export CLOUDFLARE_ACCOUNT_ID="$(tr -d '\r\n' < "$ACCOUNT_FILE")"
 if [ ! -s dist/data/dashboard-meta.json ]; then echo 'Full DATLUME build is missing.'; exit 1; fi
+SOURCE_SHARDS=$(find src/data -maxdepth 1 -type f -name 'procurements-*.json' | wc -l)
+SOURCE_RECORDS=$(python3 - <<'PY'
+import json
+from pathlib import Path
+p=Path('src/data/summary.json')
+try:
+    print(int(json.loads(p.read_text(encoding='utf-8')).get('records',0)))
+except Exception:
+    print(0)
+PY
+)
+if [ "$SOURCE_SHARDS" -lt 1 ] || [ "$SOURCE_RECORDS" -lt 1000 ]; then
+  echo "Refusing incomplete deploy: procurement shards=$SOURCE_SHARDS records=$SOURCE_RECORDS"
+  exit 2
+fi
 FILE_COUNT=$(find dist -type f | wc -l)
 MAX_SIZE=$(find dist -type f -printf '%s\n' | awk 'BEGIN{m=0} {if ($1>m) m=$1} END{print m}')
 if [ "$FILE_COUNT" -gt 20000 ]; then echo "Too many files: $FILE_COUNT"; exit 1; fi
