@@ -54,6 +54,19 @@
         "years": 12
       },
       "previousRecordCount": 564
+    },
+    "employment_economy": {
+      "label": "厚生労働省 賃金構造基本統計 / 統計センター SSDSE",
+      "status": "ok",
+      "startedAt": "2026-09-24T12:35:35.068942+00:00",
+      "finishedAt": "2026-09-24T12:35:36.432528+00:00",
+      "durationSeconds": 1.36,
+      "metrics": {
+        "records": 47,
+        "prefectures": 47,
+        "wageYear": 2025
+      },
+      "previousRecordCount": 47
     }
   }
 }
