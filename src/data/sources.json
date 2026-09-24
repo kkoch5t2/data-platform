@@ -68,6 +68,20 @@
         "ageWagePrefectures": 47
       },
       "previousRecordCount": 47
+    },
+    "business_industry": {
+      "label": "統計センター SSDSE-E-2026",
+      "status": "ok",
+      "startedAt": "2026-09-24T18:40:20.944781+00:00",
+      "finishedAt": "2026-09-24T18:40:21.057861+00:00",
+      "durationSeconds": 0.11,
+      "metrics": {
+        "records": 47,
+        "prefectures": 47,
+        "year": 2021,
+        "establishments": 5156063,
+        "employees": 57949915
+      }
     }
   }
 }

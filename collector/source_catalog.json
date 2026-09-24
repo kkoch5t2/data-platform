@@ -76,6 +76,20 @@
       ],
       "country": "JP",
       "domain": "employment-economy"
+    },
+    "business_industry": {
+      "label": "統計センター SSDSE-E-2026 企業・産業",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 47,
+      "acquisition": "official-open-data-csv",
+      "command": [
+        "python3",
+        "collector/collect_business_industry.py"
+      ],
+      "country": "JP",
+      "domain": "business-industry"
     }
   }
 }

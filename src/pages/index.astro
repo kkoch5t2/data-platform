@@ -30,11 +30,11 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
 <body>
 <header>
   <div class="wrap">
-    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="#datasets">データを見る</a><a href="/procurement/">公共調達</a><a href="/realestate/">不動産・防災・暮らし</a><a href="/regional/">都道府県トレンド</a><a href="/employment-economy/">雇用・賃金・地域経済</a><a href="/analytics/">サイト統計</a><a href="/about-data/">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></nav>
+    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="#datasets">データを見る</a><a href="/procurement/">公共調達</a><a href="/realestate/">不動産・防災・暮らし</a><a href="/regional/">都道府県トレンド</a><a href="/employment-economy/">雇用・賃金・地域経済</a><a href="/business-industry/">企業・産業</a><a href="/analytics/">サイト統計</a><a href="/about-data/">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></nav>
     <section class="hero">
       <div class="eyebrow">Data Explorer / Japan</div>
       <h1>データから、日本を見る。</h1>
-      <p>公共調達、不動産、地価、防災、人口、雇用、賃金、地域経済。分野ごとに散らばるデータを、グラフと地図で見やすくつなぎます。</p>
+      <p>公共調達、不動産、地価、防災、人口、雇用、賃金、地域経済、企業・産業。分野ごとに散らばるデータを、グラフと地図で見やすくつなぎます。</p>
       <div class="hero-actions"><a class="primary" href="#datasets">データを見る</a><a class="secondary" href="/procurement/">公共調達から見る</a></div>
     </section>
   </div>
@@ -43,7 +43,7 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
   <section class="intro-card" aria-label="収録状況">
     <div class="metric"><div class="metric-label">公共調達</div><div class="metric-value">{fmt(summary.records)}件</div><div class="metric-sub">収録レコード</div></div>
     <div class="metric"><div class="metric-label">収録開始</div><div class="metric-value">{startYear}年</div><div class="metric-sub">公共調達データ</div></div>
-    <div class="metric"><div class="metric-label">現在のデータ領域</div><div class="metric-value">4領域</div><div class="metric-sub">公共調達 / 不動産・地域 / 都道府県トレンド / 雇用・賃金</div></div>
+    <div class="metric"><div class="metric-label">現在のデータ領域</div><div class="metric-value">5領域</div><div class="metric-sub">公共調達 / 不動産・地域 / 都道府県トレンド / 雇用・賃金 / 企業・産業</div></div>
   </section>
 
   <section id="datasets" class="section">
@@ -73,13 +73,18 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
         <p>平均賃金、推計年収、求人倍率、県民所得、GDP、事業所・従業者から、47都道府県の「働く」を比べる。</p>
         <div class="card-meta"><span>47都道府県 / 賃金2025年</span><span class="open">開く →</span></div>
       </a>
+      <a class="data-card" href="/business-industry/">
+        <span class="card-tag">BUSINESS / INDUSTRY</span>
+        <h3>企業・産業</h3>
+        <p>民営事業所、従業者、主要産業の構成比から、地域ごとの企業活動と産業構造を比較する。</p>
+        <div class="card-meta"><span>47都道府県 / 2021年</span><span class="open">開く →</span></div>
+      </a>
     </div>
   </section>
 
   <section class="section">
     <div class="section-head"><div><h2>これから広げる</h2></div></div>
     <div class="future">
-      <div class="future-card"><b>企業・産業</b><span>企業統計、産業構造、市場データなど。</span></div>
       <div class="future-card"><b>経済・物価</b><span>価格、賃金、消費、地域経済など。</span></div>
       <div class="future-card"><b>エネルギー</b><span>電力、再エネ、発電、地域エネルギーなど。</span></div>
     </div>
