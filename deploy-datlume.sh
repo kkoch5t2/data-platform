@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT"
+export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH"
+TOKEN_FILE="$HOME/.datlume-cloudflare-token"
+ACCOUNT_FILE="$HOME/.datlume-cloudflare-account-id"
+if [ ! -s "$TOKEN_FILE" ]; then echo 'Cloudflare credential file is missing.'; exit 1; fi
+if [ ! -s "$ACCOUNT_FILE" ]; then echo 'Cloudflare account-id file is missing.'; exit 1; fi
+export CLOUDFLARE_API_TOKEN="$(tr -d '\r\n' < "$TOKEN_FILE")"
+export CLOUDFLARE_ACCOUNT_ID="$(tr -d '\r\n' < "$ACCOUNT_FILE")"
+if [ ! -s dist/data/dashboard-meta.json ]; then echo 'Full DATLUME build is missing.'; exit 1; fi
+FILE_COUNT=$(find dist -type f | wc -l)
+MAX_SIZE=$(find dist -type f -printf '%s\n' | awk 'BEGIN{m=0} {if ($1>m) m=$1} END{print m}')
+if [ "$FILE_COUNT" -gt 20000 ]; then echo "Too many files: $FILE_COUNT"; exit 1; fi
+if [ "$MAX_SIZE" -gt 26214400 ]; then echo "Asset exceeds 25 MiB: $MAX_SIZE bytes"; exit 1; fi
+echo "Build check OK: $FILE_COUNT files, max asset $MAX_SIZE bytes"
+python3 - <<'PY'
+import json, os, urllib.request, urllib.error
+T=os.environ['CLOUDFLARE_API_TOKEN']
+A=os.environ['CLOUDFLARE_ACCOUNT_ID']
+H={'Authorization':'Bearer '+T,'Content-Type':'application/json'}
+def req(url,method='GET',body=None):
+    r=urllib.request.Request(url,headers=H,method=method,data=(json.dumps(body).encode() if body is not None else None))
+    try:
+        with urllib.request.urlopen(r,timeout=30) as x: return x.status,json.load(x)
+    except urllib.error.HTTPError as e:
+        try: data=json.loads(e.read().decode() or '{}')
+        except: data={}
+        return e.code,data
+base='https://api.cloudflare.com/client/v4/accounts/'+A+'/pages/projects'
+status,p=req(base+'/datlume')
+if status==404:
+    status,p=req(base,'POST',{'name':'datlume','production_branch':'main'})
+    if status not in (200,201) or not p.get('success'):
+        print('Cloudflare Pages create failed:',status,p.get('errors')); raise SystemExit(4)
+    print('Created Pages project DATLUME')
+elif status==200 and p.get('success'):
+    print('Pages project DATLUME already exists')
+else:
+    print('Cloudflare Pages lookup failed:',status,p.get('errors')); raise SystemExit(5)
+PY
+echo 'Uploading full DATLUME build to Cloudflare Pages...'
+npx wrangler pages deploy dist --project-name=datlume --branch=main --commit-dirty=true

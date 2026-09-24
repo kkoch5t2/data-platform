@@ -8,7 +8,7 @@
 - IT深掘り: IT案件にはクラウド、セキュリティ、生成AI等の技術タグも付与
 - 保存: ローカルSQLite + 生成JSON（公開リポジトリには収集済み公共調達データを含めない）
 - 表示: Astro + EChartsの静的サイト
-- 定期更新: GitHub Actionsで毎日06:15 JST
+- 定期更新: Ubuntu側の `scripts/daily-refresh.sh` をcron実行。06:15 JST以降、当日未成功なら毎時再試行し、成功時のみCloudflare Pagesへ反映
 - 固定費: 無料枠中心。外部の有料APIは前提にしない
 
 ## 公開データ基盤
@@ -43,8 +43,8 @@ python3 collector/backfill_available.py
 トップ `/` は複数データ領域への入口として使い、各領域は独立したURL配下に置きます。データソースには `country` と `domain` を持たせ、将来の国・分野追加に備えます。
 
 ## データ上の注意
-収録元はJETRO政府公共調達データベースです。国・独立行政法人に加え、JETRO地方政府検索に掲載される都道府県・政令指定都市・地方独立行政法人なども対象です。全国すべての市区町村を網羅するデータではありません。
-現行検索から一括取得できる最古は2021年4月1日です。2020年以前の個別ページが残っていても完全列挙できないため、時系列集計には混在させません。分野分類は案件名ベースのため境界案件や誤分類がありえます。
+公共調達は、JETRO政府公共調達データベース（現行検索で一括取得できる2021年4月1日以降）と、GEPSの公式落札実績アーカイブ（過去年分）を共通SQLiteへ統合しています。JETRO地方政府検索に掲載される都道府県・政令指定都市・地方独立行政法人なども対象ですが、全国すべての市区町村を網羅するデータではありません。
+過去年と現行JETROでは収録元・項目定義が異なるため、長期比較ではソース差に注意が必要です。分野分類は案件名ベースのため境界案件や誤分類がありえます。
 確認済み落札総額は、詳細取得済みの案件だけを合計した値で、市場総額そのものではありません。
 
 ## リリース
@@ -54,8 +54,8 @@ python3 collector/backfill_available.py
 - Cloudflare Pages等では `public/_headers` のキャッシュ・セキュリティ設定を利用可能
 - `public/robots.txt` でクロールを許可
 - `.github/workflows/ci.yml` でpush/PR時に監査とビルドを確認
-- `.github/workflows/living-data.yml` で地価・暮らし系公開データを月次更新
-- `.github/workflows/deploy-pages.yml` からCloudflare Pagesへ手動デプロイ可能
+- `scripts/daily-refresh.sh` が公共調達を日次更新し、地価・暮らし系公開データは月1回更新。SQLiteバックアップ・正常性確認・build・Cloudflare Pages反映まで一括実行
+- `.github/workflows/collect.yml` / `living-data.yml` / `deploy-pages.yml` は手動フォールバックとして利用可能
 - デプロイにはGitHub Secrets `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` と、Repository Variable `CLOUDFLARE_PAGES_PROJECT` を設定する
 
 本番ドメインが決まったら canonical URL / sitemap / OGP URL を設定する。
