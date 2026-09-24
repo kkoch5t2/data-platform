@@ -55,7 +55,7 @@ python3 collector/backfill_available.py
 - `public/robots.txt` でクロールを許可
 - `.github/workflows/ci.yml` でpush/PR時に監査とビルドを確認
 - `scripts/daily-refresh.sh` が公共調達を日次更新し、地価・暮らし系公開データは月1回更新。SQLiteバックアップ・正常性確認・build・Cloudflare Pages反映まで一括実行
-- `.github/workflows/collect.yml` / `living-data.yml` / `deploy-pages.yml` は手動フォールバックとして利用可能
+- `.github/workflows/deploy-pages.yml` は手動デプロイ用として利用可能
 - デプロイにはGitHub Secrets `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` と、Repository Variable `CLOUDFLARE_PAGES_PROJECT` を設定する
 
 本番ドメインが決まったら canonical URL / sitemap / OGP URL を設定する。
