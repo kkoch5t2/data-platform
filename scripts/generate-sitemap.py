@@ -5,7 +5,7 @@ from urllib.parse import quote
 from xml.sax.saxutils import escape
 ROOT=Path(__file__).resolve().parents[1]
 DIST=ROOT/'dist'
-BASE=os.environ.get('SITE_URL','https://datlume.pages.dev').rstrip('/')
+BASE=os.environ.get('SITE_URL','https://datlume.com').rstrip('/')
 urls=[]
 for p in sorted(DIST.rglob('index.html')):
     rel=p.relative_to(DIST)

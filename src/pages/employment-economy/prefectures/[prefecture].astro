@@ -1,7 +1,7 @@
 ---
 import fs from 'node:fs';import path from 'node:path';import '../../../styles/detail.css';
 export function getStaticPaths(){const d=JSON.parse(fs.readFileSync(path.join(process.cwd(),'public/data/employment-economy-2026.json'),'utf8'));return d.records.map(r=>({params:{prefecture:r.prefecture},props:{row:r,wageYear:d.wageYear}}));}
-const {row,wageYear}=Astro.props;const pref=row.prefecture;const fmt=v=>new Intl.NumberFormat('ja-JP',{maximumFractionDigits:2}).format(v??0);const man=v=>v==null?'—':fmt(v/1000)+'万円';const canonical=`https://datlume.pages.dev/employment-economy/prefectures/${encodeURIComponent(pref)}/`;
+const {row,wageYear}=Astro.props;const pref=row.prefecture;const fmt=v=>new Intl.NumberFormat('ja-JP',{maximumFractionDigits:2}).format(v??0);const man=v=>v==null?'—':fmt(v/1000)+'万円';const canonical=`https://datlume.com/employment-economy/prefectures/${encodeURIComponent(pref)}/`;
 const metaDescription=`${pref}の平均賃金・年齢別賃金・推計年収、求人倍率、1人当たり県民所得、県内総生産、事業所・従業者数を公式統計からまとめたデータページです。`;
 const industries=[['建設業',row.constructionEmployees],['製造業',row.manufacturingEmployees],['情報通信業',row.infoEmployees],['卸売・小売',row.retailEmployees],['宿泊・飲食',row.hospitalityEmployees],['医療・福祉',row.medicalEmployees]];const maxIndustry=Math.max(...industries.map(x=>x[1]||0),1);
 const jsonLd={"@context":"https://schema.org","@type":"Dataset","name":`${pref} 雇用・賃金・地域経済データ`,"description":metaDescription,"url":canonical,"spatialCoverage":pref,"creator":{"@type":"Organization","name":"DATLUME"}};
