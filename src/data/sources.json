@@ -4,18 +4,19 @@
     "jetro": {
       "label": "JETRO 政府公共調達データベース",
       "status": "ok",
-      "startedAt": "2026-09-23T17:54:30.170597+00:00",
-      "finishedAt": "2026-09-23T17:58:37.304447+00:00",
-      "durationSeconds": 247.13,
+      "startedAt": "2026-09-24T21:15:01.531719+00:00",
+      "finishedAt": "2026-09-24T21:19:23.427789+00:00",
+      "durationSeconds": 261.9,
       "metrics": {
-        "records": 299881,
-        "itRecords": 73059,
-        "awardRecords": 135969,
-        "companies": 15259,
-        "organizations": 168,
-        "fetched": 600,
+        "records": 300814,
+        "itRecords": 73296,
+        "awardRecords": 136267,
+        "companies": 15291,
+        "organizations": 253,
+        "fetched": 885,
         "enriched": 150
-      }
+      },
+      "previousRecordCount": 299881
     },
     "land_prices": {
       "label": "国土交通省 地価公示",
@@ -33,14 +34,15 @@
     "jetro_local": {
       "label": "JETRO 地方政府公共調達データベース",
       "status": "ok",
-      "startedAt": "2026-09-23T17:58:37.392370+00:00",
-      "finishedAt": "2026-09-23T17:59:47.235858+00:00",
-      "durationSeconds": 69.84,
+      "startedAt": "2026-09-24T21:19:23.505617+00:00",
+      "finishedAt": "2026-09-24T21:20:29.621312+00:00",
+      "durationSeconds": 66.12,
       "metrics": {
-        "records": 600,
+        "records": 642,
         "fetched": 600,
-        "totalRecords": 300481
-      }
+        "totalRecords": 300814
+      },
+      "previousRecordCount": 600
     },
     "regional_trends": {
       "label": "統計センター SSDSE-県別推移",
@@ -89,6 +91,18 @@
       "startedAt": "2026-09-24T19:38:27.650075+00:00",
       "finishedAt": "2026-09-24T19:38:28.395390+00:00",
       "durationSeconds": 0.75,
+      "metrics": {
+        "records": 47,
+        "year": 2025
+      },
+      "previousRecordCount": 47
+    },
+    "energy": {
+      "label": "e-Stat家計調査 / SSDSE / 小売物価統計 / 資源エネルギー庁",
+      "status": "ok",
+      "startedAt": "2026-09-24T21:46:22.384095+00:00",
+      "finishedAt": "2026-09-24T21:46:26.959593+00:00",
+      "durationSeconds": 4.58,
       "metrics": {
         "records": 47,
         "year": 2025
