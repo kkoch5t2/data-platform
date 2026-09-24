@@ -82,6 +82,18 @@
         "establishments": 5156063,
         "employees": 57949915
       }
+    },
+    "economy_prices": {
+      "label": "総務省統計局 小売物価統計調査（構造編）",
+      "status": "ok",
+      "startedAt": "2026-09-24T19:38:27.650075+00:00",
+      "finishedAt": "2026-09-24T19:38:28.395390+00:00",
+      "durationSeconds": 0.75,
+      "metrics": {
+        "records": 47,
+        "year": 2025
+      },
+      "previousRecordCount": 47
     }
   }
 }
