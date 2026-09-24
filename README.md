@@ -8,7 +8,7 @@
 - IT深掘り: IT案件にはクラウド、セキュリティ、生成AI等の技術タグも付与
 - 保存: ローカルSQLite + 生成JSON（公開リポジトリには収集済み公共調達データを含めない）
 - 表示: Astro + EChartsの静的サイト
-- 定期更新: Ubuntu側の `scripts/daily-refresh.sh` をcron実行。06:15 JST以降、当日未成功なら毎時再試行し、成功時のみCloudflare Pagesへ反映
+- 定期更新: Ubuntu側の `scripts/daily-refresh.sh` をcron実行。前回成功日から全公示をキャッチアップし、06:15 JST以降は当日未成功なら毎時再試行。正常性確認に通った場合だけCloudflare Pagesへ反映
 - 固定費: 無料枠中心。外部の有料APIは前提にしない
 
 ## 公開データ基盤

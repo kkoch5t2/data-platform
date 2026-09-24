@@ -534,6 +534,27 @@ def backfill_all_monthly(conn, from_date, to_date, pages_limit=0):
         time.sleep(0.5)
     return fetched
 
+def backfill_all_notices_monthly(conn, from_date, to_date, pages_limit=0):
+    fetched=0
+    for start,end in month_windows(from_date,to_date):
+        params={'from':start.replace('-','/'),'to':end.replace('-','/')}
+        op,ref=make_opener(params)
+        first=fetch_page(op,ref,0,params)
+        total=int(first.get('pagination',{}).get('total') or 0)
+        page_count=(total+29)//30 if total else 0
+        if pages_limit:
+            page_count=min(page_count,pages_limit)
+        month_added=0
+        for page in range(page_count):
+            data=first if page==0 else fetch_page(op,ref,page*30,params)
+            rows=data.get('items',[])
+            month_added += save_items(conn,rows)
+            fetched += len(rows)
+            time.sleep(0.12)
+        print(f'catchup-all month={start[:7]} rows={month_added} total={total} pages={page_count}', flush=True)
+        time.sleep(0.5)
+    return fetched
+
 def backfill_keywords(conn, from_date, to_date, pages_per_keyword):
     seen=set(); fetched=0
     for keyword in BACKFILL_KEYWORDS:
@@ -558,6 +579,7 @@ def main():
     p.add_argument('--backfill-pages',type=int,default=0,help='各ITキーワードで遡る30件ページ数')
     p.add_argument('--backfill-monthly-pages',type=int,default=0,help='各月・各ITキーワードで取得する30件ページ数')
     p.add_argument('--backfill-all-monthly',action='store_true',help='指定期間の全分野の落札公示を月単位で全件取得')
+    p.add_argument('--backfill-all-notices-monthly',action='store_true',help='指定期間の全公示種別を月単位で全件取得')
     p.add_argument('--backfill-all-pages',type=int,default=0,help='全分野バックフィルの月あたり最大ページ数。0は全件')
     p.add_argument('--refresh-details',action='store_true')
     args=p.parse_args()
@@ -568,7 +590,9 @@ def main():
         fetched,op=collect_pages(conn,args.pages)
         if args.refresh_details:
             conn.execute("UPDATE procurements SET detail_fetched=0 WHERE notice_type LIKE '%落札者等の公示%'"); conn.commit()
-        if args.backfill_from and args.backfill_all_monthly:
+        if args.backfill_from and args.backfill_all_notices_monthly:
+            fetched += backfill_all_notices_monthly(conn,args.backfill_from,args.backfill_to,args.backfill_all_pages)
+        elif args.backfill_from and args.backfill_all_monthly:
             fetched += backfill_all_monthly(conn,args.backfill_from,args.backfill_to,args.backfill_all_pages)
         elif args.backfill_from and args.backfill_monthly_pages:
             fetched += backfill_monthly(conn,args.backfill_from,args.backfill_to,args.backfill_monthly_pages)

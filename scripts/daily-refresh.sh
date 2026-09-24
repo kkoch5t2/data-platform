@@ -56,9 +56,27 @@ if [[ -s "$DB" ]]; then
   mv "$backup.tmp" "$backup"
 fi
 find "$BACKUP_DIR" -type f -name 'public_it-*.db' -mtime +7 -delete || true
+
+CATCHUP_FROM="$TODAY"
+if [[ -s "$LAST_SUCCESS" ]]; then
+  candidate="$(head -n1 "$LAST_SUCCESS" | tr -d '\r\n')"
+  if [[ "$candidate" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && \
+     [[ "$candidate" < "$TODAY" || "$candidate" == "$TODAY" ]]; then
+    CATCHUP_FROM="$candidate"
+  fi
+else
+  CATCHUP_FROM="$(date -d '2 days ago' +%F)"
+fi
+echo "Procurement catch-up window: $CATCHUP_FROM -> $TODAY"
+
 set +e
-python3 collector/run_all.py --source jetro --source jetro_local
+python3 collector/collect_jetro.py --pages 20 --detail-limit 150 \
+  --backfill-from "$CATCHUP_FROM" --backfill-to "$TODAY" --backfill-all-notices-monthly
 collect_rc=$?
+if (( collect_rc == 0 )); then
+  python3 collector/collect_jetro_local.py --pages 20
+  collect_rc=$?
+fi
 set -e
 if (( collect_rc != 0 )); then
   echo "ERROR: procurement collection failed rc=$collect_rc"
