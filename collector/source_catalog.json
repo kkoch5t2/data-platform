@@ -90,6 +90,20 @@
       ],
       "country": "JP",
       "domain": "business-industry"
+    },
+    "economy_prices": {
+      "label": "総務省統計局 小売物価統計調査（構造編）",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 47,
+      "acquisition": "official-public-pdf",
+      "command": [
+        "python3",
+        "collector/collect_economy_prices.py"
+      ],
+      "country": "JP",
+      "domain": "economy-prices"
     }
   }
 }
