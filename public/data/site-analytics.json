@@ -1,0 +1,35 @@
+{
+  "host": "datlume.pages.dev",
+  "generatedAt": "2026-09-24T16:56:28Z",
+  "range": {
+    "days": 7,
+    "start": "2026-09-17T16:56:28Z",
+    "end": "2026-09-24T16:56:28Z"
+  },
+  "pageviews": 1,
+  "visits": 1,
+  "topPages": [
+    {
+      "path": "/",
+      "pageviews": 1,
+      "visits": 1
+    }
+  ],
+  "topReferrers": [],
+  "daily": [
+    {
+      "date": "2026-09-24",
+      "pageviews": 1,
+      "visits": 1
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-09-24",
+      "pageviews": 1,
+      "visits": 1
+    }
+  ],
+  "measurement": "Cloudflare Web Analytics (RUM)",
+  "privacy": "Aggregated page-load data only; no IP addresses or individual visitor identifiers are published."
+}

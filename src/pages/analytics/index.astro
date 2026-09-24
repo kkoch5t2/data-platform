@@ -1,0 +1,59 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+const file=path.join(process.cwd(),'public/data/site-analytics.json');
+const data=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):{};
+const fmt=(v)=>new Intl.NumberFormat('ja-JP').format(Number(v)||0);
+const history=(data.history||[]).slice(-30);
+const maxPv=Math.max(1,...history.map((x)=>Number(x.pageviews)||0));
+const generated=data.generatedAt?new Date(data.generatedAt).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo'}):'—';
+const started=history[0]?.date||'—';
+const top=data.topPages?.[0];
+---
+<!doctype html>
+<html lang="ja">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <meta name="description" content="DATLUMEの公開アクセス統計。Cloudflare Web Analyticsによる集計済みのPV、訪問数、人気ページ、流入元を公開しています。">
+  <link rel="canonical" href="https://datlume.pages.dev/analytics/">
+  <title>サイト統計 | DATLUME</title>
+  <style>
+    :root{--ink:#142033;--muted:#667085;--line:#e4e9f0;--bg:#f4f6f9;--nav:#0e1b2e;--blue:#1769e0;--green:#087f5b}*{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Noto Sans JP",sans-serif}.wrap{width:min(1120px,calc(100% - 32px));margin:auto}a{color:inherit}
+    header{background:var(--nav);color:#fff;padding:20px 0 56px}.nav{display:flex;align-items:center;justify-content:space-between;gap:18px}.navlinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}.navlinks a{font-size:12px;color:#d9e4f4;border:1px solid #ffffff2a;border-radius:999px;padding:7px 11px;text-decoration:none}.hero{margin-top:42px}.hero h1{font-size:clamp(38px,5.5vw,66px);letter-spacing:-.05em;margin:0 0 14px}.hero p{color:#c7d3e4;line-height:1.8;max-width:780px;margin:0}
+    main.wrap{margin-top:18px;padding-bottom:68px}.card{background:#fff;border:1px solid var(--line);border-radius:16px}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.kpi{padding:18px}.label{font-size:11px;color:var(--muted);font-weight:750}.value{font-size:28px;font-weight:850;margin-top:5px;letter-spacing:-.03em}.sub{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+    .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:12px;margin-top:12px}.section{padding:18px}.section h2{font-size:17px;margin:0}.section-sub{font-size:10.5px;color:var(--muted);margin:4px 0 14px}.daily{display:grid;gap:8px}.day{display:grid;grid-template-columns:92px 1fr 70px;gap:10px;align-items:center}.date{font-size:11px;color:#475467;font-variant-numeric:tabular-nums}.track{height:12px;border-radius:99px;background:#edf1f6;overflow:hidden}.bar{height:100%;border-radius:99px;background:linear-gradient(90deg,#1769e0,#79aaf0);min-width:2px}.day-value{text-align:right;font-size:11px;font-weight:800;font-variant-numeric:tabular-nums}
+    table{width:100%;border-collapse:collapse}th,td{padding:11px 8px;border-bottom:1px solid #eef1f5;font-size:11px;text-align:right}th{color:var(--muted);font-weight:750}th:first-child,td:first-child{text-align:left}.path{font-weight:750;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.empty{padding:28px 0;color:var(--muted);font-size:12px;text-align:center}.note{margin-top:12px;padding:16px 18px;font-size:11px;color:#475467;line-height:1.75}.note strong{color:var(--ink)}footer{padding:26px 0 46px;color:var(--muted);font-size:11px}
+    @media(max-width:800px){.nav{display:block}.navlinks{margin-top:14px;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0}.navlinks a{white-space:nowrap}.kpis{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.day{grid-template-columns:78px 1fr 60px}}
+    @media(max-width:480px){.wrap{width:min(100% - 24px,1120px)}.hero h1{font-size:40px}.kpis{grid-template-columns:1fr 1fr}.value{font-size:24px}.section{padding:15px}}
+  </style>
+</head>
+<body>
+<header><div class="wrap">
+  <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/">トップ</a><a href="/procurement/">公共調達</a><a href="/regional/">都道府県トレンド</a><a href="/employment-economy/">雇用・賃金</a><a href="/about-data/">データについて</a></div></nav>
+  <section class="hero"><h1>サイト統計</h1><p>DATLUME自身のアクセス状況も公開します。Cloudflare Web Analyticsの集計データから、PV・訪問数・人気ページ・流入元を日次で更新しています。</p></section>
+</div></header>
+<main class="wrap">
+  <section class="kpis">
+    <div class="card kpi"><div class="label">直近{data.range?.days||7}日 PV</div><div class="value">{fmt(data.pageviews)}</div><div class="sub">ページロード数</div></div>
+    <div class="card kpi"><div class="label">直近{data.range?.days||7}日 Visits</div><div class="value">{fmt(data.visits)}</div><div class="sub">Cloudflare集計の訪問数</div></div>
+    <div class="card kpi"><div class="label">人気ページ</div><div class="value" style="font-size:18px">{top?.path||'—'}</div><div class="sub">{top?`${fmt(top.pageviews)} PV`:'データ蓄積中'}</div></div>
+    <div class="card kpi"><div class="label">計測開始</div><div class="value" style="font-size:20px">{started}</div><div class="sub">毎日自動更新</div></div>
+  </section>
+  <section class="grid">
+    <div class="card section"><h2>日別PV</h2><div class="section-sub">保存済み履歴の直近30日 / UTC日付</div>
+      {history.length? <div class="daily">{history.map((x)=><div class="day"><span class="date">{x.date}</span><div class="track"><div class="bar" style={`width:${Math.max(2,(Number(x.pageviews)||0)/maxPv*100)}%`}></div></div><span class="day-value">{fmt(x.pageviews)} PV</span></div>)}</div>:<div class="empty">データを蓄積中です。</div>}
+    </div>
+    <div class="card section"><h2>流入元</h2><div class="section-sub">直近{data.range?.days||7}日の参照元ホスト</div>
+      {data.topReferrers?.length?<table><thead><tr><th>参照元</th><th>PV</th><th>Visits</th></tr></thead><tbody>{data.topReferrers.slice(0,10).map((x)=><tr><td class="path">{x.host}</td><td>{fmt(x.pageviews)}</td><td>{fmt(x.visits)}</td></tr>)}</tbody></table>:<div class="empty">外部流入データはまだありません。</div>}
+    </div>
+  </section>
+  <section class="card section" style="margin-top:12px"><h2>人気ページ</h2><div class="section-sub">直近{data.range?.days||7}日のページ別アクセス</div>
+    {data.topPages?.length?<table><thead><tr><th>ページ</th><th>PV</th><th>Visits</th></tr></thead><tbody>{data.topPages.map((x)=><tr><td class="path"><a href={x.path}>{x.path}</a></td><td>{fmt(x.pageviews)}</td><td>{fmt(x.visits)}</td></tr>)}</tbody></table>:<div class="empty">データを蓄積中です。</div>}
+  </section>
+  <aside class="card note"><strong>公開方針：</strong> このページには集計済みのアクセス統計だけを掲載します。IPアドレスや個人を識別する情報は公開しません。Cloudflare Web AnalyticsのRUMデータを毎日取得し、履歴を蓄積しています。最終更新: {generated} JST</aside>
+</main>
+<footer><div class="wrap">DATLUME · <a href="/">トップへ</a> · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></footer>
+</body></html>
