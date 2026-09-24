@@ -470,19 +470,28 @@ def export_json(conn):
           award_idx[clean_award_method(x.get('awardMethod') or '')],winner_idx[x['winnerName'] or ''],
           x['awardAmount'] or 0,source_kind
         ])
-    # Cloudflare Pages allows up to 25 MiB per asset, so split the large browser dataset.
+    # Browser data is split by year so a year-filtered view only downloads the requested year.
+    # Keep a 50k-row safety split within a year to stay comfortably below Pages' asset limit.
     for old_shard in DASHBOARD_DIR.glob('dashboard-*.json'):
         old_shard.unlink()
+    rows_by_year={}
+    for row in dashboard_rows:
+        year=str(row[2])[:4] if row[2] else 'unknown'
+        rows_by_year.setdefault(year,[]).append(row)
+    all_years=sorted((y for y in rows_by_year if y!='unknown'), reverse=True)
+    if 'unknown' in rows_by_year: all_years.append('unknown')
     shard_names=[]; shard_info=[]
-    for i in range(0,len(dashboard_rows),DASHBOARD_SHARD_ROWS):
-        name=f'dashboard-{i//DASHBOARD_SHARD_ROWS:02d}.json'
-        shard=dashboard_rows[i:i+DASHBOARD_SHARD_ROWS]
-        (DASHBOARD_DIR / name).write_text(
-          json.dumps(shard,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
-        shard_names.append(name)
-        years=sorted({str(r[2])[:4] for r in shard if r[2]})
-        shard_info.append({'name':name,'years':years,'rows':len(shard)})
-    all_years=sorted({str(r[2])[:4] for r in dashboard_rows if r[2]}, reverse=True)
+    for year in all_years:
+        year_rows=rows_by_year[year]
+        parts=max(1,(len(year_rows)+DASHBOARD_SHARD_ROWS-1)//DASHBOARD_SHARD_ROWS)
+        for part,i in enumerate(range(0,len(year_rows),DASHBOARD_SHARD_ROWS)):
+            shard=year_rows[i:i+DASHBOARD_SHARD_ROWS]
+            suffix='' if parts==1 else f'-{part:02d}'
+            name=f'dashboard-{year}{suffix}.json'
+            (DASHBOARD_DIR / name).write_text(
+              json.dumps(shard,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+            shard_names.append(name)
+            shard_info.append({'name':name,'years':[year],'rows':len(shard)})
     dashboard_meta={'v':1,'a':agencies,'c':categories,'w':winners,'m':contract_methods,
       'am':award_methods,'t':tag_names,'shards':shard_names,'shardInfo':shard_info,'years':all_years,
       'latestYear':all_years[0] if all_years else ''}
