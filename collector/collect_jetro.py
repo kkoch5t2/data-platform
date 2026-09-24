@@ -18,7 +18,10 @@ JSON_PATH = DATA_DIR / 'procurements.json'
 COMPANY_PATH = DATA_DIR / 'companies.json'
 ORG_PATH = DATA_DIR / 'organizations.json'
 SUMMARY_PATH = DATA_DIR / 'summary.json'
-DASHBOARD_PATH = ROOT / 'public' / 'data' / 'dashboard.json'
+DASHBOARD_DIR = ROOT / 'public' / 'data'
+DASHBOARD_META_PATH = DASHBOARD_DIR / 'dashboard-meta.json'
+DASHBOARD_LEGACY_PATH = DASHBOARD_DIR / 'dashboard.json'
+DASHBOARD_SHARD_ROWS = 50000
 BASE = 'https://www.jetro.go.jp'
 LIST_PATH = '/gov_procurement/national/list.html'
 API_PATH = '/view_interface.php?blockId=33235812'
@@ -405,7 +408,7 @@ def export_json(conn):
     if JSON_PATH.exists(): JSON_PATH.unlink()
 
     # ブラウザ向けは辞書化 + 配列化。URLは source_id から復元し、文字列の重複を極力なくす。
-    DASHBOARD_PATH.parent.mkdir(parents=True, exist_ok=True)
+    DASHBOARD_DIR.mkdir(parents=True, exist_ok=True)
     agencies=sorted({x['agency'] or '' for x in out})
     categories=sorted({x['category'] or 'その他' for x in out})
     winners=sorted({x['winnerName'] or '' for x in out})
@@ -437,9 +440,19 @@ def export_json(conn):
           award_idx[clean_award_method(x.get('awardMethod') or '')],winner_idx[x['winnerName'] or ''],
           x['awardAmount'] or 0,source_kind
         ])
-    dashboard={'v':1,'a':agencies,'c':categories,'w':winners,'m':contract_methods,
-      'am':award_methods,'t':tag_names,'r':dashboard_rows}
-    DASHBOARD_PATH.write_text(json.dumps(dashboard,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+    # Cloudflare Pages allows up to 25 MiB per asset, so split the large browser dataset.
+    for old_shard in DASHBOARD_DIR.glob('dashboard-*.json'):
+        old_shard.unlink()
+    shard_names=[]
+    for i in range(0,len(dashboard_rows),DASHBOARD_SHARD_ROWS):
+        name=f'dashboard-{i//DASHBOARD_SHARD_ROWS:02d}.json'
+        (DASHBOARD_DIR / name).write_text(
+          json.dumps(dashboard_rows[i:i+DASHBOARD_SHARD_ROWS],ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+        shard_names.append(name)
+    dashboard_meta={'v':1,'a':agencies,'c':categories,'w':winners,'m':contract_methods,
+      'am':award_methods,'t':tag_names,'shards':shard_names}
+    DASHBOARD_META_PATH.write_text(json.dumps(dashboard_meta,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+    if DASHBOARD_LEGACY_PATH.exists(): DASHBOARD_LEGACY_PATH.unlink()
     companies=[]
     for cid,name in conn.execute('SELECT company_id,company_name FROM companies ORDER BY company_name'):
         a=conn.execute('SELECT COUNT(*),COALESCE(SUM(award_amount),0) FROM procurements WHERE company_id=?',(cid,)).fetchone()

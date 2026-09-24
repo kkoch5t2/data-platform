@@ -36,3 +36,5 @@ __pycache__/
 /src/data/organizations.json
 /src/data/summary.json
 /public/data/dashboard.json
+/public/data/dashboard-meta.json
+/public/data/dashboard-*.json
