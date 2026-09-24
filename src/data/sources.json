@@ -45,8 +45,8 @@
     "regional_trends": {
       "label": "統計センター SSDSE-県別推移",
       "status": "ok",
-      "startedAt": "2026-09-24T09:34:48.256499+00:00",
-      "finishedAt": "2026-09-24T09:34:48.533842+00:00",
+      "startedAt": "2026-09-24T13:22:00.379564+00:00",
+      "finishedAt": "2026-09-24T13:22:00.655249+00:00",
       "durationSeconds": 0.28,
       "metrics": {
         "records": 564,
@@ -58,13 +58,14 @@
     "employment_economy": {
       "label": "厚生労働省 賃金構造基本統計 / 統計センター SSDSE",
       "status": "ok",
-      "startedAt": "2026-09-24T12:35:35.068942+00:00",
-      "finishedAt": "2026-09-24T12:35:36.432528+00:00",
-      "durationSeconds": 1.36,
+      "startedAt": "2026-09-24T13:19:51.384058+00:00",
+      "finishedAt": "2026-09-24T13:20:09.140224+00:00",
+      "durationSeconds": 17.76,
       "metrics": {
         "records": 47,
         "prefectures": 47,
-        "wageYear": 2025
+        "wageYear": 2025,
+        "ageWagePrefectures": 47
       },
       "previousRecordCount": 47
     }
