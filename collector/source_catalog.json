@@ -104,6 +104,20 @@
       ],
       "country": "JP",
       "domain": "economy-prices"
+    },
+    "energy": {
+      "label": "e-Stat 家計調査 / SSDSE / 資源エネルギー庁",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 47,
+      "acquisition": "official-public-xlsx-csv",
+      "command": [
+        "python3",
+        "collector/collect_energy.py"
+      ],
+      "country": "JP",
+      "domain": "energy"
     }
   }
 }
