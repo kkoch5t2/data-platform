@@ -17,7 +17,7 @@ const fmtDate = (v) => v ? v.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$1年$2月$3�
 </head>
 <body>
 <header><div class="wrap">
-  <div class="nav"><a class="brand" href="/" aria-label="DATLUME"><img src="/datlume-logo.svg" alt="DATLUME" width="163" height="30" style="display:block;width:auto;height:30px"></a><a class="back" href="/">トップへ戻る</a></div>
+  <div class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><a class="back" href="/">トップへ戻る</a></div>
   <div class="hero"><div class="eyebrow">About the data</div><h1>データについて</h1><p>収録範囲、分類方法、集計値の意味と限界を明示しています。</p></div>
 </div></header><main class="wrap">
   <div class="stats">
@@ -37,7 +37,7 @@ const fmtDate = (v) => v ? v.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$1年$2月$3�
 
   <section class="card section">
     <h2>分野分類について</h2>
-    <p>「IT・デジタル」「建設・土木」「医療・福祉」などの分野は、案件名に含まれる語句をもとにルールベースで自動分類しています。</p>
+    <p>「IT・デジタル」「建設・土木」「医療・福祉」「機械・設備」「科学・研究機器」「出版・情報資料」などの分野は、案件名に含まれる語句をもとにルールベースで自動分類しています。</p>
     <p>そのため、複数分野にまたがる案件、表現が特殊な案件、案件名だけでは内容を判断しにくい案件では、誤分類や「その他」への分類が発生する場合があります。</p>
   </section>  <section class="card section">
     <h2>落札額・受注企業・契約方式について</h2>
@@ -103,6 +103,6 @@ const fmtDate = (v) => v ? v.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$1年$2月$3�
     <div class="links"><a class="linkchip" href="/">トップへ戻る</a><a class="linkchip" href="/realestate/">不動産・防災・暮らしマップ</a><a class="linkchip" href="/procurement/markets/">分野一覧を見る</a></div>
   </section>
 </main>
-<footer class="wrap">DATLUME — データの出典と限界を明示して可視化。</footer>
+<footer class="wrap">DATLUME — データの出典と限界を明示して可視化。 · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></footer>
 </body>
 </html>

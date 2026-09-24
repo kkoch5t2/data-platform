@@ -20,7 +20,7 @@
   </style>
 </head>
 <body>
-<header><div class="wrap nav"><a class="brand" href="/" aria-label="DATLUME"><img src="/datlume-logo.svg" alt="DATLUME" width="163" height="30" style="display:block;width:auto;height:30px"></a><div class="navlinks"><a href="/">ホーム</a><a href="/procurement/">公共調達</a><a href="/realestate/">不動産 × 防災・暮らし</a><a href="/about-data/#realestate">データについて</a></div></div></header>
+<header><div class="wrap nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/">ホーム</a><a href="/procurement/">公共調達</a><a href="/realestate/">不動産 × 防災・暮らし</a><a href="/about-data/#realestate">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></div></header>
 <main class="wrap">
   <section class="intro"><h1>街を、価格だけで選ばない。</h1><p>地価・防災に、人口、高齢化率、治安、交通事故、病院、学校、駅、飲食店を重ねて、街をいろいろな角度から見られます。</p></section>
   <section class="dashboard">
@@ -190,6 +190,6 @@ map.on('click','price-clusters',async e=>{const f=map.queryRenderedFeatures(e.po
 map.on('click','price-points',e=>{const p=e.features?.[0]?.properties;if(!p)return;const yoy=p.yoy===null||p.yoy===''?'—':(Number(p.yoy)>0?'+':'')+Number(p.yoy).toFixed(1)+'%';const station=p.station?p.station+'駅'+(p.stationDistance?' '+fmt(p.stationDistance)+'m':''):'—';new maplibregl.Popup({offset:12}).setLngLat(e.features[0].geometry.coordinates).setHTML('<div class="popup-title">'+(p.name||'地価公示地点')+'</div><div class="popup-price">'+fmt(p.price)+'円/㎡</div><div class="popup-meta">前年比 '+yoy+'<br>'+p.address+'<br>最寄り '+station+'<br>利用現況 '+(p.use||'—')+'</div>').addTo(map)});
 ['price-clusters','price-points'].forEach(layer=>{map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='')});
 </script>
-<footer class="wrap" style="padding:0 0 36px;color:#667085;font-size:11px;line-height:1.8">地価：国土交通省 国土数値情報「地価公示（2026年）」CC BY 4.0。防災：ハザードマップポータルサイト。背景地図・飲食店：OpenFreeMap / OpenMapTiles / OpenStreetMap。各データは年度・粒度が異なり、表示がないことはリスクや施設が存在しないことを意味しません。住宅購入・避難等の判断には公開元の最新情報を確認してください。<br><a href="/about-data/#realestate">出典・年度・免責を詳しく見る</a></footer>
+<footer class="wrap" style="padding:0 0 36px;color:#667085;font-size:11px;line-height:1.8">地価：国土交通省 国土数値情報「地価公示（2026年）」CC BY 4.0。防災：ハザードマップポータルサイト。背景地図・飲食店：OpenFreeMap / OpenMapTiles / OpenStreetMap。各データは年度・粒度が異なり、表示がないことはリスクや施設が存在しないことを意味しません。住宅購入・避難等の判断には公開元の最新情報を確認してください。<br><a href="/about-data/#realestate">出典・年度・免責を詳しく見る</a> · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></footer>
 </body>
 </html>
