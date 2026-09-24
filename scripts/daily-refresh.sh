@@ -93,10 +93,11 @@ fi
 MONTH="$(date +%Y-%m)"
 MONTH_MARKER="$STATE_DIR/last-monthly-refresh"
 if [[ ! -f "$MONTH_MARKER" ]] || ! grep -qx "$MONTH" "$MONTH_MARKER"; then
-  echo "Running monthly land/living refresh"
+  echo "Running monthly land/living/regional refresh"
   python3 collector/collect_land_prices.py
   python3 collector/collect_living_layers.py
-  python3 collector/check_health.py --source land_prices
+  python3 collector/collect_regional_trends.py
+  python3 collector/check_health.py --source land_prices --source regional_trends
   printf '%s\n' "$MONTH" > "$MONTH_MARKER"
 fi
 
