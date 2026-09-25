@@ -100,6 +100,9 @@ for file in files:
     if not is404:
         check(bool(h1),f'{route}: missing h1')
         check(p.canonical,f'{route}: missing canonical')
+        header_match=re.search(r'<header\b[\s\S]*?</header>',raw,re.I)
+        header_logo=bool(header_match and re.search(r'<img\b[^>]*src=["\']/favicon\.svg["\']',header_match.group(0),re.I))
+        check(header_logo,f'{route}: header logo icon missing')
     if p.brand_seen:
         check(p.brand_has_logo,f'{route}: brand logo icon missing')
     check(not re.search(r'(^|\W)(?:undefined|NaN)(\W|$)',text),f'{route}: visible undefined/NaN')

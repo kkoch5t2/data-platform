@@ -123,6 +123,7 @@ async function exerciseVisibleSelects(page) {
             title:document.title.trim(), h1:(document.querySelector('h1')?.textContent||'').trim(),
             favicon:!!document.querySelector('link[rel="icon"][href="/favicon.svg"]'),
             canonical:!!document.querySelector('link[rel="canonical"][href]'),
+            headerLogo:!!document.querySelector('header img[src="/favicon.svg"]'),
             brandSeen:!!brand, brandIcon:!!brandImg, brandIconLoaded:!brandImg||(brandImg.complete&&brandImg.naturalWidth>0),
             brokenImages:images.filter(i=>!i.complete||i.naturalWidth===0).map(i=>i.getAttribute('src')).slice(0,5),
             badVisibleText:/(^|\W)(undefined|NaN)(\W|$)/.test(text),
@@ -136,6 +137,7 @@ async function exerciseVisibleSelects(page) {
         if(!state.h1)failures.push(label+' missing h1');
         if(!state.favicon)failures.push(label+' missing favicon');
         if(!state.canonical && route!=='/analytics/')failures.push(label+' missing canonical');
+        if(!state.headerLogo)failures.push(label+' header logo icon missing');
         if(state.brandSeen&&!state.brandIcon)failures.push(label+' brand icon missing');
         if(!state.brandIconLoaded)failures.push(label+' brand icon failed to load');
         if(state.brokenImages.length)failures.push(label+' broken images '+state.brokenImages.join(','));
