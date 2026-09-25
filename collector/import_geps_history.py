@@ -29,7 +29,7 @@ MINISTRY = {
 'O1':'文部科学省','O2':'文化庁','O3':'スポーツ庁','P1':'厚生労働省','P2':'中央労働委員会',
 'Q1':'農林水産省','Q2':'林野庁','Q3':'水産庁','R1':'経済産業省','R2':'資源エネルギー庁',
 'R3':'特許庁','R4':'中小企業庁','S1':'国土交通省','S2':'運輸安全委員会','S3':'観光庁',
-'S4':'気象庁','S5':'海上保安庁','T1':'環境省','T2':'原子力安全庁','U1':'防衛省',
+'S4':'気象庁','S5':'海上保安庁','T1':'環境省','T2':'原子力規制委員会','U1':'防衛省',
 'V1':'復興庁','W1':'デジタル庁','JA':'こども家庭庁','JB':'サイバー通信情報監理委員会',
 }
 METHOD = {
@@ -65,12 +65,15 @@ def import_year(conn, year):
             row_hash = hashlib.sha1(signature.encode('utf-8')).hexdigest()[:12]
             xid = safe_xid(f'geps:{item_no}:{row_hash}')
             source_id = f'geps:{xid}:{item_no}'
-            agency = MINISTRY.get(ministry_cd, f'府省コード {ministry_cd}')
+            agency = MINISTRY.get(ministry_cd)
+            if not agency:
+                raise ValueError(f'unknown GEPS ministry code: {ministry_cd}')
             method = METHOD.get(method_cd, f'入札方式コード {method_cd}')
             is_it, tags, category, category_tags = classify(title)
             org_id = stable_id('org', agency)
             company_id = stable_id('co', winner) if winner else None
-            amount = int(Decimal(price)) if price else None
+            d = Decimal(price) if price else None
+            amount = (int(d) if d == d.to_integral_value() else float(d)) if d is not None else None
             if org_id:
                 conn.execute('INSERT OR IGNORE INTO organizations VALUES (?,?)', (org_id, agency))
             if company_id:

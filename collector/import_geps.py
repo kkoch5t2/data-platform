@@ -25,7 +25,7 @@ MINISTRIES = {
     'Q1':'農林水産省','Q2':'林野庁','Q3':'水産庁',
     'R1':'経済産業省','R2':'資源エネルギー庁','R3':'特許庁','R4':'中小企業庁',
     'S1':'国土交通省','S2':'運輸安全委員会','S3':'観光庁','S4':'気象庁','S5':'海上保安庁',
-    'T1':'環境省','T2':'原子力安全庁','U1':'防衛省','V1':'復興庁',
+    'T1':'環境省','T2':'原子力規制委員会','U1':'防衛省','V1':'復興庁',
     'W1':'デジタル庁','JA':'こども家庭庁','JB':'サイバー通信情報監理委員会',
 }
 
@@ -69,7 +69,9 @@ def iter_rows(paths, start, end):
 def upsert(conn, row):
     case_no,title,award_date,price,ministry_cd,method_cd,winner,corp_no=row
     source_id=f'geps:{case_no}:{record_id(row)}'
-    agency=MINISTRIES.get(ministry_cd,ministry_cd)
+    agency=MINISTRIES.get(ministry_cd)
+    if not agency:
+        raise ValueError(f'unknown GEPS ministry code: {ministry_cd}')
     method=BID_METHODS.get(method_cd,method_cd)
     decimal_amount=Decimal(price)
     amount=int(decimal_amount) if decimal_amount==decimal_amount.to_integral_value() else float(decimal_amount)
