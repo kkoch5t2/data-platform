@@ -70,22 +70,49 @@ async function exerciseVisibleSelects(page) {
 
 async function checkRealestateMapPalette(page,label,failures) {
   await page.waitForFunction(()=>window.__DATLUME_MAP__?.getLayer?.('price-points'),{timeout:20000}).catch(()=>{});
-  const palette=await page.evaluate(()=>{
+  const basePalette=await page.evaluate(()=>{
     const m=window.__DATLUME_MAP__;
-    const paint=m?.getPaintProperty?.('price-points','circle-color');
-    const cluster=m?.getPaintProperty?.('price-clusters','circle-color');
-    const legend=[...document.querySelectorAll('#legend .dot')].map(el=>el.getAttribute('style')||'');
-    return {paint,cluster,legend};
+    return {
+      paint:m?.getPaintProperty?.('price-points','circle-color'),
+      cluster:m?.getPaintProperty?.('price-clusters','circle-color'),
+      landLegend:[...document.querySelectorAll('#legend .dot')].map(el=>el.getAttribute('style')||'')
+    };
   }).catch(()=>({}));
+  await page.waitForFunction(()=>window.__DATLUME_MAP__?.getLayer?.('municipal-stat-points'),{timeout:20000}).catch(()=>{});
+  await page.evaluate(()=>{
+    const el=document.querySelector('#stat-layer');
+    if(el){el.value='population';el.dispatchEvent(new Event('change',{bubbles:true}));}
+  }).catch(()=>{});
+  await page.waitForFunction(()=>{
+    const p=window.__DATLUME_MAP__?.getPaintProperty?.('municipal-stat-points','circle-color');
+    return JSON.stringify(p||[]).includes('#111827');
+  },{timeout:5000}).catch(()=>{});
+  const populationPalette=await page.evaluate(()=>{
+    const m=window.__DATLUME_MAP__;
+    return {
+      paint:m?.getPaintProperty?.('municipal-stat-points','circle-color'),
+      legend:[...document.querySelectorAll('#legend .dot')].map(el=>el.getAttribute('style')||'')
+    };
+  }).catch(()=>({}));
+  const palette={...basePalette,population:populationPalette.paint,populationLegend:populationPalette.legend};
   const encoded=JSON.stringify(palette.paint||[]);
   for(const color of ['#bfdbfe','#60a5fa','#2563eb','#1e3a8a']){
     if(!encoded.includes(color))failures.push(label+' land-price palette missing '+color);
   }
   if(/#(?:22c55e|eab308|f97316|dc2626|ef4444)/i.test(encoded))failures.push(label+' land-price points still use non-blue palette: '+encoded);
   if(palette.cluster!=='#1769e0')failures.push(label+' land-price cluster is not blue: '+palette.cluster);
-  const legendText=(palette.legend||[]).join(' ');
+  const landLegendText=(palette.landLegend||[]).join(' ');
   for(const color of ['#bfdbfe','#60a5fa','#2563eb','#1e3a8a']){
-    if(!legendText.includes(color))failures.push(label+' land-price legend missing '+color);
+    if(!landLegendText.includes(color))failures.push(label+' land-price legend missing '+color);
+  }
+  const populationEncoded=JSON.stringify(palette.population||[]);
+  for(const color of ['#e5e7eb','#9ca3af','#4b5563','#111827']){
+    if(!populationEncoded.includes(color))failures.push(label+' population palette missing '+color);
+  }
+  if(/#(?:bfdbfe|60a5fa|2563eb|1e3a8a)/i.test(populationEncoded))failures.push(label+' population still overlaps land-price blue palette: '+populationEncoded);
+  const populationLegendText=(palette.populationLegend||[]).join(' ');
+  for(const color of ['#e5e7eb','#9ca3af','#4b5563','#111827']){
+    if(!populationLegendText.includes(color))failures.push(label+' population legend missing '+color);
   }
 }
 
