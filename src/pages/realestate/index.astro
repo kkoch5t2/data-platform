@@ -47,7 +47,7 @@
         <label class="layer"><span><i class="keydot" style="background:#f59e0b"></i>飲食店（OSM・拡大時）</span><input id="layer-restaurant" class="toggle" type="checkbox" /></label>
       </div>
       <div class="group"><span class="label">色の見方</span><div class="color-key">
-        <div class="row"><i class="swatch" style="background:#1769e0"></i><span>青：地価地点のまとまり</span></div>
+        <div class="row"><i class="swatch" style="background:#1769e0"></i><span>青：地価地点</span></div>
         <div class="row"><i class="grad" style="background:linear-gradient(90deg,#fff7bc,#fed98e,#fc9272,#e34a9a,#c06bd8)"></i><span>洪水：浸水浅 ↗ 深</span></div>
         <div class="row"><i class="grad" style="background:linear-gradient(90deg,#fff7bc,#fed98e,#fc9272,#e34a9a,#c06bd8)"></i><span>津波：浸水浅 ↗ 深</span></div>
         <div class="row"><i class="grad" style="background:linear-gradient(90deg,#f1d42b 0 50%,#bd0026 50% 100%)"></i><span>土砂災害：警戒区域 ↗ 特別警戒区域</span></div>
@@ -67,7 +67,7 @@
     <div class="map-card">
       <div class="map-toolbar"><strong>全国 不動産・防災・暮らしデータマップ</strong><span id="map-status">データを読み込み中</span></div>
       <div id="map"></div><div id="loading" class="loading">全国25,000地点の地価データを読み込み中…</div>
-      <div id="legend" class="legend"><strong>地価（円/㎡）</strong><div><i class="dot" style="background:#bfdbfe"></i>10万円未満</div><div><i class="dot" style="background:#60a5fa"></i>10〜30万円</div><div><i class="dot" style="background:#2563eb"></i>30〜100万円</div><div><i class="dot" style="background:#1e3a8a"></i>100万円以上</div></div>
+      <div id="legend" class="legend"><strong>地価地点</strong><div><i class="dot" style="background:#1769e0"></i>青：地点をクリックすると価格を表示</div></div>
     </div>
   </section>
 </main>
@@ -103,7 +103,7 @@ function setPriceData(rows){if(mapReady){const source=map.getSource('land-prices
 function fitRows(rows){if(!mapReady||!rows.length)return;const b=new maplibregl.LngLatBounds();rows.forEach(f=>b.extend(f.geometry.coordinates));map.fitBounds(b,{padding:45,maxZoom:10,duration:700})}
 function addHazard(id,url,visible){map.addSource(id,{type:'raster',tiles:[url],tileSize:256,maxzoom:17});map.addLayer({id,source:id,type:'raster',layout:{visibility:visible?'visible':'none'},paint:{'raster-opacity':.43}})}
 function setVisible(id,on){if(map.getLayer(id))map.setLayoutProperty(id,'visibility',on?'visible':'none')}
-function priceColor(){return ['step',['get','price'],'#bfdbfe',100000,'#60a5fa',300000,'#2563eb',1000000,'#1e3a8a']}
+function priceColor(){return '#1769e0'}
 const fc=(features=[])=>({type:'FeatureCollection',features});
 const esc=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let municipalityFeatures=[],crimeFeatures=[];
@@ -113,7 +113,7 @@ function statLegend(kind){
   else if(kind==='elderly')box.innerHTML='<strong>高齢化率（2020）</strong><div>● 65歳以上人口割合</div>';
   else if(kind==='crime')box.innerHTML='<strong>犯罪率（2025）</strong><div>● 人口千人当たり / 都道府県</div>';
   else if(kind==='accident')box.innerHTML='<strong>交通事故（2024）</strong><div>● 約1kmグリッドの事故件数</div>';
-  else box.innerHTML='<strong>地価（円/㎡）</strong><div><i class="dot" style="background:#bfdbfe"></i>10万円未満</div><div><i class="dot" style="background:#60a5fa"></i>10〜30万円</div><div><i class="dot" style="background:#2563eb"></i>30〜100万円</div><div><i class="dot" style="background:#1e3a8a"></i>100万円以上</div>';
+  else box.innerHTML='<strong>地価地点</strong><div><i class="dot" style="background:#1769e0"></i>青：地点をクリックすると価格を表示</div>';
 }
 async function initRegionalStats(){
   const [m,c]=await Promise.all([fetch('/data/municipality-stats-2026.json').then(r=>r.json()),fetch('/data/crime-prefecture-2025.json').then(r=>r.json())]);
