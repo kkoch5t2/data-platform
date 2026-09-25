@@ -506,10 +506,13 @@ def seed_from_json(conn):
         if company_id: conn.execute('INSERT OR IGNORE INTO companies VALUES (?,?,?)',(company_id,winner,norm(winner)))
         is_it, tags, category, category_tags = classify(r.get('title',''))
         source_url=r.get('sourceUrl') or (f'{BASE}/gov_procurement/local/articles/{aid}.html' if scope=='jetro-local' else (f'https://www.p-portal.go.jp/pps-web-biz/UAB02/OAB0201?caseNo={aid}' if scope=='geps' else f'{BASE}/gov_procurement/national/articles/{xid}/{aid}.html'))
-        conn.execute('''INSERT OR IGNORE INTO procurements
+        conn.execute('''INSERT INTO procurements
           (source_id,xid,aid,title,notice_date,agency,organization_id,notice_type,source_url,is_it,category,category_tags_json,tags_json,
            detail_fetched,award_date,contract_method,award_method,winner_name,company_id,award_amount,estimated_amount,detail_text,collected_at)
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',(
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+          ON CONFLICT(source_id) DO UPDATE SET
+            agency=CASE WHEN excluded.agency<>'' THEN excluded.agency ELSE procurements.agency END,
+            organization_id=CASE WHEN excluded.organization_id IS NOT NULL THEN excluded.organization_id ELSE procurements.organization_id END''',(
           r['id'],xid,aid,r.get('title',''),r.get('noticeDate',''),agency,org_id,
           r.get('noticeType',''),source_url,int(is_it),r.get('category') or category,
           json.dumps(r.get('categoryTags') or category_tags,ensure_ascii=False),json.dumps(r.get('tags') or tags,ensure_ascii=False),
