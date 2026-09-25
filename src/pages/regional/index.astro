@@ -11,7 +11,7 @@ const latestRows=data.records.filter((r)=>r.year===latest);
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <meta name="description" content="47都道府県の人口、高齢化、人口移動、求人、住宅着工、宿泊、地価などを2012〜2023年の推移・全国平均・増減率で比較。">
+  <meta name="description" content="47都道府県の長期推移に加え、1,700超の市区町村を人口、高齢化、単身世帯、人口移動などで比較。">
   <link rel="canonical" href="https://datlume.com/regional/">
   <title>都道府県別推移 | DATLUME</title>
   <style>
@@ -31,7 +31,7 @@ const latestRows=data.records.filter((r)=>r.year===latest);
 </style>
 </head>
 <body>
-<header><div class="wrap"><div class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/procurement/">国・自治体の案件</a><a href="/realestate/">不動産・暮らし</a><a href="/regional/">都道府県別推移</a><a href="/employment-economy/">雇用・賃金</a><a href="/business-industry/">企業・産業</a><a href="/economy-prices/">経済・物価</a><a href="/energy/">エネルギー</a><a href="/about-data/">データについて</a></div></div><div class="hero"><h1>都道府県別推移</h1><p>2つの都道府県と全国平均を並べて、人口、高齢化、人口移動、求人、住宅着工、宿泊、地価の「今」と「変化」を比較します。</p></div></div></header>
+<header><div class="wrap"><div class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/procurement/">国・自治体の案件</a><a href="/realestate/">不動産・暮らし</a><a href="/regional/">都道府県別推移</a><a href="/employment-economy/">雇用・賃金</a><a href="/business-industry/">企業・産業</a><a href="/economy-prices/">経済・物価</a><a href="/energy/">エネルギー</a><a href="/about-data/">データについて</a></div></div><div class="hero"><h1>都道府県別推移</h1><p>都道府県の長期推移と、市区町村の人口・高齢化・世帯・人口移動を同じページで比較します。</p></div></div></header>
 <main class="wrap">
   <section class="card controls">
     <div class="control"><label for="pref">都道府県 A</label><select id="pref">{data.prefectures.map((p)=><option value={p}>{p}</option>)}</select></div>
@@ -48,6 +48,13 @@ const latestRows=data.records.filter((r)=>r.year===latest);
   <section class="grid">
     <div class="card chart-card"><div class="chart-head"><div><h2 id="trend-title">推移比較</h2><div class="chart-sub">破線は47都道府県の単純平均</div></div></div><div id="trend" class="chart"></div></div>
     <div class="card chart-card"><div class="chart-head"><div><h2 id="ranking-title">ランキング</h2><div id="ranking-sub" class="chart-sub">—</div></div></div><div id="ranking" class="chart"></div></div>
+  </section>
+  <section class="card history-card">
+    <div class="history-head"><div><h2>市区町村を比べる</h2><p>SSDSE-A-2026の1,741市区町村。人口、高齢化、単身世帯、転入転出、自然増減を必要なときだけ読み込み、全国または都道府県内で比較します。</p></div><button id="municipal-load" class="load-btn" type="button">市区町村データを読み込む</button></div>
+    <div id="municipal-body" hidden>
+      <div class="history-tools"><select id="municipal-pref"><option value="">全国</option></select><select id="municipal-metric"><option value="population">総人口</option><option value="elderlyRate">高齢化率</option><option value="singleHouseholdRate">単身世帯率</option><option value="netMigration">転入超過・転出超過</option><option value="naturalChange">出生−死亡</option><option value="foreignRate">外国人人口比率</option></select><select id="municipal-order"><option value="desc">高い順</option><option value="asc">低い順</option></select></div>
+      <div id="municipal-chart" class="history-chart"></div><div id="municipal-status" class="history-status"></div>
+    </div>
   </section>
   <section class="card history-card">
     <div class="history-head"><div><h2>人口移動を、1954年から見る</h2><p>総務省「住民基本台帳人口移動報告」の長期時系列。必要なときだけ読み込むので、通常表示の通信量は増やしません。</p></div><button id="migration-load" class="load-btn" type="button">長期データを読み込む</button></div>
@@ -84,6 +91,9 @@ const pref=document.getElementById('pref'),compare=document.getElementById('comp
 const trend=echarts.init(document.getElementById('trend')),ranking=echarts.init(document.getElementById('ranking'));
 let migrationData=null,migrationChart=null;
 const migrationLoad=document.getElementById('migration-load'),migrationBody=document.getElementById('migration-body'),migrationMetric=document.getElementById('migration-metric'),migrationFrom=document.getElementById('migration-from');
+let municipalData=null,municipalChart=null;
+const municipalLoad=document.getElementById('municipal-load'),municipalBody=document.getElementById('municipal-body'),municipalPref=document.getElementById('municipal-pref'),municipalMetric=document.getElementById('municipal-metric'),municipalOrder=document.getElementById('municipal-order'),municipalStatus=document.getElementById('municipal-status');
+const municipalDefs={population:{label:'総人口',unit:'人',digits:0,yearKey:'population'},elderlyRate:{label:'高齢化率',unit:'%',digits:1,yearKey:'population'},singleHouseholdRate:{label:'単身世帯率',unit:'%',digits:1,yearKey:'households'},netMigration:{label:'転入超過・転出超過',unit:'人',digits:0,yearKey:'migration'},naturalChange:{label:'出生−死亡',unit:'人',digits:0,yearKey:'vital'},foreignRate:{label:'外国人人口比率',unit:'%',digits:2,yearKey:'population'}};
 const nfmt=new Intl.NumberFormat('ja-JP',{maximumFractionDigits:2});
 const valid=v=>v!==null&&v!==undefined&&Number.isFinite(Number(v));
 const fmt=(v,unit='')=>valid(v)?nfmt.format(Number(v))+unit:'—';
@@ -130,6 +140,27 @@ function draw(){
 function drawMigration(){if(!migrationData||!migrationChart)return;const idx={inMigration:1,outMigration:2,netMigration:3}[migrationMetric.value],from=Number(migrationFrom.value);const rec=name=>migrationData.records.find(r=>r.prefecture===name);const mk=(name)=>{const r=rec(name);return{name,type:'line',showSymbol:false,smooth:.12,lineStyle:{width:2.5},data:(r?.values||[]).filter(v=>v[0]>=from&&v[idx]!==null).map(v=>[v[0],v[idx]])}};const series=[mk(pref.value)];if(compare.value)series.push(mk(compare.value));migrationChart.setOption({tooltip:{trigger:'axis',valueFormatter:v=>nfmt.format(v)+'人'},legend:{top:0},grid:{left:64,right:22,top:48,bottom:42},xAxis:{type:'value',min:from,max:migrationData.years.at(-1),axisLabel:{formatter:v=>String(v)}},yAxis:{type:'value',scale:true,axisLabel:{formatter:v=>nfmt.format(v)}},series},true);document.getElementById('migration-status').textContent=migrationData.years[0]+'〜'+migrationData.years.at(-1)+'年 / 日本人移動者 / 都道府県別（一部の古い年度は原表欠損）';}
 async function loadMigration(){if(migrationData){migrationBody.hidden=false;drawMigration();return}migrationLoad.disabled=true;migrationLoad.textContent='読み込み中…';try{const r=await fetch('/data/regional-migration-history.json');if(!r.ok)throw new Error('取得失敗');migrationData=await r.json();migrationBody.hidden=false;migrationChart=echarts.init(document.getElementById('migration-chart'));migrationLoad.textContent='読み込み済み';drawMigration()}catch(e){migrationLoad.disabled=false;migrationLoad.textContent='再読み込み';document.getElementById('migration-status').textContent='長期データを読み込めませんでした'} }
 migrationLoad.addEventListener('click',loadMigration);migrationMetric.addEventListener('change',drawMigration);migrationFrom.addEventListener('change',drawMigration);
-function normalizeComparison(){if(compare.value&&compare.value===pref.value)compare.value=''}restoreState();normalizeComparison();for(const el of [pref,compare,metric,rankMode])el.addEventListener('change',()=>{normalizeComparison();draw();drawMigration()});draw();window.addEventListener('resize',()=>{trend.resize();ranking.resize();migrationChart?.resize()});
+function drawMunicipal(){
+  if(!municipalData||!municipalChart)return;
+  const key=municipalMetric.value,def=municipalDefs[key],nationwide=!municipalPref.value;
+  let rows=municipalData.records.filter(r=>nationwide||r.prefecture===municipalPref.value).filter(r=>valid(r[key]));
+  rows.sort((a,b)=>municipalOrder.value==='asc'?Number(a[key])-Number(b[key]):Number(b[key])-Number(a[key]));
+  const shown=rows.slice(0,20),labels=shown.map(r=>nationwide?r.prefecture+' '+r.municipality:r.municipality);
+  municipalChart.setOption({tooltip:{trigger:'item',formatter:p=>p.name+'<br><b>'+fmtMetric(p.value,def)+'</b>'},grid:{left:nationwide?150:112,right:82,top:14,bottom:24},xAxis:{type:'value',show:false},yAxis:{type:'category',inverse:true,data:labels,axisLabel:{fontSize:11,width:nationwide?138:100,overflow:'truncate'}},series:[{type:'bar',data:shown.map(r=>Number(r[key])),barWidth:13,label:{show:true,position:'right',fontSize:10,formatter:p=>fmtMetric(p.value,def)}}]},true);
+  const year=municipalData.years?.[def.yearKey];
+  municipalStatus.textContent=(municipalPref.value||'全国')+' / '+fmt(rows.length)+'市区町村 / '+def.label+' / '+year+'年値 / 上位20件を表示';
+}
+async function loadMunicipal(){
+  if(municipalData){municipalBody.hidden=false;drawMunicipal();return}
+  municipalLoad.disabled=true;municipalLoad.textContent='読み込み中…';
+  try{
+    const r=await fetch('/data/municipality-stats-2026.json');if(!r.ok)throw new Error('取得失敗');municipalData=await r.json();
+    const prefs=[...new Set(municipalData.records.map(r=>r.prefecture))].sort((a,b)=>a.localeCompare(b,'ja'));
+    for(const name of prefs){const o=document.createElement('option');o.value=name;o.textContent=name;municipalPref.appendChild(o)}
+    municipalBody.hidden=false;municipalChart=echarts.init(document.getElementById('municipal-chart'));municipalLoad.textContent='読み込み済み';drawMunicipal();
+  }catch(e){municipalLoad.disabled=false;municipalLoad.textContent='再読み込み';municipalStatus.textContent='市区町村データを読み込めませんでした'}
+}
+municipalLoad.addEventListener('click',loadMunicipal);municipalPref.addEventListener('change',drawMunicipal);municipalMetric.addEventListener('change',drawMunicipal);municipalOrder.addEventListener('change',drawMunicipal);
+function normalizeComparison(){if(compare.value&&compare.value===pref.value)compare.value=''}restoreState();normalizeComparison();for(const el of [pref,compare,metric,rankMode])el.addEventListener('change',()=>{normalizeComparison();draw();drawMigration()});draw();window.addEventListener('resize',()=>{trend.resize();ranking.resize();migrationChart?.resize();municipalChart?.resize()});
 </script>
 </body></html>

@@ -120,6 +120,22 @@ async function checkRealestateMapPalette(page,label,failures) {
   }
 }
 
+async function checkRegionalMunicipal(page,label,failures) {
+  const load=page.locator('#municipal-load');
+  if(!(await load.count())){failures.push(label+' municipal loader missing');return}
+  await load.click();
+  await page.waitForFunction(()=>!document.querySelector('#municipal-body')?.hidden&&document.querySelector('#municipal-status')?.textContent?.includes('市区町村'),{timeout:15000}).catch(()=>{});
+  const initial=(await page.locator('#municipal-status').textContent().catch(()=>''))?.trim();
+  if(!(initial||'').includes('1,741市区町村')||!(initial||'').includes('2020年値'))failures.push(label+' municipal nationwide status invalid: '+initial);
+  await page.selectOption('#municipal-pref','東京都').catch(()=>{});await page.selectOption('#municipal-metric','singleHouseholdRate').catch(()=>{});await page.waitForTimeout(150);
+  const single=(await page.locator('#municipal-status').textContent().catch(()=>''))?.trim();
+  if(!(single||'').includes('東京都')||!(single||'').includes('単身世帯率')||!(single||'').includes('2020年値'))failures.push(label+' municipal single-household filter failed: '+single);
+  await page.selectOption('#municipal-metric','netMigration').catch(()=>{});await page.waitForTimeout(150);
+  const migration=(await page.locator('#municipal-status').textContent().catch(()=>''))?.trim();
+  if(!(migration||'').includes('転入超過・転出超過')||!(migration||'').includes('2024年値'))failures.push(label+' municipal migration filter failed: '+migration);
+  if(!(await page.locator('#municipal-chart canvas').count()))failures.push(label+' municipal chart canvas missing');
+}
+
 async function checkProcurementOverview(page,label,failures) {
   await page.waitForFunction(()=>/^\d+(?:\.\d+)?%$/.test((document.querySelector('#yoy-amount')?.textContent||'').trim()),{timeout:15000}).catch(()=>{});
   const yoyLabel=(await page.locator('#yoy-amount').locator('xpath=..').locator('.yoy-label').textContent().catch(()=>''))?.trim();
@@ -173,6 +189,7 @@ async function checkProcurementOverview(page,label,failures) {
         const initialLabel=`${vp.name} ${route}`;
         if(route==='/procurement/')await checkProcurementOverview(page,initialLabel,failures);
         if(route==='/realestate/')await checkRealestateMapPalette(page,initialLabel,failures);
+        if(route==='/regional/')await checkRegionalMunicipal(page,initialLabel,failures);
 
         const filterToggle=page.locator('#filter-toggle:visible, #filters-toggle:visible');
         if(await filterToggle.count() && await filterToggle.first().getAttribute('aria-expanded')!=='true') await filterToggle.first().click();
