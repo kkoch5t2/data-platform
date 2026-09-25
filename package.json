@@ -7,14 +7,15 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && python3 scripts/generate-sitemap.py",
+    "build": "astro build && node scripts/run-python.cjs scripts/generate-sitemap.py",
     "preview": "astro preview",
     "astro": "astro",
-    "collect": "python3 collector/run_all.py",
-    "collect:realestate": "python3 collector/collect_land_prices.py",
-    "collect:living": "python3 collector/collect_living_layers.py",
-    "health": "python3 collector/check_health.py",
-    "release:check": "npm audit --omit=dev && npm run health && npm run build"
+    "collect": "node scripts/run-python.cjs collector/run_all.py",
+    "collect:realestate": "node scripts/run-python.cjs collector/collect_land_prices.py",
+    "collect:living": "node scripts/run-python.cjs collector/collect_living_layers.py",
+    "health": "node scripts/run-python.cjs collector/check_health.py",
+    "release:check": "npm audit --omit=dev && npm run health && npm run build",
+    "e2e": "node scripts/e2e-smoke.cjs"
   },
   "dependencies": {
     "astro": "^7.3.4",
