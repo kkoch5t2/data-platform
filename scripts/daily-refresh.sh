@@ -77,6 +77,10 @@ if (( collect_rc == 0 )); then
   python3 collector/collect_jetro_local.py --pages 20
   collect_rc=$?
 fi
+if (( collect_rc == 0 )); then
+  python3 collector/collect_yokohama_procurement.py --years "$(date +%Y)"
+  collect_rc=$?
+fi
 set -e
 if (( collect_rc != 0 )); then
   echo "ERROR: procurement collection failed rc=$collect_rc"
@@ -84,7 +88,7 @@ if (( collect_rc != 0 )); then
   exit "$collect_rc"
 fi
 
-if ! python3 collector/check_health.py --source jetro --source jetro_local; then
+if ! python3 collector/check_health.py --source jetro --source jetro_local --source yokohama_procurement; then
   echo "ERROR: procurement health check failed; restoring database"
   [[ -s "$backup" ]] && cp "$backup" "$DB"
   exit 21
@@ -97,11 +101,16 @@ if [[ ! -f "$MONTH_MARKER" ]] || ! grep -qx "$MONTH" "$MONTH_MARKER"; then
   python3 collector/collect_land_prices.py
   python3 collector/collect_living_layers.py
   python3 collector/collect_regional_trends.py
+  python3 collector/collect_regional_migration_history.py
   python3 collector/collect_employment_economy.py
+  python3 collector/collect_employment_wage_history.py
   python3 collector/collect_business_industry.py
+  python3 collector/collect_business_industry_history.py
   python3 collector/collect_economy_prices.py
+  python3 collector/collect_economy_prices_history.py
   python3 collector/collect_energy.py
-  python3 collector/check_health.py --source land_prices --source regional_trends --source employment_economy --source business_industry --source economy_prices --source energy
+  python3 collector/collect_energy_consumption_history.py
+  python3 collector/check_health.py --source land_prices --source regional_trends --source regional_migration --source employment_economy --source employment_wage_history --source business_industry --source business_industry_history --source economy_prices --source economy_prices_history --source energy --source energy_consumption_history
   printf '%s\n' "$MONTH" > "$MONTH_MARKER"
 fi
 
