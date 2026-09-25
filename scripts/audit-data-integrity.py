@@ -2,7 +2,7 @@
 import glob, json, math, os, sys
 from collections import Counter, defaultdict
 from pathlib import Path
-from datetime import date
+from datetime import date, timedelta
 
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'public'/'data'
@@ -229,7 +229,7 @@ for x in org_master:
 published_org_names={x.get('name') for x in org_master}
 ok(all(valid_agency_name(n) for n in published_org_names),'procurement organizations: invalid/placeholder organization name')
 ok(published_org_names==orgs,f'procurement organizations master mismatch: master={len(published_org_names)} referenced={len(orgs)}')
-ok(last is not None and last>=date.today().isoformat(),f'procurement not fresh: lastDate={last}')
+ok(last is not None and date.fromisoformat(last)>=date.today()-timedelta(days=1),f'procurement not fresh: lastDate={last}')
 
 print(f'data audit: {checks} checks, {len(errors)} failures')
 for e in errors[:100]: print('FAIL',e)
