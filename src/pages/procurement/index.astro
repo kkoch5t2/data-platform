@@ -124,10 +124,10 @@ const updatedAt = summary.generatedAt ? new Intl.DateTimeFormat('ja-JP',{timeZon
   </section>
   <div class="data-note">前年同期比は、選択中の条件を前年にも適用して比較します。最新年は最新収録日までの同期間比較です。2014年3月〜2021年3月はGEPS公式落札実績、2021年4月以降はJETRO公開情報を中心に収録。分野は自動分類、確認済み落札総額は取得済み案件のみです。 <a href="/about-data/#procurement">データの範囲と注意 →</a></div>
   <section class="quality-grid" aria-label="データ品質">
-    <div class="card quality-item"><div class="quality-label">Latest record</div><div class="quality-value">{summary.lastDate}</div><div class="quality-sub">最新の収録日</div></div>
-    <div class="card quality-item"><div class="quality-label">Dataset build</div><div class="quality-value">{updatedAt}</div><div class="quality-sub">日本時間 / 再集計時刻</div></div>
-    <div class="card quality-item"><div class="quality-label">Sources</div><div class="quality-value">JETRO {new Intl.NumberFormat('ja-JP').format(summary.jetroRecords ?? 0)}件</div><div class="quality-sub">GEPS {new Intl.NumberFormat('ja-JP').format(summary.gepsRecords ?? 0)}件</div></div>
-    <div class="card quality-item"><div class="quality-label">Award amount coverage</div><div class="quality-value">{amountCoverage.toFixed(1)}%</div><div class="quality-sub">{new Intl.NumberFormat('ja-JP').format(summary.awardRecords)} / {new Intl.NumberFormat('ja-JP').format(summary.records)}件</div></div>
+    <div class="card quality-item"><div class="quality-label">最新案件日</div><div class="quality-value">{summary.lastDate}</div><div class="quality-sub">収録中の案件で最も新しい公告日</div></div>
+    <div class="card quality-item"><div class="quality-label">最終データ更新</div><div class="quality-value">{updatedAt}</div><div class="quality-sub">収集・再集計した時刻（日本時間）</div></div>
+    <div class="card quality-item"><div class="quality-label">データソース内訳</div><div class="quality-value">JETRO {new Intl.NumberFormat('ja-JP').format(summary.jetroRecords ?? 0)}件</div><div class="quality-sub">GEPS {new Intl.NumberFormat('ja-JP').format(summary.gepsRecords ?? 0)}件</div></div>
+    <div class="card quality-item"><div class="quality-label">落札額カバー率</div><div class="quality-value">{amountCoverage.toFixed(1)}%</div><div class="quality-sub">{new Intl.NumberFormat('ja-JP').format(summary.awardRecords)} / {new Intl.NumberFormat('ja-JP').format(summary.records)}件</div></div>
   </section>
   <div class="quality-note"><strong>品質メモ：</strong>分野は案件名からのルールベース分類で、誤分類を含む可能性があります。地方政府系は現在 {new Intl.NumberFormat('ja-JP').format(summary.localRecords ?? 0)}件で、全国自治体を網羅していません。金額・受注企業・契約方式は取得できた案件のみ集計しています。 <a href="/about-data/#procurement">詳しい仕様と限界を見る →</a></div>
 
