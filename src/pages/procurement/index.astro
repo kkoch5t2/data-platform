@@ -252,15 +252,17 @@ function decodeDashboard(data){
       awardDate:date8(String(r[6]||'')), contractMethod:data.m[r[7]]||'',
       awardMethod:data.am[r[8]]||'', winnerName:data.w[r[9]]||'',
       awardAmount:Number(r[10]||0)||null,
-      scope:(sourceKind===1||sourceKind===3)?'local':'national',
-      source:sourceKind===2?'geps':(sourceKind===3?'yokohama':'jetro'),
+      scope:(sourceKind===1||sourceKind===3||sourceKind===4)?'local':'national',
+      source:sourceKind===2?'geps':(sourceKind===3?'yokohama':(sourceKind===4?'sapporo':'jetro')),
       sourceUrl:sourceKind===1
         ? 'https://www.jetro.go.jp/gov_procurement/local/articles/'+String(r[0]||'')+'.html'
         : (sourceKind===2
           ? 'https://www.p-portal.go.jp/pps-web-biz/UAB02/OAB0201?caseNo='+encodeURIComponent(String(r[0]||''))
           : (sourceKind===3
             ? 'https://keiyaku.city.yokohama.lg.jp/epco/servlet/p?job=KokokuAnkenList&kokoku_no='+encodeURIComponent(parts[0]||'')
-            : (parts.length>=2?'https://www.jetro.go.jp/gov_procurement/national/articles/'+parts[0]+'/'+parts.slice(1).join(':')+'.html':'#')))
+            : (sourceKind===4
+              ? 'https://www.city.sapporo.jp/zaisei/keiyaku-kanri/anken/kekka.html'
+              : (parts.length>=2?'https://www.jetro.go.jp/gov_procurement/national/articles/'+parts[0]+'/'+parts.slice(1).join(':')+'.html':'#'))))
     };
   });
 }

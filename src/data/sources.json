@@ -189,6 +189,21 @@
         "endYear": 2023
       },
       "previousRecordCount": 893
+    },
+    "sapporo_procurement": {
+      "label": "札幌市 入札等結果一覧",
+      "status": "ok",
+      "startedAt": "2026-09-25T19:55:30.444752+00:00",
+      "finishedAt": "2026-09-25T19:56:05.816925+00:00",
+      "durationSeconds": 35.37,
+      "metrics": {
+        "records": 17502,
+        "upserted": 17502,
+        "years": 8,
+        "startYear": 2019,
+        "endYear": 2026
+      },
+      "previousRecordCount": 17502
     }
   }
 }

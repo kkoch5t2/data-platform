@@ -133,6 +133,20 @@
       "country": "JP",
       "domain": "procurement"
     },
+    "sapporo_procurement": {
+      "label": "札幌市 入札等結果一覧",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 48,
+      "minRecords": 100,
+      "acquisition": "official-municipal-xlsx",
+      "command": [
+        "python3",
+        "collector/collect_sapporo_procurement.py"
+      ],
+      "country": "JP",
+      "domain": "procurement"
+    },
     "regional_migration": {
       "label": "総務省統計局 住民基本台帳人口移動報告 長期時系列",
       "enabled": true,
