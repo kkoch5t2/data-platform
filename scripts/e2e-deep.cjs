@@ -47,6 +47,8 @@ for (const [name,re] of families) {
   routes.push(hit);
 }
 const uniqueRoutes=[...new Set(routes)];
+const onlyRoutes=(process.env.E2E_ONLY||'').split(',').map(x=>x.trim()).filter(Boolean);
+const activeRoutes=onlyRoutes.length?uniqueRoutes.filter(r=>onlyRoutes.includes(r)):uniqueRoutes;
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
 const unique = xs => [...new Set(xs)];
 const safeRoute = r => (r==='/'?'home':r.replace(/^\//,'').replace(/\/$/,'').replace(/[^a-zA-Z0-9_-]+/g,'_')).slice(0,120);
@@ -66,17 +68,44 @@ async function exerciseVisibleSelects(page) {
   }
 }
 
+async function checkProcurementOverview(page,label,failures) {
+  await page.waitForFunction(()=>/^\d+(?:\.\d+)?%$/.test((document.querySelector('#yoy-amount')?.textContent||'').trim()),{timeout:15000}).catch(()=>{});
+  const yoyLabel=(await page.locator('#yoy-amount').locator('xpath=..').locator('.yoy-label').textContent().catch(()=>''))?.trim();
+  const yoyValue=(await page.locator('#yoy-amount').textContent().catch(()=>''))?.trim();
+  const yoyMeta=(await page.locator('#yoy-amount-meta').textContent().catch(()=>''))?.trim();
+  if(yoyLabel!=='落札額が分かる案件')failures.push(label+' unclear award coverage label');
+  if(!/^\d+(?:\.\d+)?%$/.test(yoyValue||''))failures.push(label+' award coverage is not a percentage: '+yoyValue);
+  if(/比較注意|単純比較不可/.test((yoyValue||'')+' '+(yoyMeta||'')))failures.push(label+' confusing award comparison wording remains');
+  if(!(yoyMeta||'').includes('件で金額確認済み'))failures.push(label+' award coverage count explanation missing');
+
+  const groupTitle=(await page.locator('.card-head h3',{hasText:'大分類別構成'}).count())>0;
+  if(!groupTitle)failures.push(label+' large-category chart title missing');
+  const chart=page.locator('#chart-category');
+  await chart.scrollIntoViewIfNeeded().catch(()=>{});
+  const box=await chart.boundingBox();
+  if(box){
+    const m=Math.min(box.width,box.height);
+    await chart.click({position:{x:box.width/2+m*.27,y:box.height*.39}}).catch(()=>{});
+    await page.waitForTimeout(250);
+    const drillVisible=await page.locator('#drill-card').isVisible().catch(()=>false);
+    const drillTitle=(await page.locator('#drill-title').textContent().catch(()=>''))?.trim();
+    const allowed=['IT・情報','建設・施設','物品・製造','委託・専門サービス','生活・公共サービス','インフラ・環境','手続・その他'];
+    if(!drillVisible||!allowed.includes(drillTitle||''))failures.push(label+' large-category click/filter failed: '+drillTitle);
+    if(drillVisible)await page.locator('#drill-clear').click().catch(()=>{});
+  } else failures.push(label+' large-category chart missing');
+}
+
 (async()=>{
   fs.rmSync(shotRoot,{recursive:true,force:true});
   fs.mkdirSync(shotRoot,{recursive:true});
   const browser=await chromium.launch({headless:true});
   const failures=[], warnings=[];
-  console.log('E2E routes',uniqueRoutes.length,uniqueRoutes.join(' '));
+  console.log('E2E routes',activeRoutes.length,activeRoutes.join(' '));
 
   for (const vp of viewports) {
     const ctx=await browser.newContext({viewport:{width:vp.width,height:vp.height}});
     fs.mkdirSync(path.join(shotRoot,vp.name),{recursive:true});
-    for (const route of uniqueRoutes) {
+    for (const route of activeRoutes) {
       const page=await ctx.newPage();
       const jsErrors=[],badFirstParty=[],badExternal=[];
       page.on('pageerror',e=>jsErrors.push(e.message));
@@ -89,6 +118,8 @@ async function exerciseVisibleSelects(page) {
       try {
         const res=await page.goto(base+encodeURI(route),{waitUntil:'networkidle',timeout:60000});
         if(!res||res.status()>=400)failures.push(`${vp.name} ${route} navigation ${res?.status()}`);
+        const initialLabel=`${vp.name} ${route}`;
+        if(route==='/procurement/')await checkProcurementOverview(page,initialLabel,failures);
 
         const filterToggle=page.locator('#filter-toggle:visible, #filters-toggle:visible');
         if(await filterToggle.count() && await filterToggle.first().getAttribute('aria-expanded')!=='true') await filterToggle.first().click();
@@ -149,32 +180,6 @@ async function exerciseVisibleSelects(page) {
         if(jsErrors.length)failures.push(label+' JS: '+unique(jsErrors).slice(0,2).join(' | '));
         if(badFirstParty.length)failures.push(label+' HTTP: '+unique(badFirstParty).slice(0,2).join(' | '));
         if(badExternal.length)warnings.push(label+' external HTTP: '+unique(badExternal).slice(0,3).join(' | '));
-
-        if(route==='/procurement/'){
-          await page.waitForFunction(()=>/^\d+(?:\.\d+)?%$/.test((document.querySelector('#yoy-amount')?.textContent||'').trim()),{timeout:15000}).catch(()=>{});
-          const yoyLabel=(await page.locator('#yoy-amount').locator('xpath=..').locator('.yoy-label').textContent().catch(()=>''))?.trim();
-          const yoyValue=(await page.locator('#yoy-amount').textContent().catch(()=>''))?.trim();
-          const yoyMeta=(await page.locator('#yoy-amount-meta').textContent().catch(()=>''))?.trim();
-          if(yoyLabel!=='落札額が分かる案件')failures.push(label+' unclear award coverage label');
-          if(!/^\d+(?:\.\d+)?%$/.test(yoyValue||''))failures.push(label+' award coverage is not a percentage: '+yoyValue);
-          if(/比較注意|単純比較不可/.test((yoyValue||'')+' '+(yoyMeta||'')))failures.push(label+' confusing award comparison wording remains');
-          if(!(yoyMeta||'').includes('件で金額確認済み'))failures.push(label+' award coverage count explanation missing');
-
-          const groupTitle=(await page.locator('.card-head h3',{hasText:'大分類別構成'}).count())>0;
-          if(!groupTitle)failures.push(label+' large-category chart title missing');
-          const chart=page.locator('#chart-category');
-          await chart.scrollIntoViewIfNeeded().catch(()=>{});
-          const box=await chart.boundingBox();
-          if(box){
-            const m=Math.min(box.width,box.height);
-            await chart.click({position:{x:box.width/2+m*.27,y:box.height*.39}}).catch(()=>{});
-            await page.waitForTimeout(250);
-            const drillVisible=await page.locator('#drill-card').isVisible().catch(()=>false);
-            const drillTitle=(await page.locator('#drill-title').textContent().catch(()=>''))?.trim();
-            const allowed=['IT・情報','建設・施設','物品・製造','委託・専門サービス','生活・公共サービス','インフラ・環境','手続・その他'];
-            if(!drillVisible||!allowed.includes(drillTitle||''))failures.push(label+' large-category click/filter failed: '+drillTitle);
-          }else failures.push(label+' large-category chart missing');
-        }
 
         await page.screenshot({path:path.join(shotRoot,vp.name,safeRoute(route)+'.jpg'),fullPage:true,type:'jpeg',quality:62});
         console.log('CHECK',label,'status',res?.status(),'brand',state.brandSeen?Number(state.brandIcon):'-','tables',state.tables,'canvas',state.canvases,'overflow',state.scrollWidth-state.clientWidth,'stuck',state.stuck.length,'js',jsErrors.length,'ownHTTP',badFirstParty.length,'externalHTTP',badExternal.length);
