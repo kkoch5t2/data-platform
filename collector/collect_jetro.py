@@ -494,7 +494,7 @@ def seed_from_json(conn):
     now = datetime.now(timezone.utc).isoformat(); count = 0
     for r in records:
         parts = str(r.get('id','')).split(':')
-        if len(parts) != 3 or parts[0] not in ('jetro','jetro-local','geps'): continue
+        if len(parts) != 3 or parts[0] not in ('jetro','jetro-local','geps','yokohama'): continue
         scope=parts[0]; xid=int(parts[1]); aid=parts[2]
         agency = r.get('agency',''); org_id = stable_id('org', agency) if agency else None
         winner = canonical_company_name(r.get('winnerName') or ''); company_id = stable_id('co', winner) if winner else None
@@ -585,7 +585,7 @@ def export_json(conn):
         d=dict(zip(cols,r)); out.append({
           'id':d['source_id'],'title':d['title'],'noticeDate':d['notice_date'],'agency':d['agency'],
           'organizationId':d['organization_id'],'noticeType':d['notice_type'],'sourceUrl':d['source_url'],
-          'source':'geps' if d['source_id'].startswith('geps:') else 'jetro',
+          'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else 'jetro')),
           'isIt':bool(d['is_it']),'category':d['category'] or 'その他','categoryTags':json.loads(d['category_tags_json'] or '[]'),
           'tags':json.loads(d['tags_json']),'detailFetched':bool(d['detail_fetched']),
           'awardDate':d['award_date'],'contractMethod':d['contract_method'],'awardMethod':d['award_method'],
@@ -627,15 +627,18 @@ def export_json(conn):
     tag_idx={v:i for i,v in enumerate(tag_names)}
     dashboard_rows=[]
     for x in out:
-        is_local=x['id'].startswith('jetro-local:')
+        is_jetro_local=x['id'].startswith('jetro-local:')
         is_geps=x['id'].startswith('geps:')
-        if is_local:
+        is_yokohama=x['id'].startswith('yokohama:')
+        if is_jetro_local:
             sid=x['id'].split(':',2)[-1]
         elif is_geps:
             sid=x['id'].split(':',2)[1]
+        elif is_yokohama:
+            sid=x['id'][9:]
         else:
             sid=x['id'][6:] if x['id'].startswith('jetro:') else x['id']
-        source_kind=1 if is_local else (2 if is_geps else 0)
+        source_kind=1 if is_jetro_local else (2 if is_geps else (3 if is_yokohama else 0))
         tag_mask=sum(1 << tag_idx[t] for t in (x.get('tags') or []) if t in tag_idx)
         dashboard_rows.append([
           sid,x['title'] or '',(x['noticeDate'] or '').replace('-',''),
@@ -685,11 +688,14 @@ def export_json(conn):
     total_it=sum(1 for x in out if x['isIt']); awards=[x for x in out if x['awardAmount']]
     category_counts={}
     for x in out: category_counts[x['category']]=category_counts.get(x['category'],0)+1
-    local_records=sum(1 for x in out if x['id'].startswith('jetro-local:'))
+    jetro_local_records=sum(1 for x in out if x['id'].startswith('jetro-local:'))
+    yokohama_records=sum(1 for x in out if x['id'].startswith('yokohama:'))
+    local_records=jetro_local_records+yokohama_records
     geps_records=sum(1 for x in out if x['id'].startswith('geps:'))
+    jetro_records=len(out)-geps_records-yokohama_records
     dates=[x['noticeDate'] for x in out if x.get('noticeDate')]
     summary={'records':len(out),'nationalRecords':len(out)-local_records,'localRecords':local_records,
-      'jetroRecords':len(out)-geps_records,'gepsRecords':geps_records,
+      'jetroRecords':jetro_records,'gepsRecords':geps_records,'yokohamaRecords':yokohama_records,
       'firstDate':min(dates) if dates else None,'lastDate':max(dates) if dates else None,
       'itRecords':total_it,'awardRecords':len(awards),
       'awardTotal':sum(x['awardAmount'] for x in awards),'companies':len(companies),'organizations':len(orgs),

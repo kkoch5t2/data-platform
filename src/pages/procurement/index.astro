@@ -99,7 +99,7 @@ const updatedAt = summary.generatedAt ? new Intl.DateTimeFormat('ja-JP',{timeZon
       <details class="advanced-filters">
         <summary>詳細条件</summary>
         <div class="advanced-grid">
-          <div class="filter"><label for="f-source">データソース</label><select id="f-source"><option value="">すべて</option><option value="jetro">JETRO</option><option value="geps">調達ポータル</option></select></div>
+          <div class="filter"><label for="f-source">データソース</label><select id="f-source"><option value="">すべて</option><option value="jetro">JETRO</option><option value="geps">調達ポータル</option><option value="yokohama">横浜市（直取得）</option></select></div>
           <div class="filter"><label for="f-tag">IT技術カテゴリ</label><select id="f-tag"><option value="">すべて</option></select></div>
           <div class="filter"><label for="f-method">契約方式</label><select id="f-method"><option value="">すべて</option></select></div>
           <div class="filter"><label for="f-company">受注企業</label><select id="f-company"><option value="">すべて</option></select></div>
@@ -126,7 +126,7 @@ const updatedAt = summary.generatedAt ? new Intl.DateTimeFormat('ja-JP',{timeZon
   <section class="quality-grid" aria-label="データ品質">
     <div class="card quality-item"><div class="quality-label">最新案件日</div><div class="quality-value">{summary.lastDate}</div><div class="quality-sub">収録中の案件で最も新しい公告日</div></div>
     <div class="card quality-item"><div class="quality-label">最終データ更新</div><div class="quality-value">{updatedAt}</div><div class="quality-sub">収集・再集計した時刻（日本時間）</div></div>
-    <div class="card quality-item"><div class="quality-label">データソース内訳</div><div class="quality-value">JETRO {new Intl.NumberFormat('ja-JP').format(summary.jetroRecords ?? 0)}件</div><div class="quality-sub">GEPS {new Intl.NumberFormat('ja-JP').format(summary.gepsRecords ?? 0)}件</div></div>
+    <div class="card quality-item"><div class="quality-label">データソース内訳</div><div class="quality-value">JETRO {new Intl.NumberFormat('ja-JP').format(summary.jetroRecords ?? 0)}件</div><div class="quality-sub">GEPS {new Intl.NumberFormat('ja-JP').format(summary.gepsRecords ?? 0)}件 / 横浜市 {new Intl.NumberFormat('ja-JP').format(summary.yokohamaRecords ?? 0)}件</div></div>
     <div class="card quality-item"><div class="quality-label">落札額カバー率</div><div class="quality-value">{amountCoverage.toFixed(1)}%</div><div class="quality-sub">{new Intl.NumberFormat('ja-JP').format(summary.awardRecords)} / {new Intl.NumberFormat('ja-JP').format(summary.records)}件</div></div>
   </section>
   <div class="quality-note"><strong>品質メモ：</strong>分野は案件名からのルールベース分類で、誤分類を含む可能性があります。地方政府系は現在 {new Intl.NumberFormat('ja-JP').format(summary.localRecords ?? 0)}件で、全国自治体を網羅していません。金額・受注企業・契約方式は取得できた案件のみ集計しています。 <a href="/about-data/#procurement">詳しい仕様と限界を見る →</a></div>
@@ -182,7 +182,7 @@ const updatedAt = summary.generatedAt ? new Intl.DateTimeFormat('ja-JP',{timeZon
     <section class="card table-card"><div class="table-head"><h3>案件一覧</h3><span id="table-note">—</span></div><div class="table-wrap"><table><thead><tr><th>日付</th><th>分野</th><th>発注機関</th><th>案件</th><th>受注企業</th><th class="money">落札額</th></tr></thead><tbody id="top-awards"></tbody></table></div></section>
   </div>
 </main>
-<footer class="wrap">データ出典：JETRO 政府公共調達データベース / 調達ポータル（GEPS）、調達ポータル（GEPS）落札実績オープンデータ。現在の収録レコードは {new Intl.NumberFormat('ja-JP').format(summary.records)} 件、金額確認済みは {new Intl.NumberFormat('ja-JP').format(summary.awardRecords)} 件です。 · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px"><img src="/brand/github.svg" alt="" width="14" height="14" style="display:block;width:14px;height:14px">GitHub ↗</a> · <a href="https://utility-tools-jp.com/" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px"><img src="/brand/utility-tools.ico" alt="" width="14" height="14" style="display:block;width:14px;height:14px;border-radius:3px">無料WEB便利ツール集 ↗</a></footer>
+<footer class="wrap">データ出典：JETRO 政府公共調達データベース / 調達ポータル（GEPS） / 横浜市報調達公告版。現在の収録レコードは {new Intl.NumberFormat('ja-JP').format(summary.records)} 件、金額確認済みは {new Intl.NumberFormat('ja-JP').format(summary.awardRecords)} 件です。 · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px"><img src="/brand/github.svg" alt="" width="14" height="14" style="display:block;width:14px;height:14px">GitHub ↗</a> · <a href="https://utility-tools-jp.com/" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px"><img src="/brand/utility-tools.ico" alt="" width="14" height="14" style="display:block;width:14px;height:14px;border-radius:3px">無料WEB便利ツール集 ↗</a></footer>
 
 <script>
 import * as echarts from 'echarts/core';
@@ -237,13 +237,15 @@ function decodeDashboard(data){
       awardDate:date8(String(r[6]||'')), contractMethod:data.m[r[7]]||'',
       awardMethod:data.am[r[8]]||'', winnerName:data.w[r[9]]||'',
       awardAmount:Number(r[10]||0)||null,
-      scope:sourceKind===1?'local':'national',
-      source:sourceKind===2?'geps':'jetro',
+      scope:(sourceKind===1||sourceKind===3)?'local':'national',
+      source:sourceKind===2?'geps':(sourceKind===3?'yokohama':'jetro'),
       sourceUrl:sourceKind===1
         ? 'https://www.jetro.go.jp/gov_procurement/local/articles/'+String(r[0]||'')+'.html'
         : (sourceKind===2
           ? 'https://www.p-portal.go.jp/pps-web-biz/UAB02/OAB0201?caseNo='+encodeURIComponent(String(r[0]||''))
-          : (parts.length>=2?'https://www.jetro.go.jp/gov_procurement/national/articles/'+parts[0]+'/'+parts.slice(1).join(':')+'.html':'#'))
+          : (sourceKind===3
+            ? 'https://keiyaku.city.yokohama.lg.jp/epco/servlet/p?job=KokokuAnkenList&kokoku_no='+encodeURIComponent(parts[0]||'')
+            : (parts.length>=2?'https://www.jetro.go.jp/gov_procurement/national/articles/'+parts[0]+'/'+parts.slice(1).join(':')+'.html':'#')))
     };
   });
 }
@@ -269,7 +271,7 @@ function syncUrl(view=currentView()){const params=new URLSearchParams();for(cons
 async function fetchShard(name){if(shardCache.has(name))return shardCache.get(name);const promise=fetch('/data/'+name).then(r=>{if(!r.ok)throw new Error('shard load failed: '+name);return r.json()});shardCache.set(name,promise);return promise}
 function shardNamesForYear(year,includePrevious=false){if(!year)return metaData.shards||[];const needed=new Set([year]);if(includePrevious)needed.add(String(Number(year)-1));const info=Array.isArray(metaData.shardInfo)?metaData.shardInfo:[];if(!info.length)return metaData.shards||[];return info.filter(s=>(s.years||[]).some(y=>needed.has(y))).map(s=>s.name)}
 async function loadRowsForYear(year,includePrevious=false,{quiet=false}={}){const seq=++loadSequence;if(!quiet)$('result-count').textContent='読込中…';const names=shardNamesForYear(year,includePrevious);const shards=await Promise.all(names.map(fetchShard));if(seq!==loadSequence)return false;all=decodeDashboard({...metaData,r:shards.flat()});comparisonReady=!year||includePrevious;rebuildDynamicFilters();return true}
-async function loadComparisonInBackground(year){if(!year)return;const ok=await loadRowsForYear(year,true,{quiet:true});if(ok)render()}
+async function loadComparisonInBackground(year){if(!year)return;const ok=await loadRowsForYear(year,true,{quiet:true});if(ok)render()}function scheduleComparisonLoad(year){if(!year)return;const run=()=>loadComparisonInBackground(year);if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:4000});else setTimeout(run,1800)}
 function amountMatch(r,range){if(!range)return true;const a=r.awardAmount;if(!a)return false;const [lo,hi]=range.split('-');return a>=Number(lo||0)&&(!hi||a<Number(hi))}
 function matchesControls(r,{ignoreYear=false}={}){
   const q=controls.query.value.trim().toLowerCase();
@@ -334,9 +336,9 @@ setFiltersOpen(window.innerWidth>=780);
 fetch('/data/dashboard-meta.json').then(r=>{if(!r.ok)throw new Error('data load failed');return r.json()}).then(async meta=>{
   if(!Array.isArray(meta.shards))throw new Error('dashboard shards missing');metaData=meta;initFiltersFromMeta();
   const params=new URLSearchParams(location.search);const requestedYear=params.get('year');controls.year.value=requestedYear==='all'?'':((requestedYear&&[...controls.year.options].some(o=>o.value===requestedYear))?requestedYear:(meta.latestYear||''));
-  await loadRowsForYear(controls.year.value,false);applyUrlState();bindChartClicks();const initial=(location.hash||'#overview').slice(1);setView(initial);loadComparisonInBackground(controls.year.value);
-  let queryTimer;for(const [key,el] of Object.entries(controls)){if(key==='year'){el.addEventListener('change',async()=>{crossSelection=null;$('drill-card').hidden=true;await loadRowsForYear(el.value,false);render();syncUrl();loadComparisonInBackground(el.value)});continue}if(el===controls.query){el.addEventListener('input',()=>{clearTimeout(queryTimer);queryTimer=setTimeout(()=>{crossSelection=null;$('drill-card').hidden=true;render();syncUrl()},180)});continue}el.addEventListener('change',()=>{crossSelection=null;$('drill-card').hidden=true;render();syncUrl()})}
-  document.querySelectorAll('.view-tab').forEach(btn=>btn.addEventListener('click',()=>setView(btn.dataset.viewTarget)));document.querySelectorAll('[data-clear-selection]').forEach(btn=>btn.addEventListener('click',clearCrossSelection));$('drill-clear').addEventListener('click',clearCrossSelection);$('drill-more').addEventListener('click',()=>{setView('records');document.querySelector('[data-view="records"]')?.scrollIntoView({behavior:'smooth',block:'start'})});$('share').addEventListener('click',async()=>{syncUrl();const feedback=$('share-feedback');try{await navigator.clipboard.writeText(location.href);feedback.textContent='コピーしました'}catch{feedback.textContent='URLをアドレスバーからコピーしてください'}setTimeout(()=>feedback.textContent='',2200)});$('reset').addEventListener('click',async()=>{for(const [key,el] of Object.entries(controls))el.value=key==='year'?(meta.latestYear||''):'';crossSelection=null;$('drill-card').hidden=true;await loadRowsForYear(controls.year.value,false);render();syncUrl();loadComparisonInBackground(controls.year.value)})
+  await loadRowsForYear(controls.year.value,false);applyUrlState();bindChartClicks();const initial=(location.hash||'#overview').slice(1);setView(initial);scheduleComparisonLoad(controls.year.value);
+  let queryTimer;for(const [key,el] of Object.entries(controls)){if(key==='year'){el.addEventListener('change',async()=>{crossSelection=null;$('drill-card').hidden=true;await loadRowsForYear(el.value,false);render();syncUrl();scheduleComparisonLoad(el.value)});continue}if(el===controls.query){el.addEventListener('input',()=>{clearTimeout(queryTimer);queryTimer=setTimeout(()=>{crossSelection=null;$('drill-card').hidden=true;render();syncUrl()},180)});continue}el.addEventListener('change',()=>{crossSelection=null;$('drill-card').hidden=true;render();syncUrl()})}
+  document.querySelectorAll('.view-tab').forEach(btn=>btn.addEventListener('click',()=>setView(btn.dataset.viewTarget)));document.querySelectorAll('[data-clear-selection]').forEach(btn=>btn.addEventListener('click',clearCrossSelection));$('drill-clear').addEventListener('click',clearCrossSelection);$('drill-more').addEventListener('click',()=>{setView('records');document.querySelector('[data-view="records"]')?.scrollIntoView({behavior:'smooth',block:'start'})});$('share').addEventListener('click',async()=>{syncUrl();const feedback=$('share-feedback');try{await navigator.clipboard.writeText(location.href);feedback.textContent='コピーしました'}catch{feedback.textContent='URLをアドレスバーからコピーしてください'}setTimeout(()=>feedback.textContent='',2200)});$('reset').addEventListener('click',async()=>{for(const [key,el] of Object.entries(controls))el.value=key==='year'?(meta.latestYear||''):'';crossSelection=null;$('drill-card').hidden=true;await loadRowsForYear(controls.year.value,false);render();syncUrl();scheduleComparisonLoad(controls.year.value)})
 }).catch(err=>{console.error(err);$('result-count').textContent='読み込み失敗';for(const c of Object.values(charts))c.setOption(emptyOption('データを読み込めませんでした'),true)});
 let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{Object.values(charts).forEach(c=>c.resize())},120)});
 </script>

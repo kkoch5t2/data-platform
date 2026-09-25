@@ -21,11 +21,11 @@ const latestRows=data.records.filter((r)=>r.year===latest);
     main.wrap{margin-top:18px;padding-bottom:64px}.card{background:#fff;border:1px solid var(--line);border-radius:16px}.controls{padding:16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.control{min-width:0}.control label{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-bottom:6px}.control select{width:100%;height:42px;border:1px solid #d9dee7;border-radius:9px;background:#fff;padding:0 10px;font:inherit;font-size:13px}
     .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}.kpi{padding:17px;min-width:0}.kpi-label{font-size:11px;color:var(--muted)}.kpi-value{font-size:clamp(20px,2.4vw,28px);font-weight:800;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpi-sub{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.45}.kpi-value.up{color:#067647}.kpi-value.down{color:#b42318}
     .grid{display:grid;grid-template-columns:1.55fr 1fr;gap:12px;margin-top:12px}.chart-card{padding:18px}.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}.chart-card h2{font-size:16px;margin:0}.chart-sub{font-size:10.5px;color:var(--muted);margin-top:3px}.chart{height:410px}
-    .insight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.insight{padding:15px 16px}.insight strong{display:block;font-size:13px}.insight span{display:block;color:var(--muted);font-size:11px;line-height:1.55;margin-top:5px}
+    .history-card{margin-top:12px;padding:18px}.history-head{display:flex;justify-content:space-between;gap:16px;align-items:center}.history-head h2{font-size:17px;margin:0}.history-head p{font-size:11px;color:var(--muted);line-height:1.65;margin:5px 0 0}.load-btn{border:0;border-radius:10px;background:var(--nav);color:#fff;padding:10px 14px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}.history-tools{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 4px}.history-tools select{height:38px;border:1px solid #d9dee7;border-radius:9px;background:#fff;padding:0 10px;font:inherit;font-size:12px}.history-chart{height:380px}.history-status{font-size:11px;color:var(--muted);margin-top:10px}.insight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.insight{padding:15px 16px}.insight strong{display:block;font-size:13px}.insight span{display:block;color:var(--muted);font-size:11px;line-height:1.55;margin-top:5px}
     .pref-list{margin-top:28px}.pref-list h2{font-size:20px}.pref-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.pref-grid a{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;text-decoration:none;font-size:12px;font-weight:700}.pref-grid a:hover{border-color:#9abcf0;color:var(--blue)}.note{font-size:11px;color:var(--muted);line-height:1.7;margin-top:12px}footer{padding:26px 0 46px;color:var(--muted);font-size:11px}
     @media(max-width:900px){.controls{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.chart{height:350px}.insight-grid{grid-template-columns:1fr 1fr}}
     @media(max-width:800px){.nav{display:block}.navlinks{margin-top:14px;overflow:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0}.navlinks a{white-space:nowrap}.kpis{grid-template-columns:1fr 1fr}.pref-grid{grid-template-columns:repeat(3,1fr)}}
-    @media(max-width:520px){.wrap{width:min(100% - 24px,1240px)}.controls{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.insight-grid{grid-template-columns:1fr}.pref-grid{grid-template-columns:repeat(2,1fr)}.chart{height:330px}}
+    @media(max-width:520px){.history-head{align-items:flex-start;flex-direction:column}.load-btn{width:100%}.history-tools{display:grid;grid-template-columns:1fr 1fr}.history-tools select{width:100%}.history-chart{height:320px}.wrap{width:min(100% - 24px,1240px)}.controls{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.insight-grid{grid-template-columns:1fr}.pref-grid{grid-template-columns:repeat(2,1fr)}.chart{height:330px}}
   </style>
 </head>
 <body>
@@ -46,6 +46,13 @@ const latestRows=data.records.filter((r)=>r.year===latest);
   <section class="grid">
     <div class="card chart-card"><div class="chart-head"><div><h2 id="trend-title">推移比較</h2><div class="chart-sub">破線は47都道府県の単純平均</div></div></div><div id="trend" class="chart"></div></div>
     <div class="card chart-card"><div class="chart-head"><div><h2 id="ranking-title">ランキング</h2><div id="ranking-sub" class="chart-sub">—</div></div></div><div id="ranking" class="chart"></div></div>
+  </section>
+  <section class="card history-card">
+    <div class="history-head"><div><h2>人口移動を、1954年から見る</h2><p>総務省「住民基本台帳人口移動報告」の長期時系列。必要なときだけ読み込むので、通常表示の通信量は増やしません。</p></div><button id="migration-load" class="load-btn" type="button">長期データを読み込む</button></div>
+    <div id="migration-body" hidden>
+      <div class="history-tools"><select id="migration-metric"><option value="netMigration">転入超過</option><option value="inMigration">転入</option><option value="outMigration">転出</option></select><select id="migration-from"><option value="1954">1954年〜</option><option value="1990">1990年〜</option><option value="2010">2010年〜</option></select></div>
+      <div id="migration-chart" class="history-chart"></div><div id="migration-status" class="history-status"></div>
+    </div>
   </section>
   <section class="insight-grid">
     <div class="card insight"><strong>人口減少を見る</strong><span>「総人口」→「期間で減った順」で、2012年から最新年までの人口減少率を比較できます。</span></div>
@@ -73,6 +80,8 @@ const defs={
 };
 const pref=document.getElementById('pref'),compare=document.getElementById('compare'),metric=document.getElementById('metric'),rankMode=document.getElementById('rank-mode');
 const trend=echarts.init(document.getElementById('trend')),ranking=echarts.init(document.getElementById('ranking'));
+let migrationData=null,migrationChart=null;
+const migrationLoad=document.getElementById('migration-load'),migrationBody=document.getElementById('migration-body'),migrationMetric=document.getElementById('migration-metric'),migrationFrom=document.getElementById('migration-from');
 const nfmt=new Intl.NumberFormat('ja-JP',{maximumFractionDigits:2});
 const valid=v=>v!==null&&v!==undefined&&Number.isFinite(Number(v));
 const fmt=(v,unit='')=>valid(v)?nfmt.format(Number(v))+unit:'—';
@@ -115,6 +124,9 @@ function draw(){
   ranking.setOption({tooltip:{trigger:'item',formatter:p=>p.name+'<br><b>'+(changeMode?changeLabel(p.value,def):fmt(p.value,def.unit))+'</b>'},grid:{left:82,right:66,top:10,bottom:18},xAxis:{type:'value',show:false},yAxis:{type:'category',inverse:true,data:rr.map(r=>r.name)},series:[{type:'bar',data:rr.map(r=>r.value),barWidth:12,label:{show:true,position:'right',fontSize:10,formatter:p=>changeMode?changeLabel(p.value,def):fmt(p.value,def.unit)}}]},true);
   setTone(document.getElementById('a-value'),0);setState();
 }
-restoreState();for(const el of [pref,compare,metric,rankMode])el.addEventListener('change',draw);draw();window.addEventListener('resize',()=>{trend.resize();ranking.resize()});
+function drawMigration(){if(!migrationData||!migrationChart)return;const idx={inMigration:1,outMigration:2,netMigration:3}[migrationMetric.value],from=Number(migrationFrom.value);const rec=name=>migrationData.records.find(r=>r.prefecture===name);const mk=(name)=>{const r=rec(name);return{name,type:'line',showSymbol:false,smooth:.12,lineStyle:{width:2.5},data:(r?.values||[]).filter(v=>v[0]>=from&&v[idx]!==null).map(v=>[v[0],v[idx]])}};const series=[mk(pref.value)];if(compare.value)series.push(mk(compare.value));migrationChart.setOption({tooltip:{trigger:'axis',valueFormatter:v=>nfmt.format(v)+'人'},legend:{top:0},grid:{left:64,right:22,top:48,bottom:42},xAxis:{type:'value',min:from,max:migrationData.years.at(-1),axisLabel:{formatter:v=>String(v)}},yAxis:{type:'value',scale:true,axisLabel:{formatter:v=>nfmt.format(v)}},series},true);document.getElementById('migration-status').textContent=migrationData.years[0]+'〜'+migrationData.years.at(-1)+'年 / 日本人移動者 / 都道府県別（一部の古い年度は原表欠損）';}
+async function loadMigration(){if(migrationData){migrationBody.hidden=false;drawMigration();return}migrationLoad.disabled=true;migrationLoad.textContent='読み込み中…';try{const r=await fetch('/data/regional-migration-history.json');if(!r.ok)throw new Error('取得失敗');migrationData=await r.json();migrationBody.hidden=false;migrationChart=echarts.init(document.getElementById('migration-chart'));migrationLoad.textContent='読み込み済み';drawMigration()}catch(e){migrationLoad.disabled=false;migrationLoad.textContent='再読み込み';document.getElementById('migration-status').textContent='長期データを読み込めませんでした'} }
+migrationLoad.addEventListener('click',loadMigration);migrationMetric.addEventListener('change',drawMigration);migrationFrom.addEventListener('change',drawMigration);
+restoreState();for(const el of [pref,compare,metric,rankMode])el.addEventListener('change',()=>{draw();drawMigration()});draw();window.addEventListener('resize',()=>{trend.resize();ranking.resize();migrationChart?.resize()});
 </script>
 </body></html>

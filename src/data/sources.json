@@ -4,45 +4,45 @@
     "jetro": {
       "label": "JETRO 政府公共調達データベース",
       "status": "ok",
-      "startedAt": "2026-09-24T21:15:01.531719+00:00",
-      "finishedAt": "2026-09-24T21:19:23.427789+00:00",
-      "durationSeconds": 261.9,
+      "startedAt": "2026-09-25T05:03:42.282556+00:00",
+      "finishedAt": "2026-09-25T05:10:45.731250+00:00",
+      "durationSeconds": 423.45,
       "metrics": {
-        "records": 300814,
-        "itRecords": 73296,
-        "awardRecords": 136267,
-        "companies": 15291,
+        "records": 300873,
+        "itRecords": 72330,
+        "awardRecords": 136417,
+        "companies": 15312,
         "organizations": 253,
-        "fetched": 885,
+        "fetched": 657,
         "enriched": 150
       },
-      "previousRecordCount": 299881
+      "previousRecordCount": 300814
     },
     "land_prices": {
-      "label": "国土交通省 地価公示",
+      "label": "国土交通省 地価公示 / 都道府県地価調査",
       "status": "ok",
-      "startedAt": "2026-09-23T17:59:47.334740+00:00",
-      "finishedAt": "2026-09-23T17:59:49.830619+00:00",
-      "durationSeconds": 2.5,
+      "startedAt": "2026-09-25T06:54:30.432115+00:00",
+      "finishedAt": "2026-09-25T06:54:53.795021+00:00",
+      "durationSeconds": 23.36,
       "metrics": {
         "records": 25565,
-        "medianPrice": 83000,
-        "averagePrice": 297840
+        "surveyRecords": 21456,
+        "historyYears": 7
       },
       "previousRecordCount": 25565
     },
     "jetro_local": {
       "label": "JETRO 地方政府公共調達データベース",
       "status": "ok",
-      "startedAt": "2026-09-24T21:19:23.505617+00:00",
-      "finishedAt": "2026-09-24T21:20:29.621312+00:00",
-      "durationSeconds": 66.12,
+      "startedAt": "2026-09-25T05:10:45.805827+00:00",
+      "finishedAt": "2026-09-25T05:12:59.294516+00:00",
+      "durationSeconds": 133.49,
       "metrics": {
-        "records": 642,
+        "records": 669,
         "fetched": 600,
-        "totalRecords": 300814
+        "totalRecords": 300900
       },
-      "previousRecordCount": 600
+      "previousRecordCount": 642
     },
     "regional_trends": {
       "label": "統計センター SSDSE-県別推移",
@@ -108,6 +108,86 @@
         "year": 2025
       },
       "previousRecordCount": 47
+    },
+    "regional_migration": {
+      "label": "総務省統計局 住民基本台帳人口移動報告",
+      "status": "ok",
+      "startedAt": "2026-09-25T05:39:51.260869+00:00",
+      "finishedAt": "2026-09-25T05:39:53.558960+00:00",
+      "durationSeconds": 2.3,
+      "metrics": {
+        "records": 3384,
+        "prefectures": 47,
+        "startYear": 1954,
+        "endYear": 2025
+      }
+    },
+    "employment_wage_history": {
+      "label": "厚生労働省 賃金構造基本統計 都道府県別時系列",
+      "status": "ok",
+      "startedAt": "2026-09-25T05:39:53.626839+00:00",
+      "finishedAt": "2026-09-25T05:39:55.357140+00:00",
+      "durationSeconds": 1.73,
+      "metrics": {
+        "records": 235,
+        "prefectures": 47,
+        "startYear": 2021,
+        "endYear": 2025
+      }
+    },
+    "business_industry_history": {
+      "label": "SSDSE-E / 経済センサス産業構造時系列",
+      "status": "ok",
+      "startedAt": "2026-09-25T05:39:55.414711+00:00",
+      "finishedAt": "2026-09-25T05:39:55.599507+00:00",
+      "durationSeconds": 0.18,
+      "metrics": {
+        "records": 94,
+        "prefectures": 47,
+        "startYear": 2016,
+        "endYear": 2021
+      }
+    },
+    "economy_prices_history": {
+      "label": "総務省統計局 消費者物価地域差指数 時系列",
+      "status": "ok",
+      "startedAt": "2026-09-25T05:39:55.658969+00:00",
+      "finishedAt": "2026-09-25T05:39:56.857068+00:00",
+      "durationSeconds": 1.2,
+      "metrics": {
+        "records": 188,
+        "prefectures": 47,
+        "startYear": 2022,
+        "endYear": 2025
+      }
+    },
+    "yokohama_procurement": {
+      "label": "横浜市 横浜市報調達公告版",
+      "status": "ok",
+      "startedAt": "2026-09-25T05:45:43.996756+00:00",
+      "finishedAt": "2026-09-25T05:47:35.285725+00:00",
+      "durationSeconds": 111.29,
+      "metrics": {
+        "records": 50373,
+        "added": 46219,
+        "duplicates": 4154,
+        "bulletins": 442,
+        "years": 9
+      },
+      "previousRecordCount": 4146
+    },
+    "energy_consumption_history": {
+      "label": "資源エネルギー庁 都道府県別エネルギー消費統計",
+      "status": "ok",
+      "startedAt": "2026-09-25T06:40:13.786894+00:00",
+      "finishedAt": "2026-09-25T06:40:23.657301+00:00",
+      "durationSeconds": 9.87,
+      "metrics": {
+        "records": 893,
+        "prefectures": 47,
+        "startYear": 1990,
+        "endYear": 2023
+      }
     }
   }
 }

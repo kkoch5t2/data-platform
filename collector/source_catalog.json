@@ -36,7 +36,7 @@
       "domain": "procurement"
     },
     "land_prices": {
-      "label": "国土交通省 地価公示",
+      "label": "国土交通省 地価公示 / 都道府県地価調査",
       "enabled": true,
       "frequency": "monthly",
       "maxAgeHours": 840,
@@ -115,6 +115,90 @@
       "command": [
         "python3",
         "collector/collect_energy.py"
+      ],
+      "country": "JP",
+      "domain": "energy"
+    },
+    "yokohama_procurement": {
+      "label": "横浜市 横浜市報調達公告版",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 48,
+      "minRecords": 1000,
+      "acquisition": "official-municipal-html",
+      "command": [
+        "python3",
+        "collector/collect_yokohama_procurement.py"
+      ],
+      "country": "JP",
+      "domain": "procurement"
+    },
+    "regional_migration": {
+      "label": "総務省統計局 住民基本台帳人口移動報告 長期時系列",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 3000,
+      "acquisition": "official-public-xlsx",
+      "command": [
+        "python3",
+        "collector/collect_regional_migration_history.py"
+      ],
+      "country": "JP",
+      "domain": "regional"
+    },
+    "employment_wage_history": {
+      "label": "厚生労働省 賃金構造基本統計 都道府県別時系列",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 200,
+      "acquisition": "official-public-xlsx",
+      "command": [
+        "python3",
+        "collector/collect_employment_wage_history.py"
+      ],
+      "country": "JP",
+      "domain": "employment-economy"
+    },
+    "business_industry_history": {
+      "label": "統計センター SSDSE-E / 経済センサス産業構造時系列",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 90,
+      "acquisition": "official-open-data-csv",
+      "command": [
+        "python3",
+        "collector/collect_business_industry_history.py"
+      ],
+      "country": "JP",
+      "domain": "business-industry"
+    },
+    "economy_prices_history": {
+      "label": "総務省統計局 消費者物価地域差指数 時系列",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 180,
+      "acquisition": "official-public-pdf",
+      "command": [
+        "python3",
+        "collector/collect_economy_prices_history.py"
+      ],
+      "country": "JP",
+      "domain": "economy-prices"
+    },
+    "energy_consumption_history": {
+      "label": "資源エネルギー庁 都道府県別エネルギー消費統計 長期時系列",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 800,
+      "acquisition": "official-public-xlsx-zip",
+      "command": [
+        "python3",
+        "collector/collect_energy_consumption_history.py"
       ],
       "country": "JP",
       "domain": "energy"
