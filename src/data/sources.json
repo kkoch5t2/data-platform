@@ -4,19 +4,19 @@
     "jetro": {
       "label": "JETRO 政府公共調達データベース",
       "status": "ok",
-      "startedAt": "2026-09-25T05:03:42.282556+00:00",
-      "finishedAt": "2026-09-25T05:10:45.731250+00:00",
-      "durationSeconds": 423.45,
+      "startedAt": "2026-09-25T21:15:01.305230+00:00",
+      "finishedAt": "2026-09-25T21:22:37.275894+00:00",
+      "durationSeconds": 455.97,
       "metrics": {
-        "records": 300873,
-        "itRecords": 72330,
-        "awardRecords": 136417,
-        "companies": 15312,
-        "organizations": 253,
+        "records": 368752,
+        "itRecords": 76949,
+        "awardRecords": 154061,
+        "companies": 16952,
+        "organizations": 254,
         "fetched": 657,
         "enriched": 150
       },
-      "previousRecordCount": 300814
+      "previousRecordCount": 300873
     },
     "land_prices": {
       "label": "国土交通省 地価公示 / 都道府県地価調査",
@@ -34,15 +34,15 @@
     "jetro_local": {
       "label": "JETRO 地方政府公共調達データベース",
       "status": "ok",
-      "startedAt": "2026-09-25T05:10:45.805827+00:00",
-      "finishedAt": "2026-09-25T05:12:59.294516+00:00",
-      "durationSeconds": 133.49,
+      "startedAt": "2026-09-25T21:22:37.490201+00:00",
+      "finishedAt": "2026-09-25T21:26:25.645100+00:00",
+      "durationSeconds": 228.15,
       "metrics": {
         "records": 669,
         "fetched": 600,
-        "totalRecords": 300900
+        "totalRecords": 368752
       },
-      "previousRecordCount": 642
+      "previousRecordCount": 669
     },
     "regional_trends": {
       "label": "統計センター SSDSE-県別推移",
@@ -164,17 +164,17 @@
     "yokohama_procurement": {
       "label": "横浜市 横浜市報調達公告版",
       "status": "ok",
-      "startedAt": "2026-09-25T05:45:43.996756+00:00",
-      "finishedAt": "2026-09-25T05:47:35.285725+00:00",
-      "durationSeconds": 111.29,
+      "startedAt": "2026-09-25T21:26:25.757507+00:00",
+      "finishedAt": "2026-09-25T21:28:00.302837+00:00",
+      "durationSeconds": 94.55,
       "metrics": {
-        "records": 50373,
-        "added": 46219,
-        "duplicates": 4154,
-        "bulletins": 442,
-        "years": 9
+        "records": 4146,
+        "added": 0,
+        "duplicates": 4146,
+        "bulletins": 39,
+        "years": 1
       },
-      "previousRecordCount": 4146
+      "previousRecordCount": 50373
     },
     "energy_consumption_history": {
       "label": "資源エネルギー庁 都道府県別エネルギー消費統計",
@@ -193,14 +193,14 @@
     "sapporo_procurement": {
       "label": "札幌市 入札等結果一覧",
       "status": "ok",
-      "startedAt": "2026-09-25T19:55:30.444752+00:00",
-      "finishedAt": "2026-09-25T19:56:05.816925+00:00",
-      "durationSeconds": 35.37,
+      "startedAt": "2026-09-25T21:28:00.410973+00:00",
+      "finishedAt": "2026-09-25T21:28:32.449263+00:00",
+      "durationSeconds": 32.04,
       "metrics": {
-        "records": 17502,
-        "upserted": 17502,
-        "years": 8,
-        "startYear": 2019,
+        "records": 564,
+        "upserted": 564,
+        "years": 1,
+        "startYear": 2026,
         "endYear": 2026
       },
       "previousRecordCount": 17502

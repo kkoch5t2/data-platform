@@ -1,63 +1,148 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-09-25T05:12:59Z",
+  "generatedAt": "2026-09-25T21:28:32Z",
   "range": {
     "days": 7,
-    "start": "2026-09-18T05:12:59Z",
-    "end": "2026-09-25T05:12:59Z"
+    "start": "2026-09-18T21:28:32Z",
+    "end": "2026-09-25T21:28:32Z"
   },
-  "pageviews": 149,
-  "visits": 55,
+  "pageviews": 2723,
+  "visits": 572,
   "topPages": [
     {
-      "path": "/",
-      "pageviews": 78,
-      "visits": 49
-    },
-    {
-      "path": "/procurement/",
-      "pageviews": 33,
-      "visits": 0
-    },
-    {
-      "path": "/economy-prices/",
-      "pageviews": 8,
-      "visits": 1
-    },
-    {
       "path": "/employment-economy/",
-      "pageviews": 7,
-      "visits": 0
-    },
-    {
-      "path": "/business-industry/",
-      "pageviews": 4,
-      "visits": 0
+      "pageviews": 673,
+      "visits": 65
     },
     {
       "path": "/energy/",
-      "pageviews": 4,
-      "visits": 4
+      "pageviews": 578,
+      "visits": 54
     },
     {
-      "path": "/realestate/",
-      "pageviews": 3,
-      "visits": 0
+      "path": "/economy-prices/",
+      "pageviews": 487,
+      "visits": 13
+    },
+    {
+      "path": "/procurement/",
+      "pageviews": 245,
+      "visits": 24
     },
     {
       "path": "/regional/",
-      "pageviews": 3,
-      "visits": 1
+      "pageviews": 179,
+      "visits": 31
     },
     {
-      "path": "/procurement/technologies/",
-      "pageviews": 2,
-      "visits": 0
+      "path": "/",
+      "pageviews": 154,
+      "visits": 85
+    },
+    {
+      "path": "/business-industry/",
+      "pageviews": 103,
+      "visits": 37
+    },
+    {
+      "path": "/realestate/",
+      "pageviews": 66,
+      "visits": 57
+    },
+    {
+      "path": "/employment-economy/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 21,
+      "visits": 20
+    },
+    {
+      "path": "/about-data/",
+      "pageviews": 18,
+      "visits": 15
+    },
+    {
+      "path": "/procurement/years/2026/technologies/cloud/",
+      "pageviews": 17,
+      "visits": 17
+    },
+    {
+      "path": "/procurement/organizations/org_0038e6ec0f7a/",
+      "pageviews": 17,
+      "visits": 17
+    },
+    {
+      "path": "/regional/indicators/elderly-rate/",
+      "pageviews": 16,
+      "visits": 16
+    },
+    {
+      "path": "/energy/indicators/electricity/",
+      "pageviews": 16,
+      "visits": 13
     },
     {
       "path": "/employment-economy/indicators/annual-pay/",
-      "pageviews": 2,
+      "pageviews": 16,
+      "visits": 14
+    },
+    {
+      "path": "/procurement/markets/admin-bpo/",
+      "pageviews": 15,
+      "visits": 15
+    },
+    {
+      "path": "/procurement/technologies/cloud/",
+      "pageviews": 14,
+      "visits": 14
+    },
+    {
+      "path": "/economy-prices/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 11,
+      "visits": 11
+    },
+    {
+      "path": "/analytics/",
+      "pageviews": 11,
+      "visits": 8
+    },
+    {
+      "path": "/energy/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 11,
+      "visits": 7
+    },
+    {
+      "path": "/business-industry/indicators/employees-per-establishment/",
+      "pageviews": 10,
+      "visits": 10
+    },
+    {
+      "path": "/procurement/years/2026/markets/admin-bpo/",
+      "pageviews": 8,
+      "visits": 8
+    },
+    {
+      "path": "/regional/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 7,
+      "visits": 7
+    },
+    {
+      "path": "/procurement/companies/co_00106adf0800/",
+      "pageviews": 5,
+      "visits": 5
+    },
+    {
+      "path": "/energy/prefectures/%E5%8D%83%E8%91%89%E7%9C%8C/",
+      "pageviews": 3,
       "visits": 0
+    },
+    {
+      "path": "/business-industry/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 3,
+      "visits": 3
+    },
+    {
+      "path": "/economy-prices/indicators/clothing/",
+      "pageviews": 2,
+      "visits": 2
     },
     {
       "path": "/business-industry/indicators/employees/",
@@ -65,31 +150,26 @@
       "visits": 0
     },
     {
-      "path": "/analytics/",
-      "pageviews": 1,
+      "path": "/regional/prefectures/%E9%9D%92%E6%A3%AE%E7%9C%8C/",
+      "pageviews": 2,
       "visits": 0
     },
     {
-      "path": "/energy/indicators/utility-price/",
-      "pageviews": 1,
-      "visits": 0
-    },
-    {
-      "path": "/procurement/years/",
-      "pageviews": 1,
+      "path": "/energy/prefectures/%E7%A6%8F%E5%B3%B6%E7%9C%8C/",
+      "pageviews": 2,
       "visits": 0
     }
   ],
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 94,
+      "pageviews": 2151,
       "visits": 0
     },
     {
       "host": "www.google.com",
-      "pageviews": 3,
-      "visits": 3
+      "pageviews": 7,
+      "visits": 7
     },
     {
       "host": "datlume.pages.dev",
@@ -105,8 +185,8 @@
     },
     {
       "date": "2026-09-25",
-      "pageviews": 70,
-      "visits": 25
+      "pageviews": 2644,
+      "visits": 542
     }
   ],
   "history": [
@@ -117,8 +197,8 @@
     },
     {
       "date": "2026-09-25",
-      "pageviews": 70,
-      "visits": 25
+      "pageviews": 2644,
+      "visits": 542
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
