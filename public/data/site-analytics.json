@@ -1,30 +1,95 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-09-24T18:16:04Z",
+  "generatedAt": "2026-09-25T05:12:59Z",
   "range": {
     "days": 7,
-    "start": "2026-09-17T18:16:04Z",
-    "end": "2026-09-24T18:16:04Z"
+    "start": "2026-09-18T05:12:59Z",
+    "end": "2026-09-25T05:12:59Z"
   },
-  "pageviews": 19,
-  "visits": 17,
+  "pageviews": 149,
+  "visits": 55,
   "topPages": [
     {
       "path": "/",
-      "pageviews": 17,
-      "visits": 17
+      "pageviews": 78,
+      "visits": 49
     },
     {
       "path": "/procurement/",
+      "pageviews": 33,
+      "visits": 0
+    },
+    {
+      "path": "/economy-prices/",
+      "pageviews": 8,
+      "visits": 1
+    },
+    {
+      "path": "/employment-economy/",
+      "pageviews": 7,
+      "visits": 0
+    },
+    {
+      "path": "/business-industry/",
+      "pageviews": 4,
+      "visits": 0
+    },
+    {
+      "path": "/energy/",
+      "pageviews": 4,
+      "visits": 4
+    },
+    {
+      "path": "/realestate/",
+      "pageviews": 3,
+      "visits": 0
+    },
+    {
+      "path": "/regional/",
+      "pageviews": 3,
+      "visits": 1
+    },
+    {
+      "path": "/procurement/technologies/",
       "pageviews": 2,
+      "visits": 0
+    },
+    {
+      "path": "/employment-economy/indicators/annual-pay/",
+      "pageviews": 2,
+      "visits": 0
+    },
+    {
+      "path": "/business-industry/indicators/employees/",
+      "pageviews": 2,
+      "visits": 0
+    },
+    {
+      "path": "/analytics/",
+      "pageviews": 1,
+      "visits": 0
+    },
+    {
+      "path": "/energy/indicators/utility-price/",
+      "pageviews": 1,
+      "visits": 0
+    },
+    {
+      "path": "/procurement/years/",
+      "pageviews": 1,
       "visits": 0
     }
   ],
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 2,
+      "pageviews": 94,
       "visits": 0
+    },
+    {
+      "host": "www.google.com",
+      "pageviews": 3,
+      "visits": 3
     },
     {
       "host": "datlume.pages.dev",
@@ -35,15 +100,25 @@
   "daily": [
     {
       "date": "2026-09-24",
-      "pageviews": 19,
-      "visits": 17
+      "pageviews": 79,
+      "visits": 30
+    },
+    {
+      "date": "2026-09-25",
+      "pageviews": 70,
+      "visits": 25
     }
   ],
   "history": [
     {
       "date": "2026-09-24",
-      "pageviews": 19,
-      "visits": 17
+      "pageviews": 79,
+      "visits": 30
+    },
+    {
+      "date": "2026-09-25",
+      "pageviews": 70,
+      "visits": 25
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
