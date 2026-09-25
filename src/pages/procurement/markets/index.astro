@@ -1,7 +1,7 @@
 ---
 import records from '../../../data/procurements';
 import '../../../styles/detail.css';
-const slugMap={'IT・デジタル':'it-digital','建設・土木':'construction','医療・福祉':'healthcare','研究・調査・コンサル':'research-consulting','教育・研修':'education','交通・物流':'transport-logistics','施設管理・清掃':'facility-management','広報・広告・制作':'communications','エネルギー・環境':'energy-environment','食品・給食':'food','科学・研究機器':'science-equipment','出版・情報資料':'publishing-information','化学・素材':'chemicals-materials','衣類・装備品':'apparel-equipment','機械・設備':'machinery-equipment','製造・製作':'manufacturing','人材・業務委託':'outsourcing-staffing','一般物品・備品':'goods','その他':'other'};
+const slugMap={'IT・デジタル':'it-digital','建設・土木':'construction','医療・福祉':'healthcare','研究・調査・コンサル':'research-consulting','教育・研修':'education','交通・物流':'transport-logistics','施設管理・清掃':'facility-management','広報・広告・制作':'communications','エネルギー・環境':'energy-environment','食品・給食':'food','科学・研究機器':'science-equipment','出版・情報資料':'publishing-information','化学・素材':'chemicals-materials','衣類・装備品':'apparel-equipment','機械・設備':'machinery-equipment','製造・製作':'manufacturing','人材・業務委託':'outsourcing-staffing','賃貸借・リース':'leasing','公告・手続':'notices-procedures','一般物品・備品':'goods','その他':'other'};
 const cats=[...new Set(records.map(r=>r.category||'その他'))].map(name=>{const rs=records.filter(r=>(r.category||'その他')===name);const awards=rs.filter(r=>r.awardAmount);return{name,slug:slugMap[name]||encodeURIComponent(name),count:rs.length,awards:awards.length,total:awards.reduce((a,r)=>a+(r.awardAmount||0),0)}}).sort((a,b)=>b.count-a.count);
 const oku=(v)=>(v/100000000).toFixed(v>=1000000000?1:2)+'億円';
 ---
