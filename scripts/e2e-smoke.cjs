@@ -6,6 +6,53 @@ const viewports = [{name:'desktop',width:1440,height:1000},{name:'mobile',width:
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const unique = xs => [...new Set(xs)];
+const numberFrom = text => { const m = String(text ?? '').replace(/,/g,'').match(/-?[0-9]+(?:\.[0-9]+)?/); return m ? Number(m[0]) : NaN; };
+const near = (a,b,t=0.06) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a-b) <= t;
+
+async function validateDomainNumbers(page, route, label, failures) {
+  const fail = (name, actual, expected) => failures.push(`${label} ${route} data ${name}: actual=${actual} expected=${expected}`);
+  if (route === '/procurement/') {
+    const meta = await fetch(new URL('/data/dashboard-meta.json', base)).then(r=>r.json());
+    const year = String(meta.latestYear ?? Math.max(...meta.years.map(Number)));
+    const rows = await fetch(new URL(`/data/dashboard-${year}.json`, base)).then(r=>r.json());
+    const actual = numberFrom(await page.locator('#kpi-count').textContent());
+    if (actual !== rows.length) fail('kpi-count', actual, rows.length);
+  } else if (route === '/realestate/') {
+    const data = await fetch(new URL('/data/land-prices-2026.json', base)).then(r=>r.json());
+    const actual = numberFrom(await page.locator('#kpi-count').textContent());
+    if (actual !== data.records.length) fail('land-count', actual, data.records.length);
+  } else if (route === '/regional/') {
+    const data = await fetch(new URL('/data/regional-trends-2026.json', base)).then(r=>r.json());
+    const pref = await page.locator('#pref').inputValue(), metric = await page.locator('#metric').inputValue();
+    const rows = data.records.filter(r=>r.prefecture===pref && Number.isFinite(r[metric])).sort((a,b)=>a.year-b.year);
+    const expected = rows.at(-1)?.[metric], actual = numberFrom(await page.locator('#a-value').textContent());
+    if (!near(actual, expected, 0.06)) fail(`latest-${metric}`, actual, expected);
+  } else if (route === '/employment-economy/') {
+    const data = await fetch(new URL('/data/employment-economy-2026.json', base)).then(r=>r.json());
+    const pref = await page.locator('#pref').inputValue(), row = data.records.find(r=>r.prefecture===pref);
+    const expected = row?.estimatedAnnualCashThousandYen * 0.1, actual = numberFrom(await page.locator('#overview-pay').textContent());
+    if (!near(actual, expected, 0.06)) fail('estimated-annual-pay', actual, expected);
+  } else if (route === '/business-industry/') {
+    const data = await fetch(new URL('/data/business-industry-2026.json', base)).then(r=>r.json());
+    const vals = await page.locator('.kpi-value').evaluateAll(es=>es.map(e=>e.textContent));
+    const est = numberFrom(vals[0]), emp = numberFrom(vals[1]);
+    if (est !== data.totals.establishments) fail('establishments-total', est, data.totals.establishments);
+    if (emp !== data.totals.employees) fail('employees-total', emp, data.totals.employees);
+    const tableRows = await page.locator('#all-pref-table tbody tr').count();
+    if (tableRows !== data.records.length) fail('prefecture-row-count', tableRows, data.records.length);
+  } else if (route === '/economy-prices/') {
+    const data = await fetch(new URL('/data/economy-prices.json', base)).then(r=>r.json());
+    const pref = await page.locator('#pref').inputValue(), row = data.records.find(r=>r.prefecture===pref);
+    const actual = numberFrom(await page.locator('#kpi-overall').textContent());
+    if (!near(actual, row?.overall, 0.01)) fail('overall-index', actual, row?.overall);
+  } else if (route === '/energy/') {
+    const data = await fetch(new URL('/data/energy.json', base)).then(r=>r.json());
+    const pref = await page.locator('#pref').inputValue(), row = data.records.find(r=>r.prefecture===pref);
+    const energy = numberFrom(await page.locator('#kpi-energy').textContent()), price = numberFrom(await page.locator('#kpi-price').textContent());
+    if (energy !== row?.monthlyEnergyYen) fail('monthly-energy', energy, row?.monthlyEnergyYen);
+    if (!near(price, row?.utilityPriceIndex, 0.01)) fail('utility-price-index', price, row?.utilityPriceIndex);
+  }
+}
 
 async function exerciseVisibleSelects(page) {
   const selects = page.locator('select:visible');
@@ -49,7 +96,9 @@ async function exerciseVisibleSelects(page) {
         const res = await page.goto(base + route, { waitUntil: 'networkidle', timeout: 60000 });
         if (!res || res.status() >= 400) failures.push(`${vp.name} ${route} navigation ${res?.status()}`);
 
-        const filterToggle = page.locator('#filters-toggle:visible');
+        await validateDomainNumbers(page, route, vp.name, failures);
+
+        const filterToggle = page.locator('#filter-toggle:visible');
         if (await filterToggle.count()) {
           const expanded = await filterToggle.getAttribute('aria-expanded');
           if (expanded !== 'true') await filterToggle.click();
