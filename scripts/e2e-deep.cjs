@@ -68,6 +68,27 @@ async function exerciseVisibleSelects(page) {
   }
 }
 
+async function checkRealestateMapPalette(page,label,failures) {
+  await page.waitForFunction(()=>window.__DATLUME_MAP__?.getLayer?.('price-points'),{timeout:20000}).catch(()=>{});
+  const palette=await page.evaluate(()=>{
+    const m=window.__DATLUME_MAP__;
+    const paint=m?.getPaintProperty?.('price-points','circle-color');
+    const cluster=m?.getPaintProperty?.('price-clusters','circle-color');
+    const legend=[...document.querySelectorAll('#legend .dot')].map(el=>el.getAttribute('style')||'');
+    return {paint,cluster,legend};
+  }).catch(()=>({}));
+  const encoded=JSON.stringify(palette.paint||[]);
+  for(const color of ['#bfdbfe','#60a5fa','#2563eb','#1e3a8a']){
+    if(!encoded.includes(color))failures.push(label+' land-price palette missing '+color);
+  }
+  if(/#(?:22c55e|eab308|f97316|dc2626|ef4444)/i.test(encoded))failures.push(label+' land-price points still use non-blue palette: '+encoded);
+  if(palette.cluster!=='#1769e0')failures.push(label+' land-price cluster is not blue: '+palette.cluster);
+  const legendText=(palette.legend||[]).join(' ');
+  for(const color of ['#bfdbfe','#60a5fa','#2563eb','#1e3a8a']){
+    if(!legendText.includes(color))failures.push(label+' land-price legend missing '+color);
+  }
+}
+
 async function checkProcurementOverview(page,label,failures) {
   await page.waitForFunction(()=>/^\d+(?:\.\d+)?%$/.test((document.querySelector('#yoy-amount')?.textContent||'').trim()),{timeout:15000}).catch(()=>{});
   const yoyLabel=(await page.locator('#yoy-amount').locator('xpath=..').locator('.yoy-label').textContent().catch(()=>''))?.trim();
@@ -120,6 +141,7 @@ async function checkProcurementOverview(page,label,failures) {
         if(!res||res.status()>=400)failures.push(`${vp.name} ${route} navigation ${res?.status()}`);
         const initialLabel=`${vp.name} ${route}`;
         if(route==='/procurement/')await checkProcurementOverview(page,initialLabel,failures);
+        if(route==='/realestate/')await checkRealestateMapPalette(page,initialLabel,failures);
 
         const filterToggle=page.locator('#filter-toggle:visible, #filters-toggle:visible');
         if(await filterToggle.count() && await filterToggle.first().getAttribute('aria-expanded')!=='true') await filterToggle.first().click();
