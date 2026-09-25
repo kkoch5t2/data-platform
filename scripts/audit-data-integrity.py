@@ -139,12 +139,19 @@ ok(load(DATA/'land-survey-2026.json').get('year')==2026,'land survey: year misma
 # Municipality layer.
 d=load(DATA/'municipality-stats-2026.json'); rows=d['records']
 ok(len(rows)>=1700,'municipality: unexpectedly few rows')
-# tolerate schema variations while requiring unique primary-looking code if present
+ok(d.get('years')=={'population':2020,'households':2020,'vital':2023,'migration':2024,'medical':2023},'municipality: source-year metadata mismatch')
 codes=[]
 for r in rows:
     if isinstance(r,dict):
         c=r.get('code') or r.get('municipalityCode')
         if c: codes.append(c)
+        hh=r.get('households') or 0; single=r.get('singleHouseholds') or 0
+        ok(single<=hh,f'municipality {c}: single households exceed total')
+        if hh: ok(abs(single/hh*100-r.get('singleHouseholdRate',-999))<=.051,f'municipality {c}: single household rate mismatch')
+        ok(r.get('inMigrants',0)-r.get('outMigrants',0)==r.get('netMigration'),f'municipality {c}: net migration mismatch')
+        ok(r.get('births',0)-r.get('deaths',0)==r.get('naturalChange'),f'municipality {c}: natural change mismatch')
+        if r.get('population'):
+            ok(abs((r.get('foreignPopulation',0)/r['population']*100)-r.get('foreignRate',-999))<=.011,f'municipality {c}: foreign rate mismatch')
 if codes: ok(len(codes)==len(set(codes)),'municipality: duplicate codes')
 
 # History datasets: sorted years and expected coverage.
