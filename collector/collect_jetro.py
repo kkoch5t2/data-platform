@@ -498,7 +498,7 @@ def seed_from_json(conn):
     now = datetime.now(timezone.utc).isoformat(); count = 0
     for r in records:
         parts = str(r.get('id','')).split(':')
-        if len(parts) != 3 or parts[0] not in ('jetro','jetro-local','geps','yokohama'): continue
+        if len(parts) != 3 or parts[0] not in ('jetro','jetro-local','geps','yokohama','sapporo'): continue
         scope=parts[0]; xid=int(parts[1]); aid=parts[2]
         agency = r.get('agency','') or KNOWN_AGENCY_FIXES.get(r.get('id',''),''); org_id = stable_id('org', agency) if agency else None
         winner = canonical_company_name(r.get('winnerName') or ''); company_id = stable_id('co', winner) if winner else None
@@ -595,7 +595,7 @@ def export_json(conn):
         d=dict(zip(cols,r)); out.append({
           'id':d['source_id'],'title':d['title'],'noticeDate':d['notice_date'],'agency':d['agency'],
           'organizationId':d['organization_id'],'noticeType':d['notice_type'],'sourceUrl':d['source_url'],
-          'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else 'jetro')),
+          'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else ('sapporo' if d['source_id'].startswith('sapporo:') else 'jetro'))),
           'isIt':bool(d['is_it']),'category':d['category'] or 'その他','categoryTags':json.loads(d['category_tags_json'] or '[]'),
           'tags':json.loads(d['tags_json']),'detailFetched':bool(d['detail_fetched']),
           'awardDate':d['award_date'],'contractMethod':d['contract_method'],'awardMethod':d['award_method'],
@@ -640,15 +640,18 @@ def export_json(conn):
         is_jetro_local=x['id'].startswith('jetro-local:')
         is_geps=x['id'].startswith('geps:')
         is_yokohama=x['id'].startswith('yokohama:')
+        is_sapporo=x['id'].startswith('sapporo:')
         if is_jetro_local:
             sid=x['id'].split(':',2)[-1]
         elif is_geps:
             sid=x['id'].split(':',2)[1]
         elif is_yokohama:
             sid=x['id'][9:]
+        elif is_sapporo:
+            sid=x['id'][8:]
         else:
             sid=x['id'][6:] if x['id'].startswith('jetro:') else x['id']
-        source_kind=1 if is_jetro_local else (2 if is_geps else (3 if is_yokohama else 0))
+        source_kind=1 if is_jetro_local else (2 if is_geps else (3 if is_yokohama else (4 if is_sapporo else 0)))
         tag_mask=sum(1 << tag_idx[t] for t in (x.get('tags') or []) if t in tag_idx)
         dashboard_rows.append([
           sid,x['title'] or '',(x['noticeDate'] or '').replace('-',''),

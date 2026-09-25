@@ -211,6 +211,7 @@ for p in shards:
         if rid.startswith('jetro-local:'): sid=rid.split(':',2)[-1]; kind=1
         elif rid.startswith('geps:'): sid=rid.split(':',2)[1]; kind=2
         elif rid.startswith('yokohama:'): sid=rid[9:]; kind=3
+        elif rid.startswith('sapporo:'): sid=rid[8:]; kind=4
         else: sid=rid[6:] if rid.startswith('jetro:') else rid; kind=0
         expected[(sid,r.get('title') or '',(nd or '').replace('-',''),agency_idx[r.get('agency') or ''],category_idx[r.get('category') or 'その他'],winner_idx[r.get('winnerName') or ''],amount,kind)]+=1
     ok(expected==actual,f'procurement {year}: dashboard content mismatch')
