@@ -67,7 +67,7 @@
     <div class="map-card">
       <div class="map-toolbar"><strong>全国 不動産・防災・暮らしデータマップ</strong><span id="map-status">データを読み込み中</span></div>
       <div id="map"></div><div id="loading" class="loading">全国25,000地点の地価データを読み込み中…</div>
-      <div id="legend" class="legend"><strong>地価（円/㎡）</strong><div><i class="dot" style="background:#22c55e"></i>10万円未満</div><div><i class="dot" style="background:#eab308"></i>10〜30万円</div><div><i class="dot" style="background:#f97316"></i>30〜100万円</div><div><i class="dot" style="background:#dc2626"></i>100万円以上</div></div>
+      <div id="legend" class="legend"><strong>地価（円/㎡）</strong><div><i class="dot" style="background:#bfdbfe"></i>10万円未満</div><div><i class="dot" style="background:#60a5fa"></i>10〜30万円</div><div><i class="dot" style="background:#2563eb"></i>30〜100万円</div><div><i class="dot" style="background:#1e3a8a"></i>100万円以上</div></div>
     </div>
   </section>
 </main>
@@ -93,6 +93,7 @@ try{
   for(const id of ['layer-price','layer-flood','layer-tsunami','layer-sediment','stat-layer','layer-hospital','layer-school','layer-station','layer-restaurant']){const el=$(id);if(el)el.disabled=true}
   map={on(event,...args){if(event==='load'&&args.length===1)setTimeout(args[0],0)},addControl(){},addSource(){},addLayer(){},getSource(){return null},getLayer(){return null},setLayoutProperty(){},setPaintProperty(){},fitBounds(){},getZoom(){return 0},queryRenderedFeatures(){return[]},easeTo(){},getCanvas(){return{style:{}}}};
 }
+window.__DATLUME_MAP__=map;
 let payload,features=[],currentPriceDataset='landPrice',priceHistory=null;
 function median(values){if(!values.length)return 0;const a=[...values].sort((x,y)=>x-y),m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
 function makeFeatures(rows){return rows.map(r=>({type:'Feature',geometry:{type:'Point',coordinates:[r[1],r[2]]},properties:{id:r[0],price:r[3],yoy:r[4],name:r[5],address:r[6],prefecture:r[7],station:r[8],stationDistance:r[9],use:r[10],area:r[11]}}))}
@@ -102,7 +103,7 @@ function setPriceData(rows){if(mapReady){const source=map.getSource('land-prices
 function fitRows(rows){if(!mapReady||!rows.length)return;const b=new maplibregl.LngLatBounds();rows.forEach(f=>b.extend(f.geometry.coordinates));map.fitBounds(b,{padding:45,maxZoom:10,duration:700})}
 function addHazard(id,url,visible){map.addSource(id,{type:'raster',tiles:[url],tileSize:256,maxzoom:17});map.addLayer({id,source:id,type:'raster',layout:{visibility:visible?'visible':'none'},paint:{'raster-opacity':.43}})}
 function setVisible(id,on){if(map.getLayer(id))map.setLayoutProperty(id,'visibility',on?'visible':'none')}
-function priceColor(){return ['step',['get','price'],'#22c55e',100000,'#eab308',300000,'#f97316',1000000,'#dc2626']}
+function priceColor(){return ['step',['get','price'],'#bfdbfe',100000,'#60a5fa',300000,'#2563eb',1000000,'#1e3a8a']}
 const fc=(features=[])=>({type:'FeatureCollection',features});
 const esc=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let municipalityFeatures=[],crimeFeatures=[];
@@ -112,7 +113,7 @@ function statLegend(kind){
   else if(kind==='elderly')box.innerHTML='<strong>高齢化率（2020）</strong><div>● 65歳以上人口割合</div>';
   else if(kind==='crime')box.innerHTML='<strong>犯罪率（2025）</strong><div>● 人口千人当たり / 都道府県</div>';
   else if(kind==='accident')box.innerHTML='<strong>交通事故（2024）</strong><div>● 約1kmグリッドの事故件数</div>';
-  else box.innerHTML='<strong>地価（円/㎡）</strong><div>緑 10万円未満</div><div>黄 10〜30万円</div><div>橙 30〜100万円</div><div>赤 100万円以上</div>';
+  else box.innerHTML='<strong>地価（円/㎡）</strong><div><i class="dot" style="background:#bfdbfe"></i>10万円未満</div><div><i class="dot" style="background:#60a5fa"></i>10〜30万円</div><div><i class="dot" style="background:#2563eb"></i>30〜100万円</div><div><i class="dot" style="background:#1e3a8a"></i>100万円以上</div>';
 }
 async function initRegionalStats(){
   const [m,c]=await Promise.all([fetch('/data/municipality-stats-2026.json').then(r=>r.json()),fetch('/data/crime-prefecture-2025.json').then(r=>r.json())]);
