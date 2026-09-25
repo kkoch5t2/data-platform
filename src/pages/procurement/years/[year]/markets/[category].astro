@@ -2,7 +2,7 @@
 import records from '../../../../../data/procurements';
 import '../../../../../styles/detail.css';
 export function getStaticPaths(){
-  const slugs={'IT・デジタル':'it-digital','建設・土木':'construction','医療・福祉':'healthcare','研究・調査・コンサル':'research-consulting','教育・研修':'education','交通・物流':'transport-logistics','施設管理・清掃':'facility-management','広報・広告・制作':'communications','エネルギー・環境':'energy-environment','食品・給食':'food','科学・研究機器':'science-equipment','出版・情報資料':'publishing-information','化学・素材':'chemicals-materials','衣類・装備品':'apparel-equipment','機械・設備':'machinery-equipment','製造・製作':'manufacturing','人材・業務委託':'outsourcing-staffing','賃貸借・リース':'leasing','公告・手続':'notices-procedures','一般物品・備品':'goods'};
+  const slugs={'IT・デジタル':'it-digital','建設・土木':'construction','医療・福祉':'healthcare','研究・調査・コンサル':'research-consulting','教育・研修':'education','交通・物流':'transport-logistics','施設管理・清掃':'facility-management','広報・広告・制作':'communications','エネルギー・環境':'energy-environment','食品・給食':'food','科学・研究機器':'science-equipment','出版・情報資料':'publishing-information','化学・素材':'chemicals-materials','衣類・装備品':'apparel-equipment','機械・設備':'machinery-equipment','製造・製作':'manufacturing','人材・業務委託':'outsourcing-staffing','事務・BPO':'admin-bpo','情報サービス':'information-services','法務・登記':'legal-registration','賃貸借・リース':'leasing','公告・手続':'notices-procedures','一般物品・備品':'goods'};
   const counts=new Map();
   for(const r of records){const year=(r.noticeDate||'').slice(0,4),label=r.category||'その他';if(!year||!slugs[label])continue;const key=year+'\u0000'+label;counts.set(key,(counts.get(key)||0)+1)}
   return [...counts.entries()].filter(([,count])=>count>=10).map(([key])=>{const [year,label]=key.split('\u0000');return{params:{year,category:slugs[label]},props:{year,label}}});
