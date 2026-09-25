@@ -14,8 +14,12 @@
     "collect:realestate": "node scripts/run-python.cjs collector/collect_land_prices.py",
     "collect:living": "node scripts/run-python.cjs collector/collect_living_layers.py",
     "health": "node scripts/run-python.cjs collector/check_health.py",
-    "release:check": "npm audit --omit=dev && npm run health && npm run build",
-    "e2e": "node scripts/e2e-smoke.cjs"
+    "release:check": "npm audit --omit=dev && npm run health && npm run audit:data && npm run build && npm run audit:html",
+    "e2e": "node scripts/e2e-smoke.cjs && node scripts/e2e-deep.cjs",
+    "e2e:smoke": "node scripts/e2e-smoke.cjs",
+    "e2e:deep": "node scripts/e2e-deep.cjs",
+    "audit:data": "node scripts/run-python.cjs scripts/audit-data-integrity.py",
+    "audit:html": "node scripts/run-python.cjs scripts/audit-generated-html.py"
   },
   "dependencies": {
     "astro": "^7.3.4",

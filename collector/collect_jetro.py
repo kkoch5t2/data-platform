@@ -406,6 +406,10 @@ def choose_detail_block(blocks, title):
     return blocks[0] if blocks else {}
 
 PREFECTURES = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県']
+KNOWN_AGENCY_FIXES = {
+    'jetro:322018:2024072201030000': '内閣府',
+    'jetro:346986:2025031101270031': '厚生労働省',
+}
 LEGAL_SUFFIXES = ['株式会社','有限会社','合同会社','合資会社','合名会社','一般社団法人','一般財団法人','公益社団法人','公益財団法人']
 
 def canonical_company_name(value):
@@ -496,7 +500,7 @@ def seed_from_json(conn):
         parts = str(r.get('id','')).split(':')
         if len(parts) != 3 or parts[0] not in ('jetro','jetro-local','geps','yokohama'): continue
         scope=parts[0]; xid=int(parts[1]); aid=parts[2]
-        agency = r.get('agency',''); org_id = stable_id('org', agency) if agency else None
+        agency = r.get('agency','') or KNOWN_AGENCY_FIXES.get(r.get('id',''),''); org_id = stable_id('org', agency) if agency else None
         winner = canonical_company_name(r.get('winnerName') or ''); company_id = stable_id('co', winner) if winner else None
         if org_id: conn.execute('INSERT OR IGNORE INTO organizations VALUES (?,?)',(org_id,agency))
         if company_id: conn.execute('INSERT OR IGNORE INTO companies VALUES (?,?,?)',(company_id,winner,norm(winner)))
@@ -527,17 +531,20 @@ def save_items(conn, items):
     now = datetime.now(timezone.utc).isoformat(); saved = 0
     for item in items:
         title = clean(item.get('title','')); is_it, tags, category, category_tags = classify(title)
-        xid, aid = int(item['xid']), str(item['aid']); agency = clean(item.get('agency',''))
+        xid, aid = int(item['xid']), str(item['aid']); source_id=f'jetro:{xid}:{aid}'
+        agency = clean(item.get('agency','')) or KNOWN_AGENCY_FIXES.get(source_id,'')
         org_id = stable_id('org',agency) if agency else None
         if org_id: conn.execute('INSERT OR IGNORE INTO organizations VALUES (?,?)',(org_id,agency))
         conn.execute('''INSERT INTO procurements
           (source_id,xid,aid,title,notice_date,agency,organization_id,notice_type,source_url,is_it,category,category_tags_json,tags_json,collected_at)
           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
           ON CONFLICT(source_id) DO UPDATE SET title=excluded.title,notice_date=excluded.notice_date,
-            agency=excluded.agency,organization_id=excluded.organization_id,notice_type=excluded.notice_type,
+            agency=CASE WHEN excluded.agency<>'' THEN excluded.agency ELSE procurements.agency END,
+            organization_id=CASE WHEN excluded.organization_id IS NOT NULL THEN excluded.organization_id ELSE procurements.organization_id END,
+            notice_type=excluded.notice_type,
             source_url=excluded.source_url,is_it=excluded.is_it,category=excluded.category,
             category_tags_json=excluded.category_tags_json,tags_json=excluded.tags_json,collected_at=excluded.collected_at''',(
-          f'jetro:{xid}:{aid}',xid,aid,title,parse_date(item.get('date','')),agency,org_id,clean(item.get('paKind','')),
+          source_id,xid,aid,title,parse_date(item.get('date','')),agency,org_id,clean(item.get('paKind','')),
           f'{BASE}/gov_procurement/national/articles/{xid}/{aid}.html',int(is_it),category,
           json.dumps(category_tags,ensure_ascii=False),json.dumps(tags,ensure_ascii=False),now))
         saved += 1
@@ -680,7 +687,9 @@ def export_json(conn):
         companies.append({'id':cid,'name':name,'awardCount':a[0],'awardTotal':a[1]})
     COMPANY_PATH.write_text(json.dumps(companies,ensure_ascii=False,indent=2),encoding='utf-8')
     orgs=[]
-    for oid,name in conn.execute('SELECT organization_id,organization_name FROM organizations ORDER BY organization_name'):
+    for oid,name in conn.execute('''SELECT organization_id,organization_name FROM organizations
+      WHERE organization_id IN (SELECT DISTINCT organization_id FROM procurements WHERE organization_id IS NOT NULL)
+      ORDER BY organization_name'''):
         a=conn.execute('SELECT COUNT(*),COALESCE(SUM(award_amount),0) FROM procurements WHERE organization_id=?',(oid,)).fetchone()
         it=conn.execute('SELECT COUNT(*) FROM procurements WHERE organization_id=? AND is_it=1',(oid,)).fetchone()[0]
         orgs.append({'id':oid,'name':name,'recordCount':a[0],'itCount':it,'awardTotal':a[1]})
@@ -823,7 +832,9 @@ def main():
         elif args.backfill_from and args.backfill_pages:
             fetched += backfill_keywords(conn,args.backfill_from,args.backfill_to,args.backfill_pages)
         enriched=enrich_awards(conn,op,args.detail_limit)
-        conn.execute('DELETE FROM companies WHERE company_id NOT IN (SELECT DISTINCT company_id FROM procurements WHERE company_id IS NOT NULL)'); conn.commit()
+        conn.execute('DELETE FROM companies WHERE company_id NOT IN (SELECT DISTINCT company_id FROM procurements WHERE company_id IS NOT NULL)')
+        conn.execute('DELETE FROM organizations WHERE organization_id NOT IN (SELECT DISTINCT organization_id FROM procurements WHERE organization_id IS NOT NULL)')
+        conn.commit()
         summary=export_json(conn)
         run.set_metrics(records=summary['records'], itRecords=summary['itRecords'],
             awardRecords=summary['awardRecords'], companies=summary['companies'],
