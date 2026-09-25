@@ -96,20 +96,15 @@ async function checkRealestateMapPalette(page,label,failures) {
   }).catch(()=>({}));
   const palette={...basePalette,population:populationPalette.paint,populationLegend:populationPalette.legend};
   const encoded=JSON.stringify(palette.paint||[]);
-  for(const color of ['#bfdbfe','#60a5fa','#2563eb','#1e3a8a']){
-    if(!encoded.includes(color))failures.push(label+' land-price palette missing '+color);
-  }
-  if(/#(?:22c55e|eab308|f97316|dc2626|ef4444)/i.test(encoded))failures.push(label+' land-price points still use non-blue palette: '+encoded);
+  if(!encoded.includes('#1769e0'))failures.push(label+' land-price points are not plain blue: '+encoded);
   if(palette.cluster!=='#1769e0')failures.push(label+' land-price cluster is not blue: '+palette.cluster);
   const landLegendText=(palette.landLegend||[]).join(' ');
-  for(const color of ['#bfdbfe','#60a5fa','#2563eb','#1e3a8a']){
-    if(!landLegendText.includes(color))failures.push(label+' land-price legend missing '+color);
-  }
+  if(!landLegendText.includes('#1769e0'))failures.push(label+' land-price legend is not plain blue');
   const populationEncoded=JSON.stringify(palette.population||[]);
   for(const color of ['#e5e7eb','#9ca3af','#4b5563','#111827']){
     if(!populationEncoded.includes(color))failures.push(label+' population palette missing '+color);
   }
-  if(/#(?:bfdbfe|60a5fa|2563eb|1e3a8a)/i.test(populationEncoded))failures.push(label+' population still overlaps land-price blue palette: '+populationEncoded);
+  if(populationEncoded.includes('#1769e0'))failures.push(label+' population still overlaps land-price blue: '+populationEncoded);
   const populationLegendText=(palette.populationLegend||[]).join(' ');
   for(const color of ['#e5e7eb','#9ca3af','#4b5563','#111827']){
     if(!populationLegendText.includes(color))failures.push(label+' population legend missing '+color);
