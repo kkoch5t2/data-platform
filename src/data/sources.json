@@ -179,15 +179,16 @@
     "energy_consumption_history": {
       "label": "資源エネルギー庁 都道府県別エネルギー消費統計",
       "status": "ok",
-      "startedAt": "2026-09-25T06:40:13.786894+00:00",
-      "finishedAt": "2026-09-25T06:40:23.657301+00:00",
-      "durationSeconds": 9.87,
+      "startedAt": "2026-09-25T10:29:59.555447+00:00",
+      "finishedAt": "2026-09-25T10:30:10.285973+00:00",
+      "durationSeconds": 10.73,
       "metrics": {
         "records": 893,
         "prefectures": 47,
         "startYear": 1990,
         "endYear": 2023
-      }
+      },
+      "previousRecordCount": 893
     }
   }
 }

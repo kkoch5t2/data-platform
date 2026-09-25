@@ -26,10 +26,12 @@ const latestRows=data.records.filter((r)=>r.year===latest);
     @media(max-width:900px){.controls{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.chart{height:350px}.insight-grid{grid-template-columns:1fr 1fr}}
     @media(max-width:800px){.nav{display:block}.navlinks{margin-top:14px;overflow:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0}.navlinks a{white-space:nowrap}.kpis{grid-template-columns:1fr 1fr}.pref-grid{grid-template-columns:repeat(3,1fr)}}
     @media(max-width:520px){.history-head{align-items:flex-start;flex-direction:column}.load-btn{width:100%}.history-tools{display:grid;grid-template-columns:1fr 1fr}.history-tools select{width:100%}.history-chart{height:320px}.wrap{width:min(100% - 24px,1240px)}.controls{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.insight-grid{grid-template-columns:1fr}.pref-grid{grid-template-columns:repeat(2,1fr)}.chart{height:330px}}
-  </style>
+
+.navlinks,.tabs,.view-tabs{scrollbar-width:none;-ms-overflow-style:none}.navlinks::-webkit-scrollbar,.tabs::-webkit-scrollbar,.view-tabs::-webkit-scrollbar{display:none}
+</style>
 </head>
 <body>
-<header><div class="wrap"><div class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/procurement/">国・自治体の案件</a><a href="/realestate/">不動産・暮らし</a><a href="/employment-economy/">雇用・賃金</a><a href="/business-industry/">企業・産業</a><a href="/about-data/">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></div><div class="hero"><h1>都道府県別推移</h1><p>2つの都道府県と全国平均を並べて、人口、高齢化、人口移動、求人、住宅着工、宿泊、地価の「今」と「変化」を比較します。</p></div></div></header>
+<header><div class="wrap"><div class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/procurement/">国・自治体の案件</a><a href="/realestate/">不動産・暮らし</a><a href="/regional/">都道府県別推移</a><a href="/employment-economy/">雇用・賃金</a><a href="/business-industry/">企業・産業</a><a href="/economy-prices/">経済・物価</a><a href="/energy/">エネルギー</a><a href="/about-data/">データについて</a></div></div><div class="hero"><h1>都道府県別推移</h1><p>2つの都道府県と全国平均を並べて、人口、高齢化、人口移動、求人、住宅着工、宿泊、地価の「今」と「変化」を比較します。</p></div></div></header>
 <main class="wrap">
   <section class="card controls">
     <div class="control"><label for="pref">都道府県 A</label><select id="pref">{data.prefectures.map((p)=><option value={p}>{p}</option>)}</select></div>
@@ -69,14 +71,14 @@ const latestRows=data.records.filter((r)=>r.year===latest);
 import * as echarts from 'echarts';
 const {latestRows,records,latest}=JSON.parse(document.getElementById('regional-data').textContent);
 const defs={
-  population:{label:'総人口',unit:'人',change:'percent'},
-  elderlyRate:{label:'高齢化率',unit:'%',change:'point'},
-  netMigration:{label:'人口純移動',unit:'人',change:'absolute'},
-  jobOpeningRatio:{label:'求人倍率（参考）',unit:'倍',change:'absolute'},
-  housingStarts:{label:'新設住宅着工戸数',unit:'戸',change:'percent'},
-  hotelNights:{label:'延べ宿泊者数',unit:'人泊',change:'percent'},
-  foreignStayShare:{label:'外国人宿泊比率',unit:'%',change:'point'},
-  residentialLandPrice:{label:'住宅地平均価格',unit:'円/㎡',change:'percent'}
+  population:{label:'総人口',unit:'人',change:'percent',digits:0},
+  elderlyRate:{label:'高齢化率',unit:'%',change:'point',digits:2},
+  netMigration:{label:'人口純移動',unit:'人',change:'absolute',digits:0},
+  jobOpeningRatio:{label:'求人倍率（参考）',unit:'倍',change:'absolute',digits:3},
+  housingStarts:{label:'新設住宅着工戸数',unit:'戸',change:'percent',digits:0},
+  hotelNights:{label:'延べ宿泊者数',unit:'人泊',change:'percent',digits:0},
+  foreignStayShare:{label:'外国人宿泊比率',unit:'%',change:'point',digits:2},
+  residentialLandPrice:{label:'住宅地平均価格',unit:'円/㎡',change:'percent',digits:0}
 };
 const pref=document.getElementById('pref'),compare=document.getElementById('compare'),metric=document.getElementById('metric'),rankMode=document.getElementById('rank-mode');
 const trend=echarts.init(document.getElementById('trend')),ranking=echarts.init(document.getElementById('ranking'));
@@ -85,13 +87,14 @@ const migrationLoad=document.getElementById('migration-load'),migrationBody=docu
 const nfmt=new Intl.NumberFormat('ja-JP',{maximumFractionDigits:2});
 const valid=v=>v!==null&&v!==undefined&&Number.isFinite(Number(v));
 const fmt=(v,unit='')=>valid(v)?nfmt.format(Number(v))+unit:'—';
-const signed=(v,digits=1)=>!valid(v)?'—':(Number(v)>0?'+':'')+Number(v).toFixed(digits);
+const fmtMetric=(v,def)=>valid(v)?new Intl.NumberFormat('ja-JP',{maximumFractionDigits:def.digits??2}).format(Number(v))+def.unit:'—';
+const signed=(v,digits=1)=>!valid(v)?'—':(Number(v)>0?'+':'')+new Intl.NumberFormat('ja-JP',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Number(v));
 const rowsFor=name=>records.filter(r=>r.prefecture===name).sort((a,b)=>a.year-b.year);
 const mean=vals=>{const xs=vals.filter(valid).map(Number);return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null};
 const avgAt=(year,key)=>mean(records.filter(r=>r.year===year).map(r=>r[key]));
 function firstLast(rows,key){const xs=rows.filter(r=>valid(r[key]));return xs.length?[xs[0],xs.at(-1)]:[null,null]}
 function changeFor(rows,key,def){const [first,last]=firstLast(rows,key);if(!first||!last)return null;const a=Number(first[key]),b=Number(last[key]);if(def.change==='percent')return a?((b-a)/Math.abs(a))*100:null;return b-a}
-function changeLabel(value,def){if(!valid(value))return '変化を計算できません';if(def.change==='percent')return signed(value)+'%';if(def.change==='point')return signed(value,2)+'pt';return signed(value,2)+def.unit}
+function changeLabel(value,def){if(!valid(value))return '変化を計算できません';if(def.change==='percent')return signed(value)+'%';if(def.change==='point')return signed(value,2)+'pt';return signed(value,def.digits??0)+def.unit}
 function setTone(el,v){el.classList.remove('up','down');if(v>0)el.classList.add('up');if(v<0)el.classList.add('down')}
 function setState(){const q=new URLSearchParams();q.set('pref',pref.value);if(compare.value)q.set('compare',compare.value);q.set('metric',metric.value);q.set('rank',rankMode.value);history.replaceState(null,'','?'+q.toString())}
 function restoreState(){const q=new URLSearchParams(location.search);for(const [el,key] of [[pref,'pref'],[compare,'compare'],[metric,'metric'],[rankMode,'rank']]){const v=q.get(key);if(v&&[...el.options].some(o=>o.value===v))el.value=v}if(!q.get('pref')&&[...pref.options].some(o=>o.value==='東京都'))pref.value='東京都'}
@@ -103,30 +106,30 @@ function draw(){
   const aLatest=aRows.findLast(r=>valid(r[key])),bLatest=bRows.findLast(r=>valid(r[key]));
   const average=avgAt(latest,key),aChange=changeFor(aRows,key,def),bChange=changeFor(bRows,key,def),diff=aLatest&&valid(average)?Number(aLatest[key])-Number(average):null;
   document.getElementById('a-label').textContent=pref.value+' / '+def.label;
-  document.getElementById('a-value').textContent=aLatest?fmt(aLatest[key],def.unit):'—';
+  document.getElementById('a-value').textContent=aLatest?fmtMetric(aLatest[key],def):'—';
   document.getElementById('a-change').textContent='期間変化 '+changeLabel(aChange,def);
   document.getElementById('b-label').textContent=(compare.value||'都道府県 B')+' / '+def.label;
-  document.getElementById('b-value').textContent=bLatest?fmt(bLatest[key],def.unit):'—';
+  document.getElementById('b-value').textContent=bLatest?fmtMetric(bLatest[key],def):'—';
   document.getElementById('b-change').textContent=compare.value?'期間変化 '+changeLabel(bChange,def):'比較する都道府県を選択';
-  document.getElementById('avg-value').textContent=fmt(average,def.unit);
-  document.getElementById('avg-meta').textContent=latest+'年 / 47都道府県の単純平均';
-  const diffEl=document.getElementById('avg-diff');diffEl.textContent=def.change==='point'?signed(diff,2)+'pt':signed(diff,2)+def.unit;setTone(diffEl,diff||0);
+  document.getElementById('avg-value').textContent=fmtMetric(average,def);
+  document.getElementById('avg-meta').textContent=key==='netMigration'?latest+'年 / 都道府県間の転入超過は全国で相殺':latest+'年 / 47都道府県の単純平均';
+  const diffEl=document.getElementById('avg-diff');diffEl.textContent=def.change==='point'?signed(diff,2)+'pt':signed(diff,def.digits??0)+def.unit;setTone(diffEl,diff||0);
   document.getElementById('avg-diff-meta').textContent=pref.value+'の最新値との差';
   const series=[{name:pref.value,type:'line',smooth:.18,data:aRows.map(r=>[r.year,r[key]]),symbolSize:7,lineStyle:{width:3}}];
   if(compare.value)series.push({name:compare.value,type:'line',smooth:.18,data:bRows.map(r=>[r.year,r[key]]),symbolSize:7,lineStyle:{width:3}});
   series.push({name:'都道府県平均',type:'line',data:years.map((y,i)=>[y,avgSeries[i]]),symbol:'none',lineStyle:{type:'dashed',width:2}});
   document.getElementById('trend-title').textContent=def.label+'の推移比較';
-  trend.setOption({tooltip:{trigger:'axis',valueFormatter:v=>fmt(v,def.unit)},legend:{top:0},grid:{left:70,right:22,top:48,bottom:42},xAxis:{type:'value',min:Math.min(...years),max:Math.max(...years),interval:2,axisLabel:{formatter:v=>String(v)}},yAxis:{type:'value',scale:true,axisLabel:{formatter:v=>nfmt.format(v)}},series},true);
+  trend.setOption({tooltip:{trigger:'axis',valueFormatter:v=>fmtMetric(v,def)},legend:{top:0},grid:{left:70,right:22,top:48,bottom:42},xAxis:{type:'value',min:Math.min(...years),max:Math.max(...years),interval:2,axisLabel:{formatter:v=>String(v)}},yAxis:{type:'value',scale:true,axisLabel:{formatter:v=>new Intl.NumberFormat('ja-JP',{maximumFractionDigits:def.digits??2}).format(v)}},series},true);
   const rr=rankingRows(key,def,rankMode.value);const changeMode=rankMode.value!=='latest';
   const rankLabel=rankMode.value==='latest'?'最新値が高い順':rankMode.value==='change-up'?'期間で増えた順':'期間で減った順';
   document.getElementById('ranking-title').textContent=def.label+' / '+rankLabel;
   document.getElementById('ranking-sub').textContent=changeMode?Math.min(...records.map(r=>r.year))+'→'+latest+'年':'最新収録年 '+latest+'年';
-  ranking.setOption({tooltip:{trigger:'item',formatter:p=>p.name+'<br><b>'+(changeMode?changeLabel(p.value,def):fmt(p.value,def.unit))+'</b>'},grid:{left:82,right:66,top:10,bottom:18},xAxis:{type:'value',show:false},yAxis:{type:'category',inverse:true,data:rr.map(r=>r.name)},series:[{type:'bar',data:rr.map(r=>r.value),barWidth:12,label:{show:true,position:'right',fontSize:10,formatter:p=>changeMode?changeLabel(p.value,def):fmt(p.value,def.unit)}}]},true);
+  ranking.setOption({tooltip:{trigger:'item',formatter:p=>p.name+'<br><b>'+(changeMode?changeLabel(p.value,def):fmtMetric(p.value,def))+'</b>'},grid:{left:82,right:66,top:10,bottom:18},xAxis:{type:'value',show:false},yAxis:{type:'category',inverse:true,data:rr.map(r=>r.name)},series:[{type:'bar',data:rr.map(r=>r.value),barWidth:12,label:{show:true,position:'right',fontSize:10,formatter:p=>changeMode?changeLabel(p.value,def):fmtMetric(p.value,def)}}]},true);
   setTone(document.getElementById('a-value'),0);setState();
 }
 function drawMigration(){if(!migrationData||!migrationChart)return;const idx={inMigration:1,outMigration:2,netMigration:3}[migrationMetric.value],from=Number(migrationFrom.value);const rec=name=>migrationData.records.find(r=>r.prefecture===name);const mk=(name)=>{const r=rec(name);return{name,type:'line',showSymbol:false,smooth:.12,lineStyle:{width:2.5},data:(r?.values||[]).filter(v=>v[0]>=from&&v[idx]!==null).map(v=>[v[0],v[idx]])}};const series=[mk(pref.value)];if(compare.value)series.push(mk(compare.value));migrationChart.setOption({tooltip:{trigger:'axis',valueFormatter:v=>nfmt.format(v)+'人'},legend:{top:0},grid:{left:64,right:22,top:48,bottom:42},xAxis:{type:'value',min:from,max:migrationData.years.at(-1),axisLabel:{formatter:v=>String(v)}},yAxis:{type:'value',scale:true,axisLabel:{formatter:v=>nfmt.format(v)}},series},true);document.getElementById('migration-status').textContent=migrationData.years[0]+'〜'+migrationData.years.at(-1)+'年 / 日本人移動者 / 都道府県別（一部の古い年度は原表欠損）';}
 async function loadMigration(){if(migrationData){migrationBody.hidden=false;drawMigration();return}migrationLoad.disabled=true;migrationLoad.textContent='読み込み中…';try{const r=await fetch('/data/regional-migration-history.json');if(!r.ok)throw new Error('取得失敗');migrationData=await r.json();migrationBody.hidden=false;migrationChart=echarts.init(document.getElementById('migration-chart'));migrationLoad.textContent='読み込み済み';drawMigration()}catch(e){migrationLoad.disabled=false;migrationLoad.textContent='再読み込み';document.getElementById('migration-status').textContent='長期データを読み込めませんでした'} }
 migrationLoad.addEventListener('click',loadMigration);migrationMetric.addEventListener('change',drawMigration);migrationFrom.addEventListener('change',drawMigration);
-restoreState();for(const el of [pref,compare,metric,rankMode])el.addEventListener('change',()=>{draw();drawMigration()});draw();window.addEventListener('resize',()=>{trend.resize();ranking.resize();migrationChart?.resize()});
+function normalizeComparison(){if(compare.value&&compare.value===pref.value)compare.value=''}restoreState();normalizeComparison();for(const el of [pref,compare,metric,rankMode])el.addEventListener('change',()=>{normalizeComparison();draw();drawMigration()});draw();window.addEventListener('resize',()=>{trend.resize();ranking.resize();migrationChart?.resize()});
 </script>
 </body></html>

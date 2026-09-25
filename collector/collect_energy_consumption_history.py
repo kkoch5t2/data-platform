@@ -41,6 +41,12 @@ def parse_xlsx(blob):
     # First block is per-capita energy consumption; later blocks repeat codes for totals/CO2.
     years={k:int(v) for k,v in rows[0].items() if k>='G' and str(v).isdigit() and 1990<=int(v)<=2100}
     pref=str(rows[3].get('A','')).replace('　','').strip()
+    if pref == '東京':
+        pref = '東京都'
+    elif pref in ('京都','大阪'):
+        pref = pref + '府'
+    elif pref and pref != '北海道' and not pref.endswith('県'):
+        pref = pref + '県'
     out={k:{} for k in CODES}
     wanted={v:k for k,v in CODES.items()}
     for row in rows[10:62]:
