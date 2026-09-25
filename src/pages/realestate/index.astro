@@ -26,7 +26,7 @@
 <body>
 <header><div class="wrap nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/procurement/">国・自治体の案件</a><a href="/realestate/">不動産・暮らし</a><a href="/regional/">都道府県別推移</a><a href="/employment-economy/">雇用・賃金</a><a href="/business-industry/">企業・産業</a><a href="/economy-prices/">経済・物価</a><a href="/energy/">エネルギー</a><a href="/about-data/">データについて</a></div></div></header>
 <main class="wrap">
-  <section class="intro"><h1>街を、価格だけで選ばない。</h1><p>地価・防災に、人口、高齢化率、治安、交通事故、病院、学校、駅、飲食店を重ねて、街をいろいろな角度から見られます。</p></section>
+  <section class="intro"><h1>街を、価格だけで選ばない。</h1><p>地価・防災に、人口、高齢化率、単身世帯、人口移動、治安、交通事故、病院、学校、駅、飲食店を重ねて、街をいろいろな角度から見られます。</p></section>
   <section class="dashboard">
     <aside id="filters-panel" class="panel">
       <div class="panel-head"><h2>表示条件</h2><button id="filters-toggle" class="panel-toggle" type="button" aria-expanded="true">条件を閉じる</button></div>
@@ -38,7 +38,7 @@
         <label class="layer"><span><i class="keygrad" style="background:linear-gradient(90deg,#f1d42b 0 50%,#bd0026 50% 100%)"></i>土砂災害（土石流）</span><input id="layer-sediment" class="toggle" type="checkbox" /></label>
       </div>
       <div class="group"><label class="label" for="stat-layer">地域統計</label><select id="stat-layer">
-        <option value="">表示しない</option><option value="population">人口</option><option value="elderly">高齢化率</option><option value="crime">犯罪率</option><option value="accident">交通事故</option>
+        <option value="">表示しない</option><option value="population">人口</option><option value="elderly">高齢化率</option><option value="single">単身世帯率</option><option value="migration">転入超過・転出超過</option><option value="crime">犯罪率</option><option value="accident">交通事故</option>
       </select></div>
       <div class="group"><span class="label">施設・生活</span>
         <label class="layer"><span><i class="keydot" style="background:#0ea5e9"></i>病院（2020）</span><input id="layer-hospital" class="toggle" type="checkbox" /></label>
@@ -58,11 +58,13 @@
         <div class="row"><i class="swatch" style="background:#f59e0b"></i><span>橙：飲食店</span></div>
         <div class="row"><i class="grad" style="background:linear-gradient(90deg,#e5e7eb,#111827)"></i><span>人口：薄灰 ↗ 濃灰</span></div>
         <div class="row"><i class="grad" style="background:linear-gradient(90deg,#86efac,#fde047,#fb923c,#dc2626)"></i><span>高齢化率：緑 ↗ 赤</span></div>
+        <div class="row"><i class="grad" style="background:linear-gradient(90deg,#ede9fe,#c4b5fd,#7c3aed)"></i><span>単身世帯率：薄紫 ↗ 濃紫</span></div>
+        <div class="row"><i class="grad" style="background:linear-gradient(90deg,#c026d3,#e5e7eb,#16a34a)"></i><span>人口移動：転出超過 ↗ 転入超過</span></div>
         <div class="row"><i class="grad" style="background:linear-gradient(90deg,#fde68a,#f97316,#dc2626)"></i><span>犯罪率：黄 ↗ 赤</span></div>
       </div></div>
       <div class="group"><span id="current-price-label" class="label">表示中の地価公示</span><div class="kpis"><div class="kpi"><small>地点数</small><b id="kpi-count">—</b></div><div class="kpi"><small>中央値</small><b id="kpi-median">—</b></div></div></div>
       <div class="group"><span class="label">地価の推移</span><button id="price-history-load" class="history-btn" type="button">2020〜2026を見る</button><div id="price-history-mini" class="history-mini" hidden><svg id="price-history-svg" viewBox="0 0 280 110" preserveAspectRatio="none" aria-label="地価推移"></svg><div id="price-history-caption" class="history-caption"></div></div></div>
-      <p class="note">各レイヤーは出典年度が異なります。犯罪率は2025年の刑法犯認知件数を2024年人口で割った都道府県単位の参考値。交通事故は2024年の警察庁事故データを約1kmグリッドに集約しています。</p>
+      <p class="note">各レイヤーは出典年度が異なります。市区町村統計は人口・世帯が2020年、出生・死亡が2023年、転入・転出が2024年。犯罪率は2025年の刑法犯認知件数を2024年人口で割った都道府県単位の参考値。交通事故は2024年の警察庁事故データを約1kmグリッドに集約しています。</p>
     </aside>
     <div class="map-card">
       <div class="map-toolbar"><strong>全国 不動産・防災・暮らしデータマップ</strong><span id="map-status">データを読み込み中</span></div>
@@ -111,6 +113,8 @@ function statLegend(kind){
   const box=$('legend');
   if(kind==='population')box.innerHTML='<strong>人口（2020）</strong><div><i class="dot" style="background:#e5e7eb"></i>3万人未満</div><div><i class="dot" style="background:#9ca3af"></i>3〜10万人</div><div><i class="dot" style="background:#4b5563"></i>10〜50万人</div><div><i class="dot" style="background:#111827"></i>50万人以上</div>';
   else if(kind==='elderly')box.innerHTML='<strong>高齢化率（2020）</strong><div>● 65歳以上人口割合</div>';
+  else if(kind==='single')box.innerHTML='<strong>単身世帯率（2020）</strong><div>● 全世帯に占める単独世帯の割合</div>';
+  else if(kind==='migration')box.innerHTML='<strong>人口移動（2024）</strong><div><i class="dot" style="background:#c026d3"></i>転出超過</div><div><i class="dot" style="background:#16a34a"></i>転入超過</div>';
   else if(kind==='crime')box.innerHTML='<strong>犯罪率（2025）</strong><div>● 人口千人当たり / 都道府県</div>';
   else if(kind==='accident')box.innerHTML='<strong>交通事故（2024）</strong><div>● 約1kmグリッドの事故件数</div>';
   else box.innerHTML='<strong>地価地点</strong><div><i class="dot" style="background:#1769e0"></i>青：地点をクリックすると価格を表示</div>';
@@ -123,13 +127,17 @@ async function initRegionalStats(){
   map.addSource('crime-stats',{type:'geojson',data:fc(crimeFeatures)});
   map.addLayer({id:'municipal-stat-points',type:'circle',source:'municipal-stats',layout:{visibility:'none'},paint:{'circle-stroke-color':'#fff','circle-stroke-width':1.2,'circle-opacity':.82}});
   map.addLayer({id:'crime-stat-points',type:'circle',source:'crime-stats',layout:{visibility:'none'},paint:{'circle-stroke-color':'#fff','circle-stroke-width':1.5,'circle-opacity':.85}});
-  map.on('click','municipal-stat-points',e=>{const p=e.features?.[0]?.properties;if(!p)return;new maplibregl.Popup({offset:10}).setLngLat(e.features[0].geometry.coordinates).setHTML('<div class="popup-title">'+esc(p.prefecture+' '+p.municipality)+'</div><div class="popup-meta">人口 '+fmt(p.population)+'人<br>高齢化率 '+p.elderlyRate+'%<br>病院 '+fmt(p.hospitalCount)+' / 診療所 '+fmt(p.clinicCount)+'</div>').addTo(map)});
+  map.on('click','municipal-stat-points',e=>{const p=e.features?.[0]?.properties;if(!p)return;const net=Number(p.netMigration||0),natural=Number(p.naturalChange||0);new maplibregl.Popup({offset:10}).setLngLat(e.features[0].geometry.coordinates).setHTML('<div class="popup-title">'+esc(p.prefecture+' '+p.municipality)+'</div><div class="popup-meta">人口 '+fmt(p.population)+'人 / 高齢化率 '+p.elderlyRate+'%（2020）<br>世帯 '+fmt(p.households)+' / 単身 '+fmt(p.singleHouseholds)+'（'+p.singleHouseholdRate+'%）（2020）<br>転入 '+fmt(p.inMigrants)+' / 転出 '+fmt(p.outMigrants)+' / 増減 '+(net>0?'+':'')+fmt(net)+'（2024）<br>出生 '+fmt(p.births)+' / 死亡 '+fmt(p.deaths)+' / 自然増減 '+(natural>0?'+':'')+fmt(natural)+'（2023）<br>外国人人口 '+fmt(p.foreignPopulation)+'人（2020）<br>病院 '+fmt(p.hospitalCount)+' / 診療所 '+fmt(p.clinicCount)+'（2023）</div>').addTo(map)});
   map.on('click','crime-stat-points',e=>{const p=e.features?.[0]?.properties;if(!p)return;new maplibregl.Popup({offset:10}).setLngLat(e.features[0].geometry.coordinates).setHTML('<div class="popup-title">'+esc(p.prefecture)+'</div><div class="popup-price">'+Number(p.ratePer1000).toFixed(2)+'件/千人</div><div class="popup-meta">2025年 刑法犯認知 '+fmt(p.count)+'件<br>人口は2024年値を使用（都道府県単位）</div>').addTo(map)});
 }
 async function updateStatLayer(){
-  const kind=$('stat-layer').value; setVisible('municipal-stat-points',kind==='population'||kind==='elderly'); setVisible('crime-stat-points',kind==='crime'); if(kind==='accident') await toggleAccidents(true); else if(accidentLoaded) await toggleAccidents(false); statLegend(kind);
+  const kind=$('stat-layer').value; setVisible('municipal-stat-points',['population','elderly','single','migration'].includes(kind)); setVisible('crime-stat-points',kind==='crime'); if(kind==='accident') await toggleAccidents(true); else if(accidentLoaded) await toggleAccidents(false); statLegend(kind);
   if(kind==='population'){map.setPaintProperty('municipal-stat-points','circle-color',['step',['get','population'],'#e5e7eb',30000,'#9ca3af',100000,'#4b5563',500000,'#111827']);map.setPaintProperty('municipal-stat-points','circle-radius',['step',['get','population'],4,30000,6,100000,9,500000,14,1000000,18]);}
   if(kind==='elderly'){map.setPaintProperty('municipal-stat-points','circle-color',['step',['get','elderlyRate'],'#86efac',25,'#fde047',35,'#fb923c',45,'#dc2626']);map.setPaintProperty('municipal-stat-points','circle-radius',['step',['get','elderlyRate'],5,25,7,35,10,45,13]);}
+  if(kind==='single'){map.setPaintProperty('municipal-stat-points','circle-color',['step',['get','singleHouseholdRate'],'#ede9fe',25,'#ddd6fe',35,'#c4b5fd',45,'#8b5cf6',55,'#7c3aed']);map.setPaintProperty('municipal-stat-points','circle-radius',['step',['get','singleHouseholdRate'],5,25,7,35,9,45,11,55,13]);}
+  if(kind==='migration'){map.setPaintProperty('municipal-stat-points','circle-color',['case',['<',['get','netMigration'],0],'#c026d3',['>', ['get','netMigration'],0],'#16a34a','#9ca3af']);map.setPaintProperty('municipal-stat-points','circle-radius',8);}
+  if(kind==='single'){map.setPaintProperty('municipal-stat-points','circle-color',['step',['get','singleHouseholdRate'],'#ede9fe',25,'#ddd6fe',35,'#c4b5fd',45,'#8b5cf6',55,'#7c3aed']);map.setPaintProperty('municipal-stat-points','circle-radius',['step',['get','singleHouseholdRate'],5,25,7,35,9,45,11,55,13]);}
+  if(kind==='migration'){map.setPaintProperty('municipal-stat-points','circle-color',['case',['<',['get','netMigration'],0],'#c026d3',['>', ['get','netMigration'],0],'#16a34a','#9ca3af']);map.setPaintProperty('municipal-stat-points','circle-radius',['interpolate',['linear'],['abs',['get','netMigration']],0,4,500,7,3000,12,10000,17]);}
   if(kind==='crime'){map.setPaintProperty('crime-stat-points','circle-color',['step',['get','ratePer1000'],'#fde68a',3,'#fbbf24',5,'#f97316',7,'#dc2626']);map.setPaintProperty('crime-stat-points','circle-radius',['step',['get','ratePer1000'],8,3,10,5,13,7,16]);}
 }
 const poiConfig={

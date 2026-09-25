@@ -109,6 +109,15 @@ async function checkRealestateMapPalette(page,label,failures) {
   for(const color of ['#e5e7eb','#9ca3af','#4b5563','#111827']){
     if(!populationLegendText.includes(color))failures.push(label+' population legend missing '+color);
   }
+  for(const [kind,colors] of [['single',['#ede9fe','#7c3aed']],['migration',['#c026d3','#16a34a']]]){
+    await page.evaluate(k=>{const el=document.querySelector('#stat-layer');if(el){el.value=k;el.dispatchEvent(new Event('change',{bubbles:true}));}},kind).catch(()=>{});
+    await page.waitForTimeout(120);
+    const state=await page.evaluate(()=>({paint:window.__DATLUME_MAP__?.getPaintProperty?.('municipal-stat-points','circle-color'),legend:document.querySelector('#legend')?.textContent||''})).catch(()=>({}));
+    const enc=JSON.stringify(state.paint||[]);
+    for(const color of colors)if(!enc.includes(color))failures.push(label+' '+kind+' palette missing '+color);
+    if(kind==='single'&&!String(state.legend||'').includes('単身世帯率'))failures.push(label+' single-household legend missing');
+    if(kind==='migration'&&!String(state.legend||'').includes('人口移動'))failures.push(label+' migration legend missing');
+  }
 }
 
 async function checkProcurementOverview(page,label,failures) {

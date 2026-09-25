@@ -37,18 +37,30 @@ def to_int(v):
 def build_municipal_stats():
     rows=read_csv_url(SSDSE_A)
     codes, names = rows[0], rows[2]
-    idx={name:i for i,name in enumerate(names)}
-    needed=['総人口','65歳以上人口','一般病院数','一般診療所数','歯科診療所数']
-    miss=[x for x in needed if x not in idx]
+    by_code={code:i for i,code in enumerate(codes)}
+    by_name={name:i for i,name in enumerate(names)}
+    required_codes=['A1101','A1303','A1700','A4101','A4200','A5101','A5102','A7101','A810105','A8201','A8301']
+    miss=[x for x in required_codes if x not in by_code]
+    miss += [x for x in ['一般病院数','一般診療所数','歯科診療所数'] if x not in by_name]
     if miss: raise ValueError('SSDSE columns missing: '+','.join(miss))
     stats=[]
     for r in rows[3:]:
         if len(r)<3 or not r[0].startswith('R'): continue
-        pop=to_int(r[idx['総人口']]); old=to_int(r[idx['65歳以上人口']])
+        pop=to_int(r[by_code['A1101']]); old=to_int(r[by_code['A1303']])
+        foreign=to_int(r[by_code['A1700']]); households=to_int(r[by_code['A7101']])
+        single=to_int(r[by_code['A810105']]); elderly_single=to_int(r[by_code['A8301']])
+        moved_in=to_int(r[by_code['A5101']]); moved_out=to_int(r[by_code['A5102']])
+        births=to_int(r[by_code['A4101']]); deaths=to_int(r[by_code['A4200']])
         stats.append({'code':r[0][1:6],'prefecture':r[1],'municipality':r[2],
           'population':pop,'elderlyRate':round(old/pop*100,1) if pop else None,
-          'hospitalCount':to_int(r[idx['一般病院数']]),'clinicCount':to_int(r[idx['一般診療所数']]),
-          'dentalCount':to_int(r[idx['歯科診療所数']])})
+          'foreignPopulation':foreign,'foreignRate':round(foreign/pop*100,2) if pop else None,
+          'households':households,'singleHouseholds':single,
+          'singleHouseholdRate':round(single/households*100,1) if households else None,
+          'elderlyCoupleHouseholds':to_int(r[by_code['A8201']]),'elderlySingleHouseholds':elderly_single,
+          'inMigrants':moved_in,'outMigrants':moved_out,'netMigration':moved_in-moved_out,
+          'births':births,'deaths':deaths,'naturalChange':births-deaths,
+          'hospitalCount':to_int(r[by_name['一般病院数']]),'clinicCount':to_int(r[by_name['一般診療所数']]),
+          'dentalCount':to_int(r[by_name['歯科診療所数']])})
     return stats
 
 def attach_centroids(stats):
@@ -184,7 +196,7 @@ def build_stations():
 
 def main():
     stats=attach_centroids(build_municipal_stats())
-    write('municipality-stats-2026.json',{'source':'SSDSE-A-2026','populationYear':2020,'medicalYear':2023,'records':stats})
+    write('municipality-stats-2026.json',{'source':'SSDSE-A-2026','years':{'population':2020,'households':2020,'vital':2023,'migration':2024,'medical':2023},'records':stats})
     write('crime-prefecture-2025.json',build_crime(stats))
     write('traffic-accidents-2024.json',build_accidents())
     write('poi-schools-2023.json',build_schools())
