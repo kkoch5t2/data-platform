@@ -50,13 +50,23 @@ Cloudflare Web Analyticsは現行設定ではCookieを利用しないアクセ�
 地図ライブラリ等、固定化できるものは可能な範囲でサイト内配信する。
 新規外部サービスを導入する際は、費用、利用規約、データ送信内容、障害時影響を確認する。
 
-## 10. 障害・攻撃時の考え方
+## 10. Bot・クローラー対策
+Cloudflareアカウント内の独自ドメイン `datlume.com` / `utility-tools-jp.com` では、2026-09-27時点で以下を有効化している。
+- Bot Fight Mode: ON
+- AI bots protection: `block`
+- crawler protection: `enabled`
+- JavaScript detection: ON
+- `cf_robots_variant`: `policy_only`
+
+検索エンジン等の正規Verified BotはSEOのため一律遮断しない。国別Blockは、国だけで機械的に決めず、国別・bot別アクセス実態を確認してから適用する。特に米国発トラフィックには検索クローラーが含まれ得るため、米国全体のBlockは禁止する。
+
+## 11. 障害・攻撃時の考え方
 - 異常なFunctions負荷が続く場合はCloudflare分析で経路を確認する。
 - 動的ページはRaw DBへ直接接続しないため、Web経由で運用DBを変更できない設計を維持する。
 - 404入力は早期に形式検証し、不正なコード/IDでshard探索を行わない。
-- 配信上限やCPU上限へ近づく場合、企業詳細の静的化またはキャッシュ強化を優先検討する。
+- 配信上限やCPU上限へ近づく場合、Bot/WAF設定を先に検証し、その後に企業詳細の静的化またはキャッシュ強化を検討する。
 
-## 11. レビュー項目
+## 12. レビュー項目
 セキュリティに関わる変更では最低限以下を確認する。
 - 新しいsecretの保存場所
 - public/distへの秘密値混入有無
