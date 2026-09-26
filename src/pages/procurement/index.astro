@@ -124,11 +124,11 @@ const updatedAt = summary.generatedAt ? new Intl.DateTimeFormat('ja-JP',{timeZon
     <div class="card yoy-card"><div><div class="yoy-label">収録件数・前年同期比</div><div id="yoy-count" class="yoy-value">—</div></div><div id="yoy-count-meta" class="yoy-meta">—</div></div>
     <div class="card yoy-card"><div><div class="yoy-label">落札額が分かる案件</div><div id="yoy-amount" class="yoy-value">—</div></div><div id="yoy-amount-meta" class="yoy-meta">—</div></div>
   </section>
-  <div class="data-note">前年同期比は、選択中の条件を前年にも適用して比較します。最新年は最新収録日までの同期間比較です。国・独立行政法人系は2014年3月〜2021年3月のGEPS公式落札実績と2021年4月以降のJETRO公開情報を中心に収録。自治体系は各自治体の公式入札・契約結果を直接補完しており、福岡市は1988年まで遡ります。分野は自動分類、確認済み落札総額は取得済み案件のみです。 <a href="/about-data/#procurement">データの範囲と注意 →</a></div>
+  <div class="data-note">前年同期比は、選択中の条件を前年にも適用して比較します。最新年は最新収録日までの同期間比較です。国・独立行政法人系は2014年3月〜2021年3月のGEPS公式落札実績と2021年4月以降のJETRO公開情報を中心に収録。自治体系は各自治体の公式入札・契約結果を直接補完しており、福岡市は1988年、京都市は2005年、千葉市は2012年まで遡ります。分野は自動分類、確認済み落札総額は取得済み案件のみです。 <a href="/about-data/#procurement">データの範囲と注意 →</a></div>
   <section class="quality-grid" aria-label="データ品質">
     <div class="card quality-item"><div class="quality-label">最新案件日</div><div class="quality-value">{summary.lastDate}</div><div class="quality-sub">収録中の案件で最も新しい公告日</div></div>
     <div class="card quality-item"><div class="quality-label">最終データ更新</div><div class="quality-value">{updatedAt}</div><div class="quality-sub">収集・再集計した時刻（日本時間）</div></div>
-    <div class="card quality-item"><div class="quality-label">データソース内訳</div><div class="quality-value">JETRO {new Intl.NumberFormat('ja-JP').format(summary.jetroRecords ?? 0)}件</div><div class="quality-sub">GEPS {new Intl.NumberFormat('ja-JP').format(summary.gepsRecords ?? 0)}件 / 横浜 {new Intl.NumberFormat('ja-JP').format(summary.yokohamaRecords ?? 0)} / 札幌 {new Intl.NumberFormat('ja-JP').format(summary.sapporoRecords ?? 0)} / 神戸 {new Intl.NumberFormat('ja-JP').format(summary.kobeRecords ?? 0)} / 福岡 {new Intl.NumberFormat('ja-JP').format(summary.fukuokaRecords ?? 0)}</div></div>
+    <div class="card quality-item"><div class="quality-label">データソース内訳</div><div class="quality-value">JETRO {new Intl.NumberFormat('ja-JP').format(summary.jetroRecords ?? 0)}件</div><div class="quality-sub">GEPS {new Intl.NumberFormat('ja-JP').format(summary.gepsRecords ?? 0)}件 / 横浜 {new Intl.NumberFormat('ja-JP').format(summary.yokohamaRecords ?? 0)} / 札幌 {new Intl.NumberFormat('ja-JP').format(summary.sapporoRecords ?? 0)} / 神戸 {new Intl.NumberFormat('ja-JP').format(summary.kobeRecords ?? 0)} / 福岡 {new Intl.NumberFormat('ja-JP').format(summary.fukuokaRecords ?? 0)} / 千葉 {new Intl.NumberFormat('ja-JP').format(summary.chibaRecords ?? 0)} / 京都 {new Intl.NumberFormat('ja-JP').format(summary.kyotoRecords ?? 0)}</div></div>
     <div class="card quality-item"><div class="quality-label">落札額カバー率</div><div class="quality-value">{amountCoverage.toFixed(1)}%</div><div class="quality-sub">{new Intl.NumberFormat('ja-JP').format(summary.awardRecords)} / {new Intl.NumberFormat('ja-JP').format(summary.records)}件</div></div>
   </section>
   <div class="quality-note"><strong>品質メモ：</strong>分野は案件名からのルールベース分類で、誤分類を含む可能性があります。地方政府系は現在 {new Intl.NumberFormat('ja-JP').format(summary.localRecords ?? 0)}件で、全国自治体を網羅していません。金額・受注企業・契約方式は取得できた案件のみ集計しています。 <a href="/about-data/#procurement">詳しい仕様と限界を見る →</a></div>
@@ -252,8 +252,8 @@ function decodeDashboard(data){
       awardDate:date8(String(r[6]||'')), contractMethod:data.m[r[7]]||'',
       awardMethod:data.am[r[8]]||'', winnerName:data.w[r[9]]||'',
       awardAmount:Number(r[10]||0)||null,
-      scope:(sourceKind===1||sourceKind===3||sourceKind===4||sourceKind===5||sourceKind===6)?'local':'national',
-      source:sourceKind===2?'geps':(sourceKind===3?'yokohama':(sourceKind===4?'sapporo':(sourceKind===5?'kobe':(sourceKind===6?'fukuoka':'jetro')))),
+      scope:(sourceKind===1||sourceKind===3||sourceKind===4||sourceKind===5||sourceKind===6||sourceKind===7||sourceKind===8)?'local':'national',
+      source:sourceKind===2?'geps':(sourceKind===3?'yokohama':(sourceKind===4?'sapporo':(sourceKind===5?'kobe':(sourceKind===6?'fukuoka':(sourceKind===7?'chiba':(sourceKind===8?'kyoto':'jetro')))))),
       sourceUrl:sourceKind===1
         ? 'https://www.jetro.go.jp/gov_procurement/local/articles/'+String(r[0]||'')+'.html'
         : (sourceKind===2
@@ -266,7 +266,11 @@ function decodeDashboard(data){
                 ? 'https://nyusatsukekka.city.kobe.lg.jp/search'+encodeURIComponent(parts[0]||'k')+'.php'
                 : (sourceKind===6
                   ? 'https://keiyaku.city.fukuoka.lg.jp/php/fkks1010.php'
-                  : (parts.length>=2?'https://www.jetro.go.jp/gov_procurement/national/articles/'+parts[0]+'/'+parts.slice(1).join(':')+'.html':'#'))))))
+                  : (sourceKind===7
+                    ? 'https://www.city.chiba.jp/business/hatchu/nyusatsujoho/kohyo/index.html'
+                    : (sourceKind===8
+                      ? 'https://www2.city.kyoto.lg.jp/rizai/chodo/ebid/anken.htm'
+                      : (parts.length>=2?'https://www.jetro.go.jp/gov_procurement/national/articles/'+parts[0]+'/'+parts.slice(1).join(':')+'.html':'#'))))))))
     };
   });
 }

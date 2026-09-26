@@ -173,11 +173,11 @@ async function checkEnergyCo2History(page,label,failures) {
 async function checkProcurementOverview(page,label,failures) {
   await page.waitForFunction(()=>/^\d+(?:\.\d+)?%$/.test((document.querySelector('#yoy-amount')?.textContent||'').trim()),{timeout:15000}).catch(()=>{});
   const procurementMeta=await page.evaluate(async()=>{const r=await fetch('/data/dashboard-meta.json');return r.ok?await r.json():{};}).catch(()=>({}));
-  for(const city of ['横浜市','札幌市','神戸市','福岡市']){
+  for(const city of ['横浜市','札幌市','神戸市','福岡市','千葉市','京都市']){
     if(!(procurementMeta.a||[]).includes(city))failures.push(label+' municipal procurement agency missing: '+city);
   }
   const sourceText=(await page.locator('.quality-item',{hasText:'データソース内訳'}).textContent().catch(()=>''))||'';
-  for(const city of ['横浜','札幌','神戸','福岡'])if(!sourceText.includes(city))failures.push(label+' source breakdown missing '+city);
+  for(const city of ['横浜','札幌','神戸','福岡','千葉','京都'])if(!sourceText.includes(city))failures.push(label+' source breakdown missing '+city);
   const yoyLabel=(await page.locator('#yoy-amount').locator('xpath=..').locator('.yoy-label').textContent().catch(()=>''))?.trim();
   const yoyValue=(await page.locator('#yoy-amount').textContent().catch(()=>''))?.trim();
   const yoyMeta=(await page.locator('#yoy-amount-meta').textContent().catch(()=>''))?.trim();
