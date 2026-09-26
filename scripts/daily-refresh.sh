@@ -87,6 +87,14 @@ if (( collect_rc == 0 )); then
   python3 collector/collect_sapporo_procurement.py --years "$fiscal_year"
   collect_rc=$?
 fi
+if (( collect_rc == 0 )); then
+  python3 collector/collect_kobe_procurement.py --years "$(date +%Y)" --workers 4
+  collect_rc=$?
+fi
+if (( collect_rc == 0 )); then
+  python3 collector/collect_fukuoka_procurement.py --years "$(date +%Y)" --workers 4
+  collect_rc=$?
+fi
 set -e
 if (( collect_rc != 0 )); then
   echo "ERROR: procurement collection failed rc=$collect_rc"
@@ -94,7 +102,7 @@ if (( collect_rc != 0 )); then
   exit "$collect_rc"
 fi
 
-if ! python3 collector/check_health.py --source jetro --source jetro_local --source yokohama_procurement --source sapporo_procurement; then
+if ! python3 collector/check_health.py --source jetro --source jetro_local --source yokohama_procurement --source sapporo_procurement --source kobe_procurement --source fukuoka_procurement; then
   echo "ERROR: procurement health check failed; restoring database"
   [[ -s "$backup" ]] && cp "$backup" "$DB"
   exit 21

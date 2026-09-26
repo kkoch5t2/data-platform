@@ -216,6 +216,36 @@
       ],
       "country": "JP",
       "domain": "energy"
+    },
+    "kobe_procurement": {
+      "label": "神戸市 入札結果",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 48,
+      "minRecords": 1,
+      "acquisition": "official-municipal-html",
+      "command": [
+        "python3",
+        "collector/collect_kobe_procurement.py"
+      ],
+      "country": "JP",
+      "domain": "procurement",
+      "note": "公式検索の表示件数と取得件数を収集器内で照合。年初は当年件数が少ないためhealthの固定下限は1件。"
+    },
+    "fukuoka_procurement": {
+      "label": "福岡市 財政局契約課 入札結果",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 48,
+      "minRecords": 1,
+      "acquisition": "official-municipal-html",
+      "command": [
+        "python3",
+        "collector/collect_fukuoka_procurement.py"
+      ],
+      "country": "JP",
+      "domain": "procurement",
+      "note": "公式検索の表示件数と取得件数を収集器内で照合。年初は当年件数が少ないためhealthの固定下限は1件。"
     }
   }
 }

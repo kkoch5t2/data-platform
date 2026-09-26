@@ -205,6 +205,36 @@
         "endYear": 2026
       },
       "previousRecordCount": 17502
+    },
+    "fukuoka_procurement": {
+      "label": "福岡市 財政局契約課 入札結果",
+      "status": "ok",
+      "startedAt": "2026-09-26T06:45:34.051213+00:00",
+      "finishedAt": "2026-09-26T06:48:09.311204+00:00",
+      "durationSeconds": 155.26,
+      "metrics": {
+        "records": 90918,
+        "upserted": 90918,
+        "years": 12,
+        "startYear": 1988,
+        "endYear": 1999
+      },
+      "previousRecordCount": 194623
+    },
+    "kobe_procurement": {
+      "label": "神戸市 入札結果",
+      "status": "ok",
+      "startedAt": "2026-09-26T06:33:36.378107+00:00",
+      "finishedAt": "2026-09-26T06:35:02.116480+00:00",
+      "durationSeconds": 85.74,
+      "metrics": {
+        "records": 3650,
+        "upserted": 3650,
+        "detailsFetched": 2008,
+        "years": 2,
+        "startYear": 2025,
+        "endYear": 2026
+      }
     }
   }
 }
