@@ -127,6 +127,15 @@ for file in files:
             if len(errors)>500: break
     if len(errors)>500: break
 
+listed_index_path=ROOT/'public/data/listed-companies/index.json'
+sitemap_path=DIST/'sitemap.xml'
+if listed_index_path.exists() and sitemap_path.exists():
+    records=json.loads(listed_index_path.read_text(encoding='utf-8')).get('records',[])
+    expected={str(x.get('securityCode')) for x in records if x.get('securityCode') and x.get('hasFinancials') is True}
+    sitemap=sitemap_path.read_text(encoding='utf-8')
+    actual=set(re.findall(r'<loc>https://datlume\.com/listed-companies/([0-9A-Z]{4})/</loc>',sitemap))
+    check(actual==expected,f'listed sitemap indexability mismatch: sitemap={len(actual)} expected={len(expected)}')
+
 print(f'html audit: {len(files)} pages, {checks} checks, {len(errors)} failures')
 for e in errors[:120]: print('FAIL',e)
 if len(errors)>120: print(f'... and {len(errors)-120} more')
