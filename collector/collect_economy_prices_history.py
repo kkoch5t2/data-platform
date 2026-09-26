@@ -12,7 +12,7 @@ except ModuleNotFoundError:
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'public/data/economy-prices-history.json'
 RAW=ROOT/'data/raw/economy-prices-history';RAW.mkdir(parents=True,exist_ok=True)
-YEARS=range(2022,2026)
+YEARS=range(2013,2026)
 SOURCE='https://www.stat.go.jp/data/kouri/kouzou/gaiyou.html'
 FIELDS=['overall','overallExRent','food','housing','utilities','household','clothing','medical','transport','education','recreation','misc']
 

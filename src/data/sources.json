@@ -151,15 +151,16 @@
     "economy_prices_history": {
       "label": "総務省統計局 消費者物価地域差指数 時系列",
       "status": "ok",
-      "startedAt": "2026-09-25T05:39:55.658969+00:00",
-      "finishedAt": "2026-09-25T05:39:56.857068+00:00",
-      "durationSeconds": 1.2,
+      "startedAt": "2026-09-26T03:09:44.109220+00:00",
+      "finishedAt": "2026-09-26T03:09:48.797900+00:00",
+      "durationSeconds": 4.69,
       "metrics": {
-        "records": 188,
+        "records": 611,
         "prefectures": 47,
-        "startYear": 2022,
+        "startYear": 2013,
         "endYear": 2025
-      }
+      },
+      "previousRecordCount": 611
     },
     "yokohama_procurement": {
       "label": "横浜市 横浜市報調達公告版",

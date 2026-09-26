@@ -136,6 +136,18 @@ async function checkRegionalMunicipal(page,label,failures) {
   if(!(await page.locator('#municipal-chart canvas').count()))failures.push(label+' municipal chart canvas missing');
 }
 
+async function checkEconomyPriceHistory(page,label,failures) {
+  const tab=page.locator('[data-tab="history"]');
+  if(!(await tab.count())){failures.push(label+' economy history tab missing');return}
+  await tab.click();
+  await page.waitForFunction(()=>document.querySelectorAll('#price-history-chart canvas').length>0,{timeout:15000}).catch(()=>{});
+  const years=await page.evaluate(async()=>{const r=await fetch('/data/economy-prices-history.json');if(!r.ok)return[];return(await r.json()).years||[]}).catch(()=>[]);
+  if(years.length!==13||Number(years[0])!==2013||Number(years.at(-1))!==2025)failures.push(label+' economy history coverage invalid: '+JSON.stringify(years));
+  if(!(await page.locator('#price-history-chart canvas').count()))failures.push(label+' economy history chart canvas missing');
+  const sub=(await page.locator('[data-panel="history"] .chart-sub').textContent().catch(()=>''))?.trim();
+  if(!(sub||'').includes('2013〜2025年'))failures.push(label+' economy history period label invalid: '+sub);
+}
+
 async function checkProcurementOverview(page,label,failures) {
   await page.waitForFunction(()=>/^\d+(?:\.\d+)?%$/.test((document.querySelector('#yoy-amount')?.textContent||'').trim()),{timeout:15000}).catch(()=>{});
   const yoyLabel=(await page.locator('#yoy-amount').locator('xpath=..').locator('.yoy-label').textContent().catch(()=>''))?.trim();
@@ -190,6 +202,7 @@ async function checkProcurementOverview(page,label,failures) {
         if(route==='/procurement/')await checkProcurementOverview(page,initialLabel,failures);
         if(route==='/realestate/')await checkRealestateMapPalette(page,initialLabel,failures);
         if(route==='/regional/')await checkRegionalMunicipal(page,initialLabel,failures);
+        if(route==='/economy-prices/')await checkEconomyPriceHistory(page,initialLabel,failures);
 
         const filterToggle=page.locator('#filter-toggle:visible, #filters-toggle:visible');
         if(await filterToggle.count() && await filterToggle.first().getAttribute('aria-expanded')!=='true') await filterToggle.first().click();
