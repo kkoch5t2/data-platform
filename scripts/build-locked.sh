@@ -6,6 +6,7 @@ LOCK="$STATE_DIR/release.lock"
 mkdir -p "$STATE_DIR"
 cd "$ROOT"
 run_build() {
+  rm -rf "$ROOT/dist"
   npx astro build
   node scripts/run-python.cjs scripts/generate-sitemap.py
 }

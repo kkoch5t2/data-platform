@@ -1,6 +1,6 @@
 import unittest
 
-from collector.collect_jetro import classify
+from collector.collect_jetro import classify, classify_with_context
 
 
 CASES = {
@@ -99,12 +99,34 @@ CASES = {
     "５Ｇ仮想無線機の機能結合試作 一式": "IT・デジタル",
 }
 
+CONTEXT_CASES = [
+    (("テレビ", "fukuoka:3:1", "福岡市入札結果（物品）", "福岡市財政局契約課 / 物品 / "), "一般物品・備品"),
+    (("塩酸液", "fukuoka:3:2", "福岡市入札結果（物品）", "福岡市財政局契約課 / 物品 / 工業用薬品"), "化学・素材"),
+    (("単価契約 道路維持修繕（照明灯）", "fukuoka:1:3", "福岡市入札結果（工事）", "福岡市財政局契約課 / 工事 / 電気"), "建設・土木"),
+    (("防火帽", "kyoto:buppin:1", "京都市電子入札結果（物品）", "京都市 物品 / 消防用品 / 公式ページ掲載の落札額（税抜き）"), "一般物品・備品"),
+    (("市政案内リーフレット", "kyoto:buppin:2", "京都市電子入札結果（物品）", "京都市 物品 / 印刷（オフセット） / 公式ページ掲載の落札額（税抜き）"), "広報・広告・制作"),
+    (("案件A", "chiba:abc", "千葉市入札結果（建設工事）", ""), "建設・土木"),
+    (("案件B", "chiba:def", "千葉市入札結果（業務委託）", ""), "人材・業務委託"),
+    (("案件C", "chiba:ghi", "千葉市入札結果（物品）", ""), "一般物品・備品"),
+    (("医療機器保守業務", "fukuoka:3:4", "福岡市入札結果（物品）", "福岡市財政局契約課 / 物品 / 一般用機械器具"), "医療・福祉"),
+    (("金属くず売払", "fukuoka:4:5", "福岡市入札結果（物品売払）", "福岡市財政局契約課 / 物品売払 / 金属"), "その他"),
+    (("ストックフォーム（白紙）", "fukuoka:3:6", "福岡市入札結果（物品）", "福岡市財政局契約課 / 物品 / ＯＡ機械器具"), "一般物品・備品"),
+    (("救助ボート", "kyoto:buppin:7", "京都市電子入札結果（物品）", "京都市 物品 / 学校・保育用品 / 公式ページ掲載の落札額（税抜き）"), "一般物品・備品"),
+    (("ｉＰａｄ Ａｉｒ 外３件", "fukuoka:3:8", "福岡市入札結果（物品）", "福岡市財政局契約課 / 物品 / ＯＡ機械器具"), "IT・デジタル"),
+    (("ポータブルハードディスク", "kyoto:buppin:9", "京都市電子入札結果（物品）", "京都市 物品 / 電気機械・器具 / 公式ページ掲載の落札額（税抜き）"), "IT・デジタル"),
+]
+
 
 class MarketClassifierTests(unittest.TestCase):
     def test_regression_cases(self):
         for title, expected in CASES.items():
             with self.subTest(title=title):
                 self.assertEqual(classify(title)[2], expected)
+
+    def test_contextual_fallback_cases(self):
+        for args, expected in CONTEXT_CASES:
+            with self.subTest(args=args):
+                self.assertEqual(classify_with_context(*args)[2], expected)
 
 
 if __name__ == "__main__":

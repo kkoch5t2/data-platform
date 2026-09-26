@@ -278,7 +278,7 @@ def valid_agency_name(name):
 summary=load(SRC/'summary.json'); meta=load(DATA/'dashboard-meta.json')
 shards=sorted(SRC.glob('procurements-*.json'))
 agency_idx={v:i for i,v in enumerate(meta['a'])}; category_idx={v:i for i,v in enumerate(meta['c'])}; winner_idx={v:i for i,v in enumerate(meta['w'])}
-total=0; ids=set(); awards=0; award_total=0.0; companies=set(); orgs=set(); first=None; last=None
+total=0; ids=set(); awards=0; award_total=0.0; companies=set(); orgs=set(); first=None; last=None; category_counts=Counter()
 company_stats=defaultdict(lambda:[0,0.0,0]); org_stats=defaultdict(lambda:[0,0.0,0])
 for p in shards:
     rs=load(p); year=int(p.stem.split('-')[-1]); total+=len(rs)
@@ -298,6 +298,7 @@ for p in shards:
             first=nd if first is None or nd<first else first; last=nd if last is None or nd>last else last
         ok(bool(r.get('title')) and bool(r.get('agency')) and bool(r.get('sourceUrl')),f'procurement {rid}: missing core fields')
         ok(valid_agency_name(r.get('agency')),f'procurement {rid}: invalid agency {r.get("agency")!r}')
+        category_counts[r.get('category') or 'その他'] += 1
         amount=float(r.get('awardAmount') or 0)
         if r.get('awardAmount') is not None: ok(amount>=0,f'procurement {rid}: negative award amount')
         if amount>0: awards+=1; award_total+=amount
@@ -336,6 +337,10 @@ ok(summary.get('awardRecords')==awards,f'procurement awardRecords mismatch {summ
 ok(abs(float(summary.get('awardTotal') or 0)-award_total)<=.02,f'procurement awardTotal mismatch {summary.get("awardTotal")} != {award_total}')
 ok(summary.get('companies')==len(companies),f'procurement companies mismatch {summary.get("companies")} != {len(companies)}')
 ok(summary.get('organizations')==len(orgs),f'procurement organizations mismatch {summary.get("organizations")} != {len(orgs)}')
+ok(summary.get('categoryCounts')==dict(category_counts),f'procurement categoryCounts mismatch summary={summary.get("categoryCounts")} actual={dict(category_counts)}')
+other_count=category_counts.get('その他',0)
+other_ratio=(other_count/total) if total else 0
+ok(other_ratio<=0.08,f'procurement その他 ratio too high: {other_count}/{total} = {other_ratio:.2%} > 8%')
 company_master=load(SRC/'companies.json')
 company_by_id={x['id']:x for x in company_master}
 detail_files=sorted((DATA/'company-details').glob('*.json'))
