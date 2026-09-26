@@ -342,6 +342,75 @@ def classify(title):
     category_tags.sort(key=lambda c: (-scores.get(c, 0), MARKET_TIE_PRIORITY.index(c) if c in MARKET_TIE_PRIORITY else 999))
     return is_it, tags, category, category_tags
 
+FUKUOKA_ITEM_CATEGORY_MAP = {
+    '一般印刷':'広報・広告・制作','軽印刷':'広報・広告・制作','フォーム印刷':'広報・広告・制作',
+    '特殊印刷':'広報・広告・制作','印刷':'広報・広告・制作','青写真焼付':'広報・広告・制作',
+    '工業用薬品':'化学・素材','鋼材':'化学・素材','建材':'化学・素材','道路材':'化学・素材',
+    '骨材':'化学・素材','給排水資材':'化学・素材','コンクリート二次製品':'化学・素材',
+    'ビニール製品':'化学・素材','木材':'化学・素材','石油':'エネルギー・環境',
+    '理化学機械器具':'科学・研究機器','度量衡機械器具':'機械・設備','光学用機械器具':'科学・研究機器',
+    '産業用機械器具':'機械・設備','厨房用機械器具':'機械・設備','弱電気製品':'機械・設備',
+    '電気設備機器':'機械・設備','事務用機器':'機械・設備','一般用機械器具':'機械・設備',
+    '農業用機器':'機械・設備','特殊事務用機器':'機械・設備','ＯＡ機械器具':'一般物品・備品',
+    '医療用機械器具':'医療・福祉','医薬・衛生材料':'医療・福祉','レントゲン':'医療・福祉',
+    '被服':'衣類・装備品','自動車販売':'交通・物流','消防自動車':'交通・物流',
+    '教材':'教育・研修','教育用品':'教育・研修','記念・宣伝用品':'広報・広告・制作','宣伝用品':'広報・広告・制作',
+}
+
+CONTEXT_IT_ITEM_RE = re.compile(
+    r'(?:\bipad\b|タブレット|\bnas\b|ハードディスク|\bssd\b|液晶ディスプレイ|バーコードリーダ|icカードリーダ|無線電話機|無線機|増設メモリ|テープメディア|電子黒板)',
+    re.I
+)
+
+KYOTO_ITEM_CATEGORY_MAP = {
+    '印刷（オフセット）':'広報・広告・制作','印刷（フォーム）':'広報・広告・制作','印刷（タイプ）':'広報・広告・制作',
+    '家具・什器・雑貨':'一般物品・備品','繊維・皮革・ゴム製品':'一般物品・備品','薬品・塗料・燃料':'化学・素材',
+    '電気機械・器具':'機械・設備','測定機器・理科機器・医療機器':'機械・設備','消防用品':'一般物品・備品',
+    '学校・保育用品':'一般物品・備品','建築資材':'化学・素材','車輌（電車車輌を除く）':'交通・物流',
+    '機械器具・工具':'機械・設備','看板・標識・金属プレート':'一般物品・備品','写真機械・青写真・第二原図':'機械・設備',
+    '清掃':'施設管理・清掃','文具類・書籍':'一般物品・備品','食料・飼料・植物類':'一般物品・備品',
+    '環境測定':'エネルギー・環境','運搬':'交通・物流','人材派遣':'人材・業務委託','洗濯':'施設管理・清掃',
+    '広告':'広報・広告・制作','土木工事':'建設・土木','土木設計（土木関係建設コンサルタント）':'研究・調査・コンサル',
+    '体育施設工事':'建設・土木','道路施設工事':'建設・土木','道路・下水溝清掃':'施設管理・清掃',
+}
+
+def classify_with_context(title, source_id='', notice_type='', detail_text=''):
+    is_it, tags, category, category_tags = classify(title)
+    if category != 'その他':
+        return is_it, tags, category, category_tags
+    fallback = None
+    source_id = source_id or ''
+    notice_type = clean(notice_type)
+    detail_text = clean(detail_text)
+    if source_id.startswith('fukuoka:1:'):
+        fallback = '建設・土木'
+    elif source_id.startswith('fukuoka:2:'):
+        fallback = '人材・業務委託'
+    elif source_id.startswith('fukuoka:3:'):
+        subtype = detail_text.split('/')[-1].strip() if detail_text else ''
+        if CONTEXT_IT_ITEM_RE.search(unicodedata.normalize('NFKC', title or '').lower()):
+            fallback = 'IT・デジタル'
+        else:
+            fallback = FUKUOKA_ITEM_CATEGORY_MAP.get(subtype, '一般物品・備品')
+    elif source_id.startswith('chiba:'):
+        if '（建設工事）' in notice_type: fallback = '建設・土木'
+        elif '（業務委託）' in notice_type: fallback = '人材・業務委託'
+        elif '（物品）' in notice_type: fallback = '一般物品・備品'
+    elif source_id.startswith('kyoto:'):
+        parts = [x.strip() for x in detail_text.split('/')]
+        subtype = parts[1] if len(parts) > 1 else ''
+        if CONTEXT_IT_ITEM_RE.search(unicodedata.normalize('NFKC', title or '').lower()):
+            fallback = 'IT・デジタル'
+        else:
+            fallback = KYOTO_ITEM_CATEGORY_MAP.get(subtype)
+    if fallback:
+        category = fallback
+        if fallback not in category_tags:
+            category_tags.append(fallback)
+        if fallback == 'IT・デジタル':
+            is_it = True
+    return is_it, tags, category, category_tags
+
 def open_with_retry(op, req, timeout=30, attempts=6):
     last=None
     for i in range(attempts):
@@ -523,9 +592,9 @@ def seed_from_json(conn):
     conn.commit(); return count
 
 def reclassify_existing(conn):
-    rows=conn.execute('SELECT source_id,title FROM procurements').fetchall()
-    for source_id,title in rows:
-        is_it,tags,category,category_tags=classify(title)
+    rows=conn.execute('SELECT source_id,title,notice_type,detail_text FROM procurements').fetchall()
+    for source_id,title,notice_type,detail_text in rows:
+        is_it,tags,category,category_tags=classify_with_context(title,source_id,notice_type,detail_text)
         conn.execute('''UPDATE procurements SET is_it=?,category=?,category_tags_json=?,tags_json=? WHERE source_id=?''',
           (int(is_it),category,json.dumps(category_tags,ensure_ascii=False),json.dumps(tags,ensure_ascii=False),source_id))
     conn.commit()
@@ -866,11 +935,15 @@ def main():
     p.add_argument('--backfill-all-notices-monthly',action='store_true',help='指定期間の全公示種別を月単位で全件取得')
     p.add_argument('--backfill-all-pages',type=int,default=0,help='全分野バックフィルの月あたり最大ページ数。0は全件')
     p.add_argument('--refresh-details',action='store_true')
+    p.add_argument('--reclassify-existing',action='store_true',help='既存全件に最新分類ルールを再適用')
     args=p.parse_args()
 
     with SourceRun('jetro', 'JETRO 政府公共調達データベース') as run:
         DB_PATH.parent.mkdir(parents=True,exist_ok=True)
-        conn=sqlite3.connect(DB_PATH); init_db(conn); seed_from_json(conn); reclassify_existing(conn)
+        conn=sqlite3.connect(DB_PATH); init_db(conn); seed_from_json(conn)
+        if args.reclassify_existing:
+            changed = reclassify_existing(conn)
+            print(f'reclassified_existing={changed}', flush=True)
         fetched,op=collect_pages(conn,args.pages)
         if args.refresh_details:
             conn.execute("UPDATE procurements SET detail_fetched=0 WHERE notice_type LIKE '%落札者等の公示%'"); conn.commit()
