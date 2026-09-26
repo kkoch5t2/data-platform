@@ -3,6 +3,14 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH"
+STATE_DIR="$ROOT/data/automation"
+RELEASE_LOCK="$STATE_DIR/release.lock"
+mkdir -p "$STATE_DIR"
+if [[ "${DATLUME_RELEASE_LOCK_HELD:-0}" != "1" ]]; then
+  exec 8>"$RELEASE_LOCK"
+  echo "Waiting for DATLUME release lock: $RELEASE_LOCK"
+  flock 8
+fi
 TOKEN_FILE="$HOME/.datlume-cloudflare-token"
 ACCOUNT_FILE="$HOME/.datlume-cloudflare-account-id"
 if [ ! -s "$TOKEN_FILE" ]; then echo 'Cloudflare credential file is missing.'; exit 1; fi

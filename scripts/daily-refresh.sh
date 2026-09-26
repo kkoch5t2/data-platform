@@ -10,6 +10,23 @@ DB="$ROOT/data/public_it.db"
 LOCK="$STATE_DIR/daily-refresh.lock"
 LAST_SUCCESS="$STATE_DIR/last-success-date"
 MODE="${1:-manual}"
+RELEASE_LOCK="$STATE_DIR/release.lock"
+
+assert_release_tree_safe() {
+  local bad
+  bad="$({ git diff --name-only; git diff --cached --name-only; git ls-files --others --exclude-standard; } | sort -u | while IFS= read -r path; do
+    [[ -z "$path" ]] && continue
+    case "$path" in
+      src/data/*.ts|src/data/sources.json|public/data/*.json|tmp/*) ;;
+      *) printf '%s\n' "$path" ;;
+    esac
+  done)"
+  if [[ -n "$bad" ]]; then
+    echo "ERROR: scheduled refresh found non-generated working-tree changes:"
+    printf '%s\n' "$bad"
+    return 1
+  fi
+}
 
 mkdir -p "$STATE_DIR" "$BACKUP_DIR" "$LOG_DIR"
 cd "$ROOT"
@@ -21,6 +38,10 @@ fi
 
 exec 9>"$LOCK"
 if ! flock -n 9; then exit 0; fi
+
+if [[ "$MODE" == "--scheduled" ]] && ! assert_release_tree_safe; then
+  exit 22
+fi
 
 TODAY="$(date +%F)"
 if [[ "$MODE" == "--scheduled" && -f "$LAST_SUCCESS" ]] && grep -qx "$TODAY" "$LAST_SUCCESS"; then
@@ -139,8 +160,17 @@ if python3 scripts/cloudflare_web_analytics.py --days 7 --save public/data/site-
 else
   echo "WARNING: analytics refresh failed; continuing with the last saved snapshot"
 fi
+if [[ "$MODE" == "--scheduled" ]] && ! assert_release_tree_safe; then
+  echo "ERROR: refusing scheduled deploy because source-code changes appeared during collection"
+  exit 23
+fi
+exec 8>"$RELEASE_LOCK"
+echo "Waiting for DATLUME release lock: $RELEASE_LOCK"
+flock 8
+export DATLUME_RELEASE_LOCK_HELD=1
 npm run build
 bash ./deploy-datlume.sh
+unset DATLUME_RELEASE_LOCK_HELD
 
 python3 - "$ROOT/src/data/summary.json" "$STATE_DIR/history.jsonl" "$before_records" "$after_records" <<'PY'
 import json, sys
