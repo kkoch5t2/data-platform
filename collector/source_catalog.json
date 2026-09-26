@@ -246,6 +246,36 @@
       "country": "JP",
       "domain": "procurement",
       "note": "公式検索の表示件数と取得件数を収集器内で照合。年初は当年件数が少ないためhealthの固定下限は1件。"
+    },
+    "chiba_procurement": {
+      "label": "千葉市 入札（見積）結果",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 48,
+      "minRecords": 1,
+      "acquisition": "official-municipal-html",
+      "command": [
+        "python3",
+        "collector/collect_chiba_procurement.py"
+      ],
+      "country": "JP",
+      "domain": "procurement",
+      "note": "市公式の入札（見積）結果ページから確定済み案件を収集。工事・測量/コンサル・物品・業務委託・その他。"
+    },
+    "kyoto_procurement": {
+      "label": "京都市 電子入札執行結果",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 48,
+      "minRecords": 1,
+      "acquisition": "official-municipal-html",
+      "command": [
+        "python3",
+        "collector/collect_kyoto_procurement.py"
+      ],
+      "country": "JP",
+      "domain": "procurement",
+      "note": "京都市入札情報館の電子入札執行結果（物品、工事・測量設計等）を収集。落札額は公式ページ掲載値（税抜き）。"
     }
   }
 }

@@ -235,6 +235,37 @@
         "startYear": 2025,
         "endYear": 2026
       }
+    },
+    "chiba_procurement": {
+      "label": "千葉市 入札（見積）結果",
+      "status": "ok",
+      "startedAt": "2026-09-26T11:59:27.321105+00:00",
+      "finishedAt": "2026-09-26T12:01:06.058124+00:00",
+      "durationSeconds": 98.74,
+      "metrics": {
+        "records": 1513,
+        "upserted": 1513,
+        "pages": 647,
+        "duplicatesRemoved": 258,
+        "startDate": "2012-11-08",
+        "endDate": "2026-09-18"
+      },
+      "previousRecordCount": 377
+    },
+    "kyoto_procurement": {
+      "label": "京都市 電子入札執行結果",
+      "status": "ok",
+      "startedAt": "2026-09-26T12:10:42.096227+00:00",
+      "finishedAt": "2026-09-26T12:11:30.611921+00:00",
+      "durationSeconds": 48.52,
+      "metrics": {
+        "records": 54492,
+        "upserted": 54492,
+        "pages": 162,
+        "startDate": "2005-12-20",
+        "endDate": "2026-09-24"
+      },
+      "previousRecordCount": 1485
     }
   }
 }

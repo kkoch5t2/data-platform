@@ -596,7 +596,7 @@ def export_json(conn):
         d=dict(zip(cols,r)); out.append({
           'id':d['source_id'],'title':d['title'],'noticeDate':d['notice_date'],'agency':d['agency'],
           'organizationId':d['organization_id'],'noticeType':d['notice_type'],'sourceUrl':d['source_url'],
-          'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else ('sapporo' if d['source_id'].startswith('sapporo:') else ('kobe' if d['source_id'].startswith('kobe:') else ('fukuoka' if d['source_id'].startswith('fukuoka:') else 'jetro'))))),
+          'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else ('sapporo' if d['source_id'].startswith('sapporo:') else ('kobe' if d['source_id'].startswith('kobe:') else ('fukuoka' if d['source_id'].startswith('fukuoka:') else ('chiba' if d['source_id'].startswith('chiba:') else ('kyoto' if d['source_id'].startswith('kyoto:') else 'jetro'))))))),
           'isIt':bool(d['is_it']),'category':d['category'] or 'その他','categoryTags':json.loads(d['category_tags_json'] or '[]'),
           'tags':json.loads(d['tags_json']),'detailFetched':bool(d['detail_fetched']),
           'awardDate':d['award_date'],'contractMethod':d['contract_method'],'awardMethod':d['award_method'],
@@ -644,6 +644,8 @@ def export_json(conn):
         is_sapporo=x['id'].startswith('sapporo:')
         is_kobe=x['id'].startswith('kobe:')
         is_fukuoka=x['id'].startswith('fukuoka:')
+        is_chiba=x['id'].startswith('chiba:')
+        is_kyoto=x['id'].startswith('kyoto:')
         if is_jetro_local:
             sid=x['id'].split(':',2)[-1]
         elif is_geps:
@@ -656,10 +658,15 @@ def export_json(conn):
             sid=x['id'][5:]
         elif is_fukuoka:
             sid=x['id'][8:]
+        elif is_chiba:
+            sid=x['id'][6:]
+        elif is_kyoto:
+            sid=x['id'][6:]
         else:
             sid=x['id'][6:] if x['id'].startswith('jetro:') else x['id']
         source_kind=(1 if is_jetro_local else 2 if is_geps else 3 if is_yokohama else
-                     4 if is_sapporo else 5 if is_kobe else 6 if is_fukuoka else 0)
+                     4 if is_sapporo else 5 if is_kobe else 6 if is_fukuoka else
+                     7 if is_chiba else 8 if is_kyoto else 0)
         tag_mask=sum(1 << tag_idx[t] for t in (x.get('tags') or []) if t in tag_idx)
         dashboard_rows.append([
           sid,x['title'] or '',(x['noticeDate'] or '').replace('-',''),
@@ -739,13 +746,16 @@ def export_json(conn):
     sapporo_records=sum(1 for x in out if x['id'].startswith('sapporo:'))
     kobe_records=sum(1 for x in out if x['id'].startswith('kobe:'))
     fukuoka_records=sum(1 for x in out if x['id'].startswith('fukuoka:'))
-    local_records=jetro_local_records+yokohama_records+sapporo_records+kobe_records+fukuoka_records
+    chiba_records=sum(1 for x in out if x['id'].startswith('chiba:'))
+    kyoto_records=sum(1 for x in out if x['id'].startswith('kyoto:'))
+    local_records=jetro_local_records+yokohama_records+sapporo_records+kobe_records+fukuoka_records+chiba_records+kyoto_records
     jetro_records=jetro_national_records+jetro_local_records
     dates=[x['noticeDate'] for x in out if x.get('noticeDate')]
     summary={'records':len(out),'nationalRecords':len(out)-local_records,'localRecords':local_records,
       'jetroRecords':jetro_records,'jetroLocalRecords':jetro_local_records,'gepsRecords':geps_records,
       'yokohamaRecords':yokohama_records,'sapporoRecords':sapporo_records,
       'kobeRecords':kobe_records,'fukuokaRecords':fukuoka_records,
+      'chibaRecords':chiba_records,'kyotoRecords':kyoto_records,
       'firstDate':min(dates) if dates else None,'lastDate':max(dates) if dates else None,
       'itRecords':total_it,'awardRecords':len(awards),
       'awardTotal':sum(x['awardAmount'] for x in awards),'companies':len(companies),'organizations':len(orgs),

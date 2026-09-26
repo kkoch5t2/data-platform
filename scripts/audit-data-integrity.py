@@ -243,6 +243,8 @@ for p in shards:
         elif rid.startswith('sapporo:'): sid=rid[8:]; kind=4
         elif rid.startswith('kobe:'): sid=rid[5:]; kind=5
         elif rid.startswith('fukuoka:'): sid=rid[8:]; kind=6
+        elif rid.startswith('chiba:'): sid=rid[6:]; kind=7
+        elif rid.startswith('kyoto:'): sid=rid[6:]; kind=8
         else: sid=rid[6:] if rid.startswith('jetro:') else rid; kind=0
         expected[(sid,r.get('title') or '',(nd or '').replace('-',''),agency_idx[r.get('agency') or ''],category_idx[r.get('category') or 'その他'],winner_idx[r.get('winnerName') or ''],amount,kind)]+=1
     ok(expected==actual,f'procurement {year}: dashboard content mismatch')
@@ -252,10 +254,12 @@ source_counts = {
     'sapporoRecords': sum(1 for rid in ids if rid.startswith('sapporo:')),
     'kobeRecords': sum(1 for rid in ids if rid.startswith('kobe:')),
     'fukuokaRecords': sum(1 for rid in ids if rid.startswith('fukuoka:')),
+    'chibaRecords': sum(1 for rid in ids if rid.startswith('chiba:')),
+    'kyotoRecords': sum(1 for rid in ids if rid.startswith('kyoto:')),
 }
 for key, value in source_counts.items():
     ok(summary.get(key)==value,f'procurement summary {key} {summary.get(key)} != {value}')
-local_expected = sum(1 for rid in ids if rid.startswith(('jetro-local:','yokohama:','sapporo:','kobe:','fukuoka:')))
+local_expected = sum(1 for rid in ids if rid.startswith(('jetro-local:','yokohama:','sapporo:','kobe:','fukuoka:','chiba:','kyoto:')))
 ok(summary.get('localRecords')==local_expected,f'procurement localRecords {summary.get("localRecords")} != {local_expected}')
 ok(summary.get('firstDate')==first,f'procurement firstDate mismatch {summary.get("firstDate")} != {first}')
 ok(summary.get('lastDate')==last,f'procurement lastDate mismatch {summary.get("lastDate")} != {last}')
