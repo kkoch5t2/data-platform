@@ -231,6 +231,20 @@ async function checkListedCompare(page,label,failures) {
 async function checkListedCompanyDetail(page,label,failures) {
   const h1=(await page.locator('h1').textContent().catch(()=>''))?.trim();
   if(!h1?.includes('トヨタ'))failures.push(label+' Toyota detail h1 mismatch: '+h1);
+  const title=await page.title();
+  if(!title.includes('業績・年収・財務分析'))failures.push(label+' SEO title missing intent terms: '+title);
+  const meta=await page.locator('meta[name="description"]').getAttribute('content').catch(()=>null);
+  if(!meta||meta.length<80)failures.push(label+' meta description too short: '+String(meta?.length||0));
+  const canonical=await page.locator('link[rel="canonical"]').getAttribute('href').catch(()=>null);
+  if(canonical!=='https://datlume.com/listed-companies/7203/')failures.push(label+' canonical mismatch: '+canonical);
+  const ldTexts=await page.locator('script[type="application/ld+json"]').allTextContents().catch(()=>[]);
+  let ldTypes=[];
+  for(const text of ldTexts){try{const x=JSON.parse(text); const graph=x?.['@graph']||[x]; ldTypes.push(...graph.map(v=>v?.['@type']).filter(Boolean));}catch{}}
+  if(!ldTypes.includes('Corporation')||!ldTypes.includes('BreadcrumbList')||!ldTypes.includes('WebPage'))failures.push(label+' structured data missing types: '+ldTypes.join(','));
+  const brandAlt=await page.locator('.brand img').getAttribute('alt').catch(()=>null);
+  if(!brandAlt)failures.push(label+' brand image alt missing');
+  const summary=(await page.locator('main .section-card h2').first().textContent().catch(()=>''))||'';
+  if(!summary.includes('最新業績')&&!summary.includes('企業概要'))failures.push(label+' SEO summary section missing');
   const values=await page.locator('.kpi-value').allTextContents().catch(()=>[]);
   if(values.length<4||values.every(v=>!v.trim()||v.trim()==='—'))failures.push(label+' company KPI values missing');
   await page.waitForFunction(()=>document.querySelector('#financial-timeline canvas'),{timeout:15000}).catch(()=>{});
