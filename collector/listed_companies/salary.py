@@ -55,6 +55,16 @@ def recover_average_salary(xbrl_zip: Path) -> tuple[int | float | None, dict | N
                         return recovered, {"displayedValue": value, "presentationUnit": unit, "sourceFile": name}
                     # A contradictory header/value pair is not corrected by inference.
                     continue
+                # Some filings put the unit immediately after the tagged display value.
+                after = _plain(source[match.end(): min(end + 8, match.end() + 500)])
+                suffix_match = re.match(r"\s*(千円|万円|円)(?:\s|$)", after)
+                if suffix_match:
+                    unit = suffix_match.group(1)
+                    recovered = value * UNIT_MULTIPLIER[unit]
+                    if 100_000 <= recovered <= 100_000_000:
+                        if float(recovered).is_integer():
+                            recovered = int(recovered)
+                        return recovered, {"displayedValue": value, "presentationUnit": unit, "sourceFile": name}
                 # Some filings place the currency in a separate cell rather than the header.
                 if ("平均年間給与" in table_text or "年間平均給与" in table_text) and "千円" not in table_text and "万円" not in table_text and "円" in table_text:
                     if 100_000 <= value <= 100_000_000:

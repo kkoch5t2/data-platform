@@ -30,7 +30,8 @@
     "collect:listed-fallback": "node scripts/run-python.cjs -m collector.listed_companies.retry_xbrl_fallback",
     "report:listed-coverage": "node scripts/run-python.cjs scripts/report-listed-coverage.py",
     "normalize:listed-incremental": "node scripts/run-python.cjs -m collector.listed_companies.normalize_incremental",
-    "refresh:listed-daily": "npm run collect:listed-documents && npm run collect:listed-bulk && npm run normalize:listed-incremental && npm run build:listed-data"
+    "validate:listed-salary": "node scripts/run-python.cjs -m collector.listed_companies.validate_salary_outliers",
+    "refresh:listed-daily": "npm run collect:listed-documents && npm run collect:listed-bulk && npm run normalize:listed-incremental && npm run validate:listed-salary && npm run build:listed-data"
   },
   "dependencies": {
     "astro": "^7.3.4",
