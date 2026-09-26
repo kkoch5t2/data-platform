@@ -209,7 +209,7 @@ def valid_agency_name(name):
 summary=load(SRC/'summary.json'); meta=load(DATA/'dashboard-meta.json')
 shards=sorted(SRC.glob('procurements-*.json'))
 agency_idx={v:i for i,v in enumerate(meta['a'])}; category_idx={v:i for i,v in enumerate(meta['c'])}; winner_idx={v:i for i,v in enumerate(meta['w'])}
-total=0; ids=set(); awards=0; award_total=0.0; companies=set(); orgs=set(); first=None; last=None
+total=0; ids=set(); awards=0; award_total=0.0; companies=set(); legacy_company_ids=set(); orgs=set(); first=None; last=None
 company_stats=defaultdict(lambda:[0,0.0]); org_stats=defaultdict(lambda:[0,0.0,0])
 for p in shards:
     rs=load(p); year=int(p.stem.split('-')[-1]); total+=len(rs)
@@ -234,6 +234,7 @@ for p in shards:
         if amount>0: awards+=1; award_total+=amount
         if r.get('companyId'):
             companies.add(r['companyId']); company_stats[r['companyId']][0]+=1; company_stats[r['companyId']][1]+=amount
+            if not rid.startswith(('kobe:','fukuoka:')): legacy_company_ids.add(r['companyId'])
         if r.get('organizationId'):
             org_stats[r['organizationId']][0]+=1; org_stats[r['organizationId']][1]+=amount; org_stats[r['organizationId']][2]+=int(bool(r.get('isIt')))
         if r.get('agency'): orgs.add(r['agency'])
@@ -241,17 +242,34 @@ for p in shards:
         elif rid.startswith('geps:'): sid=rid.split(':',2)[1]; kind=2
         elif rid.startswith('yokohama:'): sid=rid[9:]; kind=3
         elif rid.startswith('sapporo:'): sid=rid[8:]; kind=4
+        elif rid.startswith('kobe:'): sid=rid[5:]; kind=5
+        elif rid.startswith('fukuoka:'): sid=rid[8:]; kind=6
         else: sid=rid[6:] if rid.startswith('jetro:') else rid; kind=0
         expected[(sid,r.get('title') or '',(nd or '').replace('-',''),agency_idx[r.get('agency') or ''],category_idx[r.get('category') or 'その他'],winner_idx[r.get('winnerName') or ''],amount,kind)]+=1
     ok(expected==actual,f'procurement {year}: dashboard content mismatch')
 ok(summary.get('records')==total,f'procurement summary records {summary.get("records")} != {total}')
+source_counts = {
+    'yokohamaRecords': sum(1 for rid in ids if rid.startswith('yokohama:')),
+    'sapporoRecords': sum(1 for rid in ids if rid.startswith('sapporo:')),
+    'kobeRecords': sum(1 for rid in ids if rid.startswith('kobe:')),
+    'fukuokaRecords': sum(1 for rid in ids if rid.startswith('fukuoka:')),
+}
+for key, value in source_counts.items():
+    ok(summary.get(key)==value,f'procurement summary {key} {summary.get(key)} != {value}')
+local_expected = sum(1 for rid in ids if rid.startswith(('jetro-local:','yokohama:','sapporo:','kobe:','fukuoka:')))
+ok(summary.get('localRecords')==local_expected,f'procurement localRecords {summary.get("localRecords")} != {local_expected}')
 ok(summary.get('firstDate')==first,f'procurement firstDate mismatch {summary.get("firstDate")} != {first}')
 ok(summary.get('lastDate')==last,f'procurement lastDate mismatch {summary.get("lastDate")} != {last}')
 ok(summary.get('awardRecords')==awards,f'procurement awardRecords mismatch {summary.get("awardRecords")} != {awards}')
 ok(abs(float(summary.get('awardTotal') or 0)-award_total)<=.02,f'procurement awardTotal mismatch {summary.get("awardTotal")} != {award_total}')
 ok(summary.get('companies')==len(companies),f'procurement companies mismatch {summary.get("companies")} != {len(companies)}')
 ok(summary.get('organizations')==len(orgs),f'procurement organizations mismatch {summary.get("organizations")} != {len(orgs)}')
-for x in load(SRC/'companies.json'):
+company_master=load(SRC/'companies.json')
+static_company_ids={x['id'] for x in company_master if x.get('staticPage')}
+ok(len(static_company_ids)<=18500,f'procurement static company pages exceed safe budget: {len(static_company_ids)}')
+ok(legacy_company_ids<=static_company_ids,f'procurement static pages missing prior companies: {len(legacy_company_ids-static_company_ids)}')
+ok(len(static_company_ids-legacy_company_ids)<=1200,f'procurement new static company page budget exceeded: {len(static_company_ids-legacy_company_ids)}')
+for x in company_master:
     s=company_stats.get(x['id'],[0,0.0]); ok(x.get('awardCount')==s[0] and abs(float(x.get('awardTotal') or 0)-s[1])<=.02,f'company aggregate mismatch {x["id"]}')
 org_master=load(SRC/'organizations.json')
 for x in org_master:

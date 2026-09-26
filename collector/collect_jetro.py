@@ -595,7 +595,7 @@ def export_json(conn):
         d=dict(zip(cols,r)); out.append({
           'id':d['source_id'],'title':d['title'],'noticeDate':d['notice_date'],'agency':d['agency'],
           'organizationId':d['organization_id'],'noticeType':d['notice_type'],'sourceUrl':d['source_url'],
-          'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else ('sapporo' if d['source_id'].startswith('sapporo:') else 'jetro'))),
+          'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else ('sapporo' if d['source_id'].startswith('sapporo:') else ('kobe' if d['source_id'].startswith('kobe:') else ('fukuoka' if d['source_id'].startswith('fukuoka:') else 'jetro'))))),
           'isIt':bool(d['is_it']),'category':d['category'] or 'その他','categoryTags':json.loads(d['category_tags_json'] or '[]'),
           'tags':json.loads(d['tags_json']),'detailFetched':bool(d['detail_fetched']),
           'awardDate':d['award_date'],'contractMethod':d['contract_method'],'awardMethod':d['award_method'],
@@ -641,6 +641,8 @@ def export_json(conn):
         is_geps=x['id'].startswith('geps:')
         is_yokohama=x['id'].startswith('yokohama:')
         is_sapporo=x['id'].startswith('sapporo:')
+        is_kobe=x['id'].startswith('kobe:')
+        is_fukuoka=x['id'].startswith('fukuoka:')
         if is_jetro_local:
             sid=x['id'].split(':',2)[-1]
         elif is_geps:
@@ -649,9 +651,14 @@ def export_json(conn):
             sid=x['id'][9:]
         elif is_sapporo:
             sid=x['id'][8:]
+        elif is_kobe:
+            sid=x['id'][5:]
+        elif is_fukuoka:
+            sid=x['id'][8:]
         else:
             sid=x['id'][6:] if x['id'].startswith('jetro:') else x['id']
-        source_kind=1 if is_jetro_local else (2 if is_geps else (3 if is_yokohama else (4 if is_sapporo else 0)))
+        source_kind=(1 if is_jetro_local else 2 if is_geps else 3 if is_yokohama else
+                     4 if is_sapporo else 5 if is_kobe else 6 if is_fukuoka else 0)
         tag_mask=sum(1 << tag_idx[t] for t in (x.get('tags') or []) if t in tag_idx)
         dashboard_rows.append([
           sid,x['title'] or '',(x['noticeDate'] or '').replace('-',''),
@@ -688,9 +695,16 @@ def export_json(conn):
     DASHBOARD_META_PATH.write_text(json.dumps(dashboard_meta,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
     if DASHBOARD_LEGACY_PATH.exists(): DASHBOARD_LEGACY_PATH.unlink()
     companies=[]
+    legacy_static_ids={r[0] for r in conn.execute("""SELECT DISTINCT company_id FROM procurements
+      WHERE company_id IS NOT NULL AND source_id NOT LIKE 'kobe:%' AND source_id NOT LIKE 'fukuoka:%'""")}
     for cid,name in conn.execute('SELECT company_id,company_name FROM companies ORDER BY company_name'):
         a=conn.execute('SELECT COUNT(*),COALESCE(SUM(award_amount),0) FROM procurements WHERE company_id=?',(cid,)).fetchone()
-        companies.append({'id':cid,'name':name,'awardCount':a[0],'awardTotal':a[1]})
+        companies.append({'id':cid,'name':name,'awardCount':a[0],'awardTotal':a[1],'staticPage':cid in legacy_static_ids})
+    # Cloudflare Pages Free allows 20,000 files/site. Preserve every previously
+    # published company page, then add the highest-value new Kobe/Fukuoka vendors
+    # while retaining headroom for all non-company routes/assets.
+    new_candidates=sorted((c for c in companies if not c['staticPage']),key=lambda c:(c['awardTotal'],c['awardCount']),reverse=True)
+    for c in new_candidates[:1200]: c['staticPage']=True
     COMPANY_PATH.write_text(json.dumps(companies,ensure_ascii=False,indent=2),encoding='utf-8')
     orgs=[]
     for oid,name in conn.execute('''SELECT organization_id,organization_name FROM organizations
@@ -704,13 +718,19 @@ def export_json(conn):
     category_counts={}
     for x in out: category_counts[x['category']]=category_counts.get(x['category'],0)+1
     jetro_local_records=sum(1 for x in out if x['id'].startswith('jetro-local:'))
-    yokohama_records=sum(1 for x in out if x['id'].startswith('yokohama:'))
-    local_records=jetro_local_records+yokohama_records
+    jetro_national_records=sum(1 for x in out if x['id'].startswith('jetro:'))
     geps_records=sum(1 for x in out if x['id'].startswith('geps:'))
-    jetro_records=len(out)-geps_records-yokohama_records
+    yokohama_records=sum(1 for x in out if x['id'].startswith('yokohama:'))
+    sapporo_records=sum(1 for x in out if x['id'].startswith('sapporo:'))
+    kobe_records=sum(1 for x in out if x['id'].startswith('kobe:'))
+    fukuoka_records=sum(1 for x in out if x['id'].startswith('fukuoka:'))
+    local_records=jetro_local_records+yokohama_records+sapporo_records+kobe_records+fukuoka_records
+    jetro_records=jetro_national_records+jetro_local_records
     dates=[x['noticeDate'] for x in out if x.get('noticeDate')]
     summary={'records':len(out),'nationalRecords':len(out)-local_records,'localRecords':local_records,
-      'jetroRecords':jetro_records,'gepsRecords':geps_records,'yokohamaRecords':yokohama_records,
+      'jetroRecords':jetro_records,'jetroLocalRecords':jetro_local_records,'gepsRecords':geps_records,
+      'yokohamaRecords':yokohama_records,'sapporoRecords':sapporo_records,
+      'kobeRecords':kobe_records,'fukuokaRecords':fukuoka_records,
       'firstDate':min(dates) if dates else None,'lastDate':max(dates) if dates else None,
       'itRecords':total_it,'awardRecords':len(awards),
       'awardTotal':sum(x['awardAmount'] for x in awards),'companies':len(companies),'organizations':len(orgs),
