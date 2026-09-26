@@ -51,7 +51,7 @@ Cloudflare Web Analyticsは現行設定ではCookieを利用しないアクセ�
 新規外部サービスを導入する際は、費用、利用規約、データ送信内容、障害時影響を確認する。
 
 ## 10. Bot・クローラー対策
-Cloudflareアカウント内の独自ドメイン `datlume.com` / `utility-tools-jp.com` では、2026-09-27時点で以下を有効化している。
+DATLUMEの独自ドメイン `datlume.com` では、2026-09-27時点で以下を有効化している。
 - Bot Fight Mode: ON
 - AI bots protection: `block`
 - crawler protection: `enabled`
