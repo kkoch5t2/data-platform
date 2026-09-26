@@ -38,3 +38,5 @@ __pycache__/
 /public/data/dashboard.json
 /public/data/dashboard-meta.json
 /public/data/dashboard-*.json
+/public/data/company-details/
+.wrangler/

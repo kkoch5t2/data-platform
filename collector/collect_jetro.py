@@ -21,6 +21,7 @@ SUMMARY_PATH = DATA_DIR / 'summary.json'
 DASHBOARD_DIR = ROOT / 'public' / 'data'
 DASHBOARD_META_PATH = DASHBOARD_DIR / 'dashboard-meta.json'
 DASHBOARD_LEGACY_PATH = DASHBOARD_DIR / 'dashboard.json'
+COMPANY_DETAIL_DIR = DASHBOARD_DIR / 'company-details'
 DASHBOARD_SHARD_ROWS = 50000
 BASE = 'https://www.jetro.go.jp'
 LIST_PATH = '/gov_procurement/national/list.html'
@@ -695,16 +696,30 @@ def export_json(conn):
     DASHBOARD_META_PATH.write_text(json.dumps(dashboard_meta,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
     if DASHBOARD_LEGACY_PATH.exists(): DASHBOARD_LEGACY_PATH.unlink()
     companies=[]
-    legacy_static_ids={r[0] for r in conn.execute("""SELECT DISTINCT company_id FROM procurements
-      WHERE company_id IS NOT NULL AND source_id NOT LIKE 'kobe:%' AND source_id NOT LIKE 'fukuoka:%'""")}
-    for cid,name in conn.execute('SELECT company_id,company_name FROM companies ORDER BY company_name'):
-        a=conn.execute('SELECT COUNT(*),COALESCE(SUM(award_amount),0) FROM procurements WHERE company_id=?',(cid,)).fetchone()
-        companies.append({'id':cid,'name':name,'awardCount':a[0],'awardTotal':a[1],'staticPage':cid in legacy_static_ids})
-    # Cloudflare Pages Free allows 20,000 files/site. Preserve every previously
-    # published company page, then add the highest-value new Kobe/Fukuoka vendors
-    # while retaining headroom for all non-company routes/assets.
-    new_candidates=sorted((c for c in companies if not c['staticPage']),key=lambda c:(c['awardTotal'],c['awardCount']),reverse=True)
-    for c in new_candidates[:1200]: c['staticPage']=True
+    company_detail={}
+    company_query=("SELECT c.company_id,c.company_name,COUNT(p.source_id),COALESCE(SUM(p.award_amount),0) "
+      "FROM companies c JOIN procurements p ON p.company_id=c.company_id "
+      "GROUP BY c.company_id,c.company_name ORDER BY c.company_name")
+    for cid,name,count,total in conn.execute(company_query):
+        companies.append({'id':cid,'name':name,'awardCount':count,'awardTotal':total})
+        company_detail[cid]=[name,count,total,[]]
+    for x in out:
+        cid=x.get('companyId')
+        amount=x.get('awardAmount') or 0
+        if cid in company_detail and amount>0:
+            company_detail[cid][3].append([x.get('awardDate') or '',x.get('agency') or '',x.get('title') or '',x.get('sourceUrl') or '',amount])
+    for item in company_detail.values():
+        item[3].sort(key=lambda r:r[0],reverse=True)
+    COMPANY_DETAIL_DIR.mkdir(parents=True,exist_ok=True)
+    for old_file in COMPANY_DETAIL_DIR.glob('*.json'):
+        old_file.unlink()
+    company_buckets={}
+    for cid,item in company_detail.items():
+        bucket=cid[3:5].lower()
+        company_buckets.setdefault(bucket,{})[cid]=item
+    for bucket,items in company_buckets.items():
+        payload={'v':1,'c':items}
+        (COMPANY_DETAIL_DIR/f'{bucket}.json').write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
     COMPANY_PATH.write_text(json.dumps(companies,ensure_ascii=False,indent=2),encoding='utf-8')
     orgs=[]
     for oid,name in conn.execute('''SELECT organization_id,organization_name FROM organizations
