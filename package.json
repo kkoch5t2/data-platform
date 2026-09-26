@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/run-python.cjs scripts/generate-sitemap.py",
+    "build": "bash scripts/build-locked.sh",
     "preview": "astro preview",
     "astro": "astro",
     "collect": "node scripts/run-python.cjs collector/run_all.py",

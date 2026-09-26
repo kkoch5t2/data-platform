@@ -21,6 +21,7 @@ SUMMARY_PATH = DATA_DIR / 'summary.json'
 DASHBOARD_DIR = ROOT / 'public' / 'data'
 DASHBOARD_META_PATH = DASHBOARD_DIR / 'dashboard-meta.json'
 DASHBOARD_LEGACY_PATH = DASHBOARD_DIR / 'dashboard.json'
+COMPANY_DETAIL_DIR = DASHBOARD_DIR / 'company-details'
 DASHBOARD_SHARD_ROWS = 50000
 BASE = 'https://www.jetro.go.jp'
 LIST_PATH = '/gov_procurement/national/list.html'
@@ -595,7 +596,7 @@ def export_json(conn):
         d=dict(zip(cols,r)); out.append({
           'id':d['source_id'],'title':d['title'],'noticeDate':d['notice_date'],'agency':d['agency'],
           'organizationId':d['organization_id'],'noticeType':d['notice_type'],'sourceUrl':d['source_url'],
-          'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else ('sapporo' if d['source_id'].startswith('sapporo:') else 'jetro'))),
+          'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else ('sapporo' if d['source_id'].startswith('sapporo:') else ('kobe' if d['source_id'].startswith('kobe:') else ('fukuoka' if d['source_id'].startswith('fukuoka:') else ('chiba' if d['source_id'].startswith('chiba:') else ('kyoto' if d['source_id'].startswith('kyoto:') else 'jetro'))))))),
           'isIt':bool(d['is_it']),'category':d['category'] or 'その他','categoryTags':json.loads(d['category_tags_json'] or '[]'),
           'tags':json.loads(d['tags_json']),'detailFetched':bool(d['detail_fetched']),
           'awardDate':d['award_date'],'contractMethod':d['contract_method'],'awardMethod':d['award_method'],
@@ -641,6 +642,10 @@ def export_json(conn):
         is_geps=x['id'].startswith('geps:')
         is_yokohama=x['id'].startswith('yokohama:')
         is_sapporo=x['id'].startswith('sapporo:')
+        is_kobe=x['id'].startswith('kobe:')
+        is_fukuoka=x['id'].startswith('fukuoka:')
+        is_chiba=x['id'].startswith('chiba:')
+        is_kyoto=x['id'].startswith('kyoto:')
         if is_jetro_local:
             sid=x['id'].split(':',2)[-1]
         elif is_geps:
@@ -649,9 +654,19 @@ def export_json(conn):
             sid=x['id'][9:]
         elif is_sapporo:
             sid=x['id'][8:]
+        elif is_kobe:
+            sid=x['id'][5:]
+        elif is_fukuoka:
+            sid=x['id'][8:]
+        elif is_chiba:
+            sid=x['id'][6:]
+        elif is_kyoto:
+            sid=x['id'][6:]
         else:
             sid=x['id'][6:] if x['id'].startswith('jetro:') else x['id']
-        source_kind=1 if is_jetro_local else (2 if is_geps else (3 if is_yokohama else (4 if is_sapporo else 0)))
+        source_kind=(1 if is_jetro_local else 2 if is_geps else 3 if is_yokohama else
+                     4 if is_sapporo else 5 if is_kobe else 6 if is_fukuoka else
+                     7 if is_chiba else 8 if is_kyoto else 0)
         tag_mask=sum(1 << tag_idx[t] for t in (x.get('tags') or []) if t in tag_idx)
         dashboard_rows.append([
           sid,x['title'] or '',(x['noticeDate'] or '').replace('-',''),
@@ -688,9 +703,30 @@ def export_json(conn):
     DASHBOARD_META_PATH.write_text(json.dumps(dashboard_meta,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
     if DASHBOARD_LEGACY_PATH.exists(): DASHBOARD_LEGACY_PATH.unlink()
     companies=[]
-    for cid,name in conn.execute('SELECT company_id,company_name FROM companies ORDER BY company_name'):
-        a=conn.execute('SELECT COUNT(*),COALESCE(SUM(award_amount),0) FROM procurements WHERE company_id=?',(cid,)).fetchone()
-        companies.append({'id':cid,'name':name,'awardCount':a[0],'awardTotal':a[1]})
+    company_detail={}
+    company_query=("SELECT c.company_id,c.company_name,COUNT(p.source_id),COALESCE(SUM(p.award_amount),0) "
+      "FROM companies c JOIN procurements p ON p.company_id=c.company_id "
+      "GROUP BY c.company_id,c.company_name ORDER BY c.company_name")
+    for cid,name,count,total in conn.execute(company_query):
+        companies.append({'id':cid,'name':name,'awardCount':count,'awardTotal':total})
+        company_detail[cid]=[name,count,total,[]]
+    for x in out:
+        cid=x.get('companyId')
+        amount=x.get('awardAmount') or 0
+        if cid in company_detail and amount>0:
+            company_detail[cid][3].append([x.get('awardDate') or '',x.get('agency') or '',x.get('title') or '',x.get('sourceUrl') or '',amount])
+    for item in company_detail.values():
+        item[3].sort(key=lambda r:r[0],reverse=True)
+    COMPANY_DETAIL_DIR.mkdir(parents=True,exist_ok=True)
+    for old_file in COMPANY_DETAIL_DIR.glob('*.json'):
+        old_file.unlink()
+    company_buckets={}
+    for cid,item in company_detail.items():
+        bucket=cid[3:5].lower()
+        company_buckets.setdefault(bucket,{})[cid]=item
+    for bucket,items in company_buckets.items():
+        payload={'v':1,'c':items}
+        (COMPANY_DETAIL_DIR/f'{bucket}.json').write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
     COMPANY_PATH.write_text(json.dumps(companies,ensure_ascii=False,indent=2),encoding='utf-8')
     orgs=[]
     for oid,name in conn.execute('''SELECT organization_id,organization_name FROM organizations
@@ -704,13 +740,22 @@ def export_json(conn):
     category_counts={}
     for x in out: category_counts[x['category']]=category_counts.get(x['category'],0)+1
     jetro_local_records=sum(1 for x in out if x['id'].startswith('jetro-local:'))
-    yokohama_records=sum(1 for x in out if x['id'].startswith('yokohama:'))
-    local_records=jetro_local_records+yokohama_records
+    jetro_national_records=sum(1 for x in out if x['id'].startswith('jetro:'))
     geps_records=sum(1 for x in out if x['id'].startswith('geps:'))
-    jetro_records=len(out)-geps_records-yokohama_records
+    yokohama_records=sum(1 for x in out if x['id'].startswith('yokohama:'))
+    sapporo_records=sum(1 for x in out if x['id'].startswith('sapporo:'))
+    kobe_records=sum(1 for x in out if x['id'].startswith('kobe:'))
+    fukuoka_records=sum(1 for x in out if x['id'].startswith('fukuoka:'))
+    chiba_records=sum(1 for x in out if x['id'].startswith('chiba:'))
+    kyoto_records=sum(1 for x in out if x['id'].startswith('kyoto:'))
+    local_records=jetro_local_records+yokohama_records+sapporo_records+kobe_records+fukuoka_records+chiba_records+kyoto_records
+    jetro_records=jetro_national_records+jetro_local_records
     dates=[x['noticeDate'] for x in out if x.get('noticeDate')]
     summary={'records':len(out),'nationalRecords':len(out)-local_records,'localRecords':local_records,
-      'jetroRecords':jetro_records,'gepsRecords':geps_records,'yokohamaRecords':yokohama_records,
+      'jetroRecords':jetro_records,'jetroLocalRecords':jetro_local_records,'gepsRecords':geps_records,
+      'yokohamaRecords':yokohama_records,'sapporoRecords':sapporo_records,
+      'kobeRecords':kobe_records,'fukuokaRecords':fukuoka_records,
+      'chibaRecords':chiba_records,'kyotoRecords':kyoto_records,
       'firstDate':min(dates) if dates else None,'lastDate':max(dates) if dates else None,
       'itRecords':total_it,'awardRecords':len(awards),
       'awardTotal':sum(x['awardAmount'] for x in awards),'companies':len(companies),'organizations':len(orgs),

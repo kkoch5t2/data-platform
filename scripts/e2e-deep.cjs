@@ -48,7 +48,13 @@ if (onlyRoutes.length) {
 } else {
   const routes=[...staticRoutes];
   for (const [name,re] of families) {
-    const hit=builtRoutes.find(r=>re.test(r));
+    let hit=builtRoutes.find(r=>re.test(r));
+    if (!hit && name==='proc-company') {
+      const companyFile=path.join(process.cwd(),'src','data','companies.json');
+      const companies=fs.existsSync(companyFile)?JSON.parse(fs.readFileSync(companyFile,'utf8')):[];
+      const company=[...companies].sort((a,b)=>Number(b.awardTotal||0)-Number(a.awardTotal||0))[0];
+      if (company?.id) hit=`/procurement/companies/${company.id}/`;
+    }
     if (!hit) throw new Error('No built route for family '+name);
     routes.push(hit);
   }
@@ -171,6 +177,12 @@ async function checkEnergyCo2History(page,label,failures) {
 
 async function checkProcurementOverview(page,label,failures) {
   await page.waitForFunction(()=>/^\d+(?:\.\d+)?%$/.test((document.querySelector('#yoy-amount')?.textContent||'').trim()),{timeout:15000}).catch(()=>{});
+  const procurementMeta=await page.evaluate(async()=>{const r=await fetch('/data/dashboard-meta.json');return r.ok?await r.json():{};}).catch(()=>({}));
+  for(const city of ['横浜市','札幌市','神戸市','福岡市','千葉市','京都市']){
+    if(!(procurementMeta.a||[]).includes(city))failures.push(label+' municipal procurement agency missing: '+city);
+  }
+  const sourceText=(await page.locator('.quality-item',{hasText:'データソース内訳'}).textContent().catch(()=>''))||'';
+  for(const city of ['横浜','札幌','神戸','福岡','千葉','京都'])if(!sourceText.includes(city))failures.push(label+' source breakdown missing '+city);
   const yoyLabel=(await page.locator('#yoy-amount').locator('xpath=..').locator('.yoy-label').textContent().catch(()=>''))?.trim();
   const yoyValue=(await page.locator('#yoy-amount').textContent().catch(()=>''))?.trim();
   const yoyMeta=(await page.locator('#yoy-amount-meta').textContent().catch(()=>''))?.trim();
@@ -232,6 +244,9 @@ async function checkListedCompanies(page,label,failures) {
   const initial=(await page.locator('#result-count').textContent().catch(()=>''))?.trim();
   if(!/^[\d,]+社$/.test(initial||''))failures.push(label+' listed-company count invalid: '+initial);
   if((await page.locator('.company-card').count())<1)failures.push(label+' listed-company cards missing');
+  await page.waitForFunction(()=>document.querySelector('#scatter canvas'),{timeout:15000}).catch(()=>{});
+  if(!(await page.locator('#scatter canvas').count()))failures.push(label+' listed-company scatter missing');
+  if(await page.locator('#scatter-empty').isVisible().catch(()=>false))failures.push(label+' scatter empty-state visible with chart');
   await page.fill('#company-q','7203').catch(()=>{});
   await page.waitForTimeout(150);
   const filtered=(await page.locator('#result-count').textContent().catch(()=>''))?.trim();
