@@ -367,16 +367,19 @@ def normalize_document(doc: dict, company: dict) -> dict | None:
             sources[key] = source
     salary_anomaly = False
     salary = metrics.get("averageSalary")
-    if salary is not None and not (100_000 <= salary <= 100_000_000):
+    if salary is not None and xbrl_path.exists():
         from .salary import recover_average_salary
         recovered, recovery_source = recover_average_salary(xbrl_path)
         if recovered is not None:
             metrics["averageSalary"] = recovered
             if sources.get("averageSalary") and recovery_source:
                 sources["averageSalary"]["presentationRecovery"] = recovery_source
-        else:
+        elif not (100_000 <= salary <= 100_000_000):
             metrics["averageSalary"] = None
             salary_anomaly = True
+    elif salary is not None and not (100_000 <= salary <= 100_000_000):
+        metrics["averageSalary"] = None
+        salary_anomaly = True
     metrics["freeCashFlow"] = None
     if metrics.get("operatingCashFlow") is not None and metrics.get("investingCashFlow") is not None:
         metrics["freeCashFlow"] = metrics["operatingCashFlow"] + metrics["investingCashFlow"]

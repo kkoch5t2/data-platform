@@ -150,6 +150,7 @@ echo "Listed-company EDINET catch-up window: $CATCHUP_FROM -> $TODAY"
 npm run collect:listed-documents -- --start "$CATCHUP_FROM" --end "$TODAY"
 npm run collect:listed-bulk
 npm run normalize:listed-incremental
+npm run validate:listed-salary
 npm run build:listed-data
 
 MONTH="$(date +%Y-%m)"

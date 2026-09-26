@@ -30,6 +30,8 @@ if [[ -n "$bad" ]]; then
   exit 30
 fi
 
+npm run validate:listed-salary
+npm run build:listed-data
 npm run audit:data
 npm run audit:listed-xbrl
 npm run build
