@@ -42,6 +42,26 @@ if [ "$COMPANY_DETAIL_SHARDS" -ne 256 ]; then
   echo "Refusing incomplete deploy: company detail shards=$COMPANY_DETAIL_SHARDS expected=256"
   exit 3
 fi
+if [ ! -f "functions/listed-companies/[code].js" ] || [ ! -s "dist/data/listed-companies/summary.json" ]; then
+  echo 'Refusing incomplete deploy: listed-company Pages Function or summary missing.'
+  exit 3
+fi
+LISTED_DETAIL_SHARDS=$(find dist/data/listed-companies/details -maxdepth 1 -type f -name '*.json' 2>/dev/null | wc -l)
+read -r LISTED_COMPANIES LISTED_FINANCIAL_RECORDS <<EOF
+$(python3 - <<'PY2'
+import json
+try:
+    d=json.load(open('dist/data/listed-companies/summary.json', encoding='utf-8'))
+    print(int(d.get('companies',0)), int(d.get('financialRecords',0)))
+except Exception:
+    print(0,0)
+PY2
+)
+EOF
+if [ "$LISTED_DETAIL_SHARDS" -ne 64 ] || [ "$LISTED_COMPANIES" -lt 3000 ] || [ "$LISTED_FINANCIAL_RECORDS" -lt 30000 ]; then
+  echo "Refusing incomplete deploy: listed shards=$LISTED_DETAIL_SHARDS companies=$LISTED_COMPANIES financialRecords=$LISTED_FINANCIAL_RECORDS"
+  exit 3
+fi
 npx wrangler pages functions build functions --outfile /tmp/datlume-pages-functions.js --output-routes-path /tmp/datlume-pages-routes.json --minify >/dev/null
 FILE_COUNT=$(find dist -type f | wc -l)
 MAX_SIZE=$(find dist -type f -printf '%s\n' | awk 'BEGIN{m=0} {if ($1>m) m=$1} END{print m}')
