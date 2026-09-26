@@ -165,6 +165,18 @@ for fn,(minyears,prefs) in history_specs.items():
     ok(len(ys)>=minyears and ys==sorted(set(ys)),f'{fn}: bad year coverage/order')
     rs=d.get('records',[])
     ok(len(rs)==prefs,f'{fn}: expected {prefs} prefectures, got {len(rs)}')
+energy_hist=load(DATA/'energy-consumption-history.json')
+expected_energy_fields=['year','finalEnergyPerCapita','commercialPerCapita','residentialPerCapita','transportPerCapita','finalCo2PerCapita','commercialCo2PerCapita','residentialCo2PerCapita','transportCo2PerCapita']
+ok(energy_hist.get('fields')==expected_energy_fields,'energy-consumption-history: field schema mismatch')
+ok(energy_hist.get('units')=={'energy':'GJ/人','co2':'t-CO2/人'},'energy-consumption-history: unit metadata mismatch')
+for r in energy_hist.get('records',[]):
+    ok(len(r.get('values',[]))==len(energy_hist.get('years',[])),f'energy-consumption-history {r.get("prefecture")}: point count mismatch')
+    for v in r.get('values',[]):
+        ok(len(v)==9,f'energy-consumption-history {r.get("prefecture")} {v[0] if v else "?"}: column count mismatch')
+        if len(v)==9:
+            ok(all(x is None or float(x)>=0 for x in v[1:]),f'energy-consumption-history {r.get("prefecture")} {v[0]}: negative value')
+            ok(v[5] is None or float(v[5])<40,f'energy-consumption-history {r.get("prefecture")} {v[0]}: implausible CO2 per capita')
+
 for fn,minyears in [('land-price-history.json',7),('economy-prices-history.json',13),('business-industry-history.json',2)]:
     d=load(DATA/fn); ys=d.get('years',[])
     ok(len(ys)>=minyears and ys==sorted(set(ys)),f'{fn}: bad year coverage/order')

@@ -148,6 +148,22 @@ async function checkEconomyPriceHistory(page,label,failures) {
   if(!(sub||'').includes('2013〜2025年'))failures.push(label+' economy history period label invalid: '+sub);
 }
 
+async function checkEnergyCo2History(page,label,failures) {
+  const tab=page.locator('[data-tab="consumption-history"]');
+  if(!(await tab.count())){failures.push(label+' energy history tab missing');return}
+  await tab.click();
+  await page.waitForFunction(()=>document.querySelectorAll('#consumption-history-chart canvas').length>0,{timeout:15000}).catch(()=>{});
+  const meta=await page.evaluate(async()=>{const r=await fetch('/data/energy-consumption-history.json');if(!r.ok)return{};const d=await r.json();return{years:d.years||[],fields:d.fields||[]}}).catch(()=>({}));
+  if((meta.years||[]).length!==19||Number(meta.years?.[0])!==1990||Number(meta.years?.at(-1))!==2023)failures.push(label+' energy history coverage invalid: '+JSON.stringify(meta.years));
+  if(!(meta.fields||[]).includes('finalCo2PerCapita'))failures.push(label+' CO2 history field missing');
+  await page.selectOption('#consumption-history-metric','finalCo2PerCapita').catch(()=>{});await page.waitForTimeout(200);
+  const title=(await page.locator('#consumption-history-title').textContent().catch(()=>''))?.trim();
+  const note=(await page.locator('#consumption-history-note').textContent().catch(()=>''))?.trim();
+  if(!(title||'').includes('CO₂排出量'))failures.push(label+' CO2 history title invalid: '+title);
+  if(!(note||'').includes('44/12')||!(note||'').includes('t-CO₂/人'))failures.push(label+' CO2 conversion note missing: '+note);
+  if(!(await page.locator('#consumption-history-chart canvas').count()))failures.push(label+' energy history chart canvas missing');
+}
+
 async function checkProcurementOverview(page,label,failures) {
   await page.waitForFunction(()=>/^\d+(?:\.\d+)?%$/.test((document.querySelector('#yoy-amount')?.textContent||'').trim()),{timeout:15000}).catch(()=>{});
   const yoyLabel=(await page.locator('#yoy-amount').locator('xpath=..').locator('.yoy-label').textContent().catch(()=>''))?.trim();
@@ -203,6 +219,7 @@ async function checkProcurementOverview(page,label,failures) {
         if(route==='/realestate/')await checkRealestateMapPalette(page,initialLabel,failures);
         if(route==='/regional/')await checkRegionalMunicipal(page,initialLabel,failures);
         if(route==='/economy-prices/')await checkEconomyPriceHistory(page,initialLabel,failures);
+        if(route==='/energy/')await checkEnergyCo2History(page,initialLabel,failures);
 
         const filterToggle=page.locator('#filter-toggle:visible, #filters-toggle:visible');
         if(await filterToggle.count() && await filterToggle.first().getAttribute('aria-expanded')!=='true') await filterToggle.first().click();
