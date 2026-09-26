@@ -58,7 +58,7 @@ DATLUMEの独自ドメイン `datlume.com` では、2026-09-27時点で以下を
 - JavaScript detection: ON
 - `cf_robots_variant`: `policy_only`
 
-検索エンジン等の正規Verified BotはSEOのため一律遮断しない。国別Blockは、国だけで機械的に決めず、国別・bot別アクセス実態を確認してから適用する。特に米国発トラフィックには検索クローラーが含まれ得るため、米国全体のBlockは禁止する。
+検索エンジン等の正規Verified BotはSEOのため一律遮断しない。2026-09-27時点では、中国（CN）・ロシア（RU）・香港（HK）からのアクセスについて、Cloudflare Verified Botを除外したうえでBlockするWAF Custom Ruleを有効化している。国別Blockは、国だけで機械的に拡大せず、国別・bot別アクセス実態を確認してから追加する。特に米国発トラフィックには検索クローラーが含まれ得るため、米国全体のBlockは禁止する。
 
 ## 11. 障害・攻撃時の考え方
 - 異常なFunctions負荷が続く場合はCloudflare分析で経路を確認する。
