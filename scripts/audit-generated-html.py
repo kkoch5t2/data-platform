@@ -127,6 +127,24 @@ for file in files:
             if len(errors)>500: break
     if len(errors)>500: break
 
+# AdSense review prerequisites: root ownership signal, ads.txt and privacy page.
+home_path=DIST/'index.html'
+privacy_path=DIST/'privacy'/'index.html'
+ads_path=DIST/'ads.txt'
+if home_path.exists():
+    home=home_path.read_text(encoding='utf-8')
+    check('<meta name="google-adsense-account" content="ca-pub-7677179691441346"' in home,'home: missing AdSense ownership meta')
+else:
+    check(False,'home: index.html missing')
+check(privacy_path.exists(),'privacy: generated page missing')
+if privacy_path.exists():
+    privacy=privacy_path.read_text(encoding='utf-8')
+    check('Google AdSense' in privacy and 'Cookie' in privacy,'privacy: advertising/cookie disclosure missing')
+check(ads_path.exists(),'ads.txt: missing from build')
+if ads_path.exists():
+    ads_lines={line.strip() for line in ads_path.read_text(encoding='utf-8').splitlines() if line.strip() and not line.lstrip().startswith('#')}
+    check('google.com, pub-7677179691441346, DIRECT, f08c47fec0942fa0' in ads_lines,'ads.txt: Google publisher record missing')
+
 listed_index_path=ROOT/'public/data/listed-companies/index.json'
 sitemap_path=DIST/'sitemap.xml'
 if listed_index_path.exists() and sitemap_path.exists():
