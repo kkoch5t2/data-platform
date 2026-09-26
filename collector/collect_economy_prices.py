@@ -44,7 +44,18 @@ def parse_table(pdf_bytes):
                 vals=numbers(s[:-len(pref)])
                 if len(vals)>=12: second[pref]=vals[:12:2]
     missing=[p for p in PREFS if p not in first or p not in second]
-    if missing: raise RuntimeError('could not parse prefectures: '+','.join(missing))
+    if missing:
+        legacy={}
+        for raw in lines:
+            s=' '.join(raw.split())
+            for pref in PREFS:
+                if pref in legacy or not s.startswith(pref): continue
+                vals=numbers(s[len(pref):])
+                if len(vals)>=12 and all(70<=v<=140 for v in vals[:12]):
+                    legacy[pref]=vals[:12]
+        legacy_missing=[p for p in PREFS if p not in legacy]
+        if legacy_missing: raise RuntimeError('could not parse prefectures: '+','.join(legacy_missing))
+        return [{'prefecture':pref,**{k:round(v,1) for k,v in zip(FIELDS,legacy[pref])}} for pref in PREFS]
 
     records=[]
     for pref in PREFS:

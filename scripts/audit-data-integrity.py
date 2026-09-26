@@ -165,9 +165,19 @@ for fn,(minyears,prefs) in history_specs.items():
     ok(len(ys)>=minyears and ys==sorted(set(ys)),f'{fn}: bad year coverage/order')
     rs=d.get('records',[])
     ok(len(rs)==prefs,f'{fn}: expected {prefs} prefectures, got {len(rs)}')
-for fn,minyears in [('land-price-history.json',7),('economy-prices-history.json',4),('business-industry-history.json',2)]:
+for fn,minyears in [('land-price-history.json',7),('economy-prices-history.json',13),('business-industry-history.json',2)]:
     d=load(DATA/fn); ys=d.get('years',[])
     ok(len(ys)>=minyears and ys==sorted(set(ys)),f'{fn}: bad year coverage/order')
+
+price_hist=load(DATA/'economy-prices-history.json')
+ok(price_hist.get('years')==list(range(2013,2026)),'economy-prices-history: expected continuous 2013-2025 coverage')
+ok(len(price_hist.get('snapshots',[]))==13,'economy-prices-history: expected 13 annual snapshots')
+for snap in price_hist.get('snapshots',[]):
+    rs=snap.get('records',[]); unique47(rs,f'economy-prices-history {snap.get("year")}')
+    for r in rs:
+        for k in price_hist.get('fields',[]):
+            if k in r and r[k] is not None:
+                ok(50<=float(r[k])<=160,f'economy-prices-history {snap.get("year")} {r["prefecture"]} {k}: implausible {r[k]}')
 
 # Procurement agency-quality gate.
 import re
