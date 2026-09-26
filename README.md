@@ -1,69 +1,139 @@
 # DATLUME
 
-日本のさまざまなデータをテーマ別に可視化するデータサイトです。現在は公共調達と、不動産・防災・暮らしの2領域を公開対象にしています。
+**データから、日本を見る。**
 
-## 構成
-- 収集: Python標準ライブラリでJETRO政府公共調達DBの公開情報を取得
-- 分野分類: GPT/APIなし。案件名からルールベースで主分類・関連分類を付与
-- IT深掘り: IT案件にはクラウド、セキュリティ、生成AI等の技術タグも付与
-- 保存: ローカルSQLite + 生成JSON（公開リポジトリには収集済み公共調達データを含めない）
-- 表示: Astro + EChartsの静的サイト
-- 定期更新: Ubuntu側の `scripts/daily-refresh.sh` をcron実行。前回成功日から全公示をキャッチアップし、06:15 JST以降は当日未成功なら毎時再試行。正常性確認に通った場合だけCloudflare Pagesへ反映
-- 固定費: 無料枠中心。外部の有料APIは前提にしない
+DATLUME は、日本の公共・公的データをテーマ別に収集・整理・可視化するデータサイトです。
+本番: https://datlume.com/
 
-## 公開データ基盤
-- 公共調達 (`/procurement/`): JETRO / GEPSの公開調達情報を収集・分類・可視化
-- 不動産 × 防災 × 暮らし: 国土交通省「地価公示」2026年全国25,565地点を地図化
-- 地域統計: 人口・高齢化率・犯罪率・交通事故を地図上で切り替え表示
-- 施設: 病院・学校・駅を必要時だけ遅延読込
-- 飲食店: OpenFreeMap/OpenMapTiles に含まれる OpenStreetMap POI を利用し、Overpass APIへの都度問い合わせはしない
-- 防災レイヤー: 国土地理院「重ねるハザードマップ」の洪水・津波・土砂災害オープンタイルを重畳
-- 地図: MapLibre GL JS 6.11.1をサイト内配信 + OpenFreeMap。Google Maps等の従量課金APIは使用しない
-- 新しいデータソースは `collector/source_catalog.json` に登録し、共通ランナーから実行する
+## 公開領域
+- 国・自治体の案件（公共調達）
+- 不動産・暮らし
+- 都道府県別推移
+- 雇用・賃金
+- 企業・産業
+- 上場企業
+- 経済・物価
+- エネルギー
 
-## 分野
-IT・デジタル、建設・土木、医療・福祉、研究・調査・コンサル、教育・研修、
-交通・物流、施設管理・清掃、広報・広告・制作、エネルギー・環境、食品・給食、
-一般物品・備品、その他。
+## 設計ドキュメント
+正式な要件・設計・運用資料は `docs/` にあります。
 
-## ローカル実行
-npm run collect
+- [文書一覧](docs/00-document-index.md)
+- [要件定義](docs/01-requirements.md)
+- [基本設計](docs/02-basic-design.md)
+- [詳細設計](docs/03-detailed-design.md)
+- [データ設計](docs/04-data-design.md)
+- [運用設計](docs/05-operations.md)
+- [QA・テスト設計](docs/06-test-quality.md)
+- [AdSense・収益化設計](docs/07-monetization-adsense.md)
+- [セキュリティ設計](docs/08-security.md)
+- [システム・機能インベントリ](docs/09-system-inventory.md)
+- [上場企業PRD実装メモ](docs/listed-companies-prd-notes.md)
+
+仕様に影響する変更では、コードだけでなく該当ドキュメントも更新してください。
+
+## アーキテクチャ概要
+
+```text
+公式データ / API / 公開Web
+        ↓
+Python collectors
+        ↓
+Raw / SQLite / normalized data (Ubuntu)
+        ↓
+public data generator
+        ↓
+Astro static build + Pages Functions
+        ↓
+Cloudflare Pages → datlume.com
+```
+
+基本は静的配信です。大量の個別詳細ページのうち、上場企業詳細と公共調達企業詳細だけCloudflare Pages Functionsで公開JSONからHTMLを生成します。
+Webアクセス時にEDINETやJETRO等の外部APIへ問い合わせる設計ではありません。
+
+## 技術スタック
+- Astro 7
+- ECharts 6
+- MapLibre GL JS 6.11.1
+- Python 3
+- SQLite
+- Playwright
+- Node.js 22+
+- Cloudflare Pages / Pages Functions
+
+## データ方針
+- 公式API・CSV・XLSX・JSON・公式公開Webを優先する。
+- 原則として追加有料APIを必須依存にしない。
+- Rawを保持し、正規化・監査後のデータだけをWeb向けに生成する。
+- 欠損値や企業固有値を推測で埋めない。
+- データソースの登録は `collector/source_catalog.json` で管理する。
+- 出典・収録範囲・注意点は `/about-data/` で公開する。
+
+## 主なコマンド
+
+```bash
 npm run dev
 npm run build
+npm run audit:data
+npm run audit:html
+npm run e2e:deep
+npm run release:check
+```
 
-## 全分野の過去データ取得
-JETROの現行検索で一括取得できる2021年4月1日以降を対象に、国・独立行政法人の全公示種別と地方政府系データを回収します。
+上場企業:
+```bash
+npm run collect:listed-master
+npm run collect:listed-documents
+npm run collect:listed-bulk
+npm run normalize:listed-incremental
+npm run validate:listed-salary
+npm run build:listed-data
+npm run audit:listed-xbrl
+```
 
-python3 collector/backfill_available.py
-
-落札企業・金額・契約方式は詳細ページの取得が必要なので、通常更新時に段階的に補完します。
-
-公共調達の生成ページは `/procurement/markets/`, `/procurement/companies/`, `/procurement/organizations/`, `/procurement/technologies/`, `/procurement/years/` 以下です。
-
-トップ `/` は複数データ領域への入口として使い、各領域は独立したURL配下に置きます。データソースには `country` と `domain` を持たせ、将来の国・分野追加に備えます。
-
-## データ上の注意
-公共調達は、JETRO政府公共調達データベース（現行検索で一括取得できる2021年4月1日以降）と、GEPSの公式落札実績アーカイブ（過去年分）を共通SQLiteへ統合しています。JETRO地方政府検索に掲載される都道府県・政令指定都市・地方独立行政法人なども対象ですが、全国すべての市区町村を網羅するデータではありません。
-過去年と現行JETROでは収録元・項目定義が異なるため、長期比較ではソース差に注意が必要です。分野分類は案件名ベースのため境界案件や誤分類がありえます。
-確認済み落札総額は、詳細取得済みの案件だけを合計した値で、市場総額そのものではありません。
+## 自動更新
+Ubuntu上の `scripts/daily-refresh.sh` が、公共調達と上場企業を日次で更新し、月次データを同じ基盤で更新します。
+収集・health check・データ生成・build・Cloudflare deployまで成功した場合だけ、その日を成功として記録します。
+週次では `scripts/weekly-audit.sh` がデータ/XBRL/HTML/本番E2Eを再検証します。
 
 ## リリース
-- 本番前確認: `npm run release:check`
-- 静的ホスティングのビルドコマンド: `npm run build`
-- 公開ディレクトリ: `dist`
-- Cloudflare Pages等では `public/_headers` のキャッシュ・セキュリティ設定を利用可能
-- `public/robots.txt` でクロールを許可
-- `.github/workflows/ci.yml` でpush/PR時に監査とビルドを確認
-- `scripts/daily-refresh.sh` が公共調達を日次更新し、地価・暮らし系公開データは月1回更新。SQLiteバックアップ・正常性確認・build・Cloudflare Pages反映まで一括実行
-- `.github/workflows/deploy-pages.yml` は手動デプロイ用として利用可能
-- デプロイにはGitHub Secrets `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` と、Repository Variable `CLOUDFLARE_PAGES_PROJECT` を設定する
+本番デプロイは `deploy-datlume.sh` を使用します。
+デプロイ前に公共調達・上場企業のshard数と最低件数、Pages Functions build、Cloudflare Pagesのファイル上限を検査します。
 
-本番ドメインが決まったら canonical URL / sitemap / OGP URL を設定する。
+```bash
+npm run release:check
+bash deploy-datlume.sh
+```
+
+## 収益化
+Google AdSenseのサイト審査準備済みです。
+`public/ads.txt`、トップページ所有権meta、`/privacy/`、プライバシー導線を実装しています。
+広告配信方針は `docs/07-monetization-adsense.md` を参照してください。
+
+## シークレット
+EDINET APIキーやCloudflare API Tokenをリポジトリへ保存しないでください。
+EDINETは `EDINET_API_KEY` または `~/.config/datlume/edinet_api_key`（0600）から読み込みます。
+詳細は `docs/08-security.md` を参照してください。
 
 ## Repository data policy
+このリポジトリはソースコードをMIT Licenseで公開します。
+収集済みの第三者データは、各提供元の権利・利用条件に従い、MIT Licenseの対象とはみなしません。
+Rawデータや運用DBの多くはGit管理外です。
+公開データを再利用する場合は、各提供元の最新の利用条件を確認してください。
 
-このリポジトリはソースコードをMIT Licenseで公開します。収集済みの公共調達データ（年別JSON、集計JSON、ダッシュボードJSON）はリポジトリには含めません。各データの権利・利用条件は各提供元に帰属し、MIT Licenseの対象ではありません。
+Third-party dependencies and vendored assets retain their own licenses.
+MapLibre GL JSのvendored licenseは `public/vendor/maplibre-6.11.1/LICENSE.txt` に保持しています。
 
-ローカルで収集処理を実行すると、Git管理外の生成データとして作成されます。公開データを利用する場合は、各提供元の最新の利用条件を確認してください。
+## 開発時の完了基準
+重要な変更は、原則として以下の順で完了させます。
 
-Third-party dependencies and vendored assets retain their own licenses. The vendored MapLibre GL JS files include their BSD-3-Clause license under `public/vendor/maplibre-6.11.1/LICENSE.txt`.
+1. 実装・データ更新
+2. データ監査
+3. build
+4. HTML監査
+5. PC / 390px E2E
+6. commit / push
+7. Cloudflare deploy
+8. 本番E2E / visual QA
+
+ローカルで動いたことだけを完了条件にしません。

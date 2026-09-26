@@ -1,3 +1,11 @@
+# DATLUME project rules
+
+Before changing DATLUME behavior, read `docs/00-document-index.md` and the relevant requirement/design document.
+Treat source code and generated data as the implementation truth, and `docs/` as the design intent.
+When a change affects requirements, architecture, data semantics, operations, QA, security, or monetization, update the matching document in the same change.
+Never guess or fabricate missing public-data values. Keep secrets out of Git, logs, `public/`, and `dist/`.
+For significant changes, run the applicable data audit, build, HTML audit, PC/mobile E2E, and production verification described in `docs/06-test-quality.md`.
+
 ## Development
 
 When starting the dev server, use background mode:
