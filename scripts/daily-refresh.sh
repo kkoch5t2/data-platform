@@ -50,8 +50,9 @@ fi
 LOG="$LOG_DIR/$(date +%F).log"
 exec > >(tee -a "$LOG") 2>&1
 find "$LOG_DIR" -type f -name '*.log' -mtime +30 -delete || true
-find "$ROOT/data/raw" -type f -mtime +45 -delete 2>/dev/null || true
-find "$ROOT/data/raw" -type d -empty -delete 2>/dev/null || true
+# EDINET annual-report Raw is the long-term source of truth and must not be aged out.
+find "$ROOT/data/raw" -path "$ROOT/data/raw/listed-companies" -prune -o -type f -mtime +45 -delete 2>/dev/null || true
+find "$ROOT/data/raw" -path "$ROOT/data/raw/listed-companies" -prune -o -type d -empty -delete 2>/dev/null || true
 
 echo "=== DATLUME refresh start $(date -Is) mode=$MODE ==="
 FREE_KB="$(df -Pk "$ROOT" | awk 'NR==2 {print $4}')"
@@ -136,6 +137,20 @@ if ! python3 collector/check_health.py --source jetro --source jetro_local --sou
   [[ -s "$backup" ]] && cp "$backup" "$DB"
   exit 21
 fi
+
+MONTH="$(date +%Y-%m)"
+LISTED_MASTER_MARKER="$STATE_DIR/last-listed-master-refresh"
+if [[ ! -f "$LISTED_MASTER_MARKER" ]] || ! grep -qx "$MONTH" "$LISTED_MASTER_MARKER"; then
+  echo "Refreshing JPX / EDINET listed-company master"
+  npm run collect:listed-master
+  printf '%s\n' "$MONTH" > "$LISTED_MASTER_MARKER"
+fi
+
+echo "Listed-company EDINET catch-up window: $CATCHUP_FROM -> $TODAY"
+npm run collect:listed-documents -- --start "$CATCHUP_FROM" --end "$TODAY"
+npm run collect:listed-bulk
+npm run normalize:listed-incremental
+npm run build:listed-data
 
 MONTH="$(date +%Y-%m)"
 MONTH_MARKER="$STATE_DIR/last-monthly-refresh"
