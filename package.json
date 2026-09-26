@@ -19,7 +19,18 @@
     "e2e:smoke": "node scripts/e2e-smoke.cjs",
     "e2e:deep": "node scripts/e2e-deep.cjs",
     "audit:data": "node scripts/run-python.cjs scripts/audit-data-integrity.py",
-    "audit:html": "node scripts/run-python.cjs scripts/audit-generated-html.py"
+    "audit:html": "node scripts/run-python.cjs scripts/audit-generated-html.py",
+    "collect:listed-master": "node scripts/run-python.cjs -m collector.listed_companies.collect_master",
+    "collect:listed-documents": "node scripts/run-python.cjs -m collector.listed_companies.collect_documents",
+    "collect:listed-download": "node scripts/run-python.cjs -m collector.listed_companies.download_edinet_data",
+    "collect:listed-bulk": "node scripts/run-python.cjs -m collector.listed_companies.bulk_download",
+    "normalize:listed": "node scripts/run-python.cjs -m collector.listed_companies.normalize_financials",
+    "build:listed-data": "node scripts/run-python.cjs -m collector.listed_companies.build_public_data",
+    "audit:listed-xbrl": "node scripts/run-python.cjs scripts/audit-listed-xbrl-samples.py",
+    "collect:listed-fallback": "node scripts/run-python.cjs -m collector.listed_companies.retry_xbrl_fallback",
+    "report:listed-coverage": "node scripts/run-python.cjs scripts/report-listed-coverage.py",
+    "normalize:listed-incremental": "node scripts/run-python.cjs -m collector.listed_companies.normalize_incremental",
+    "refresh:listed-daily": "npm run collect:listed-documents && npm run collect:listed-bulk && npm run normalize:listed-incremental && npm run build:listed-data"
   },
   "dependencies": {
     "astro": "^7.3.4",

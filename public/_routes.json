@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "include": ["/listed-companies/*"],
+  "exclude": ["/listed-companies/", "/listed-companies/compare/", "/listed-companies/industries/*"]
+}

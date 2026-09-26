@@ -20,7 +20,7 @@ function walk(dir, out=[]) {
   return out;
 }
 const builtRoutes=walk(dist).sort((a,b)=>a.localeCompare(b,'ja'));
-const staticRoutes=['/','/about-data/','/analytics/','/procurement/','/realestate/','/regional/','/employment-economy/','/business-industry/','/economy-prices/','/energy/'];
+const staticRoutes=['/','/about-data/','/analytics/','/procurement/','/realestate/','/regional/','/employment-economy/','/business-industry/','/listed-companies/','/listed-companies/7203/','/listed-companies/compare/','/economy-prices/','/energy/'];
 const families=[
   ['proc-company', /^\/procurement\/companies\/co_[^/]+\/$/],
   ['proc-market', /^\/procurement\/markets\/(?!index)[^/]+\/$/],
@@ -31,6 +31,7 @@ const families=[
   ['proc-year-tech', /^\/procurement\/years\/2026\/technologies\/[^/]+\/$/],
   ['business-pref', /^\/business-industry\/prefectures\/北海道\/$/],
   ['business-indicator', /^\/business-industry\/indicators\/[^/]+\/$/],
+  ['listed-industry', /^\/listed-companies\/industries\/輸送用機器\/$/],
   ['economy-pref', /^\/economy-prices\/prefectures\/北海道\/$/],
   ['economy-indicator', /^\/economy-prices\/indicators\/[^/]+\/$/],
   ['employment-pref', /^\/employment-economy\/prefectures\/北海道\/$/],
@@ -40,15 +41,19 @@ const families=[
   ['regional-pref', /^\/regional\/prefectures\/北海道\/$/],
   ['regional-indicator', /^\/regional\/indicators\/[^/]+\/$/],
 ];
-const routes=[...staticRoutes];
-for (const [name,re] of families) {
-  const hit=builtRoutes.find(r=>re.test(r));
-  if (!hit) throw new Error('No built route for family '+name);
-  routes.push(hit);
-}
-const uniqueRoutes=[...new Set(routes)];
 const onlyRoutes=(process.env.E2E_ONLY||'').split(',').map(x=>x.trim()).filter(Boolean);
-const activeRoutes=onlyRoutes.length?uniqueRoutes.filter(r=>onlyRoutes.includes(r)):uniqueRoutes;
+let activeRoutes;
+if (onlyRoutes.length) {
+  activeRoutes=[...new Set(onlyRoutes)];
+} else {
+  const routes=[...staticRoutes];
+  for (const [name,re] of families) {
+    const hit=builtRoutes.find(r=>re.test(r));
+    if (!hit) throw new Error('No built route for family '+name);
+    routes.push(hit);
+  }
+  activeRoutes=[...new Set(routes)];
+}
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
 const unique = xs => [...new Set(xs)];
 const safeRoute = r => (r==='/'?'home':r.replace(/^\//,'').replace(/\/$/,'').replace(/[^a-zA-Z0-9_-]+/g,'_')).slice(0,120);
@@ -191,6 +196,54 @@ async function checkProcurementOverview(page,label,failures) {
   } else failures.push(label+' large-category chart missing');
 }
 
+
+async function checkListedCompare(page,label,failures) {
+  await page.waitForFunction(()=>document.querySelector('#company-search'),{timeout:15000}).catch(()=>{});
+  for (const code of ['7203','9432']) {
+    await page.fill('#company-search',code).catch(()=>{});
+    await page.waitForTimeout(120);
+    const choice=page.locator('#matches button[data-code="'+code+'"]').first();
+    if(await choice.count()) await choice.click();
+    await page.click('#add-company').catch(()=>{});
+    await page.waitForTimeout(220);
+  }
+  await page.waitForFunction(()=>document.querySelectorAll('.compare-table thead th').length>=3,{timeout:15000}).catch(()=>{});
+  const heads=await page.locator('.compare-table thead th').allTextContents().catch(()=>[]);
+  if(!heads.some(x=>x.includes('トヨタ'))||!heads.some(x=>x.includes('ＮＴＴ')))failures.push(label+' comparison companies missing: '+heads.join(' / '));
+  await page.waitForFunction(()=>document.querySelector('#history-chart canvas'),{timeout:15000}).catch(()=>{});
+  if((await page.locator('#history-chart canvas').count())<1)failures.push(label+' comparison history chart missing');
+  const url=page.url();
+  if(!url.includes('codes=7203%2C9432')&&!url.includes('codes=7203,9432'))failures.push(label+' comparison URL state missing: '+url);
+}
+
+async function checkListedCompanyDetail(page,label,failures) {
+  const h1=(await page.locator('h1').textContent().catch(()=>''))?.trim();
+  if(!h1?.includes('トヨタ'))failures.push(label+' Toyota detail h1 mismatch: '+h1);
+  const values=await page.locator('.kpi-value').allTextContents().catch(()=>[]);
+  if(values.length<4||values.every(v=>!v.trim()||v.trim()==='—'))failures.push(label+' company KPI values missing');
+  await page.waitForFunction(()=>document.querySelector('#financial-timeline canvas'),{timeout:15000}).catch(()=>{});
+  if((await page.locator('#financial-timeline canvas').count())<1)failures.push(label+' financial timeline missing');
+  const source=(await page.locator('.source').last().textContent().catch(()=>''))||'';
+  if(!source.includes('EDINET'))failures.push(label+' EDINET source note missing');
+}
+
+async function checkListedCompanies(page,label,failures) {
+  await page.waitForFunction(()=>/社$/.test((document.querySelector('#result-count')?.textContent||'').trim()),{timeout:15000}).catch(()=>{});
+  const initial=(await page.locator('#result-count').textContent().catch(()=>''))?.trim();
+  if(!/^[\d,]+社$/.test(initial||''))failures.push(label+' listed-company count invalid: '+initial);
+  if((await page.locator('.company-card').count())<1)failures.push(label+' listed-company cards missing');
+  await page.fill('#company-q','7203').catch(()=>{});
+  await page.waitForTimeout(150);
+  const filtered=(await page.locator('#result-count').textContent().catch(()=>''))?.trim();
+  const firstHref=await page.locator('.company-card').first().getAttribute('href').catch(()=>null);
+  if(filtered!=='1社'||firstHref!=='/listed-companies/7203/')failures.push(label+' company search failed: '+filtered+' '+firstHref);
+  await page.fill('#company-q','').catch(()=>{});
+  await page.selectOption('#market-filter','プライム').catch(()=>{});
+  await page.waitForTimeout(120);
+  const prime=(await page.locator('#result-count').textContent().catch(()=>''))?.trim();
+  if(!/^[\d,]+社$/.test(prime||'')||prime==='0社')failures.push(label+' market filter failed: '+prime);
+}
+
 (async()=>{
   fs.rmSync(shotRoot,{recursive:true,force:true});
   fs.mkdirSync(shotRoot,{recursive:true});
@@ -220,6 +273,9 @@ async function checkProcurementOverview(page,label,failures) {
         if(route==='/regional/')await checkRegionalMunicipal(page,initialLabel,failures);
         if(route==='/economy-prices/')await checkEconomyPriceHistory(page,initialLabel,failures);
         if(route==='/energy/')await checkEnergyCo2History(page,initialLabel,failures);
+        if(route==='/listed-companies/')await checkListedCompanies(page,initialLabel,failures);
+        if(route==='/listed-companies/7203/')await checkListedCompanyDetail(page,initialLabel,failures);
+        if(route==='/listed-companies/compare/')await checkListedCompare(page,initialLabel,failures);
 
         const filterToggle=page.locator('#filter-toggle:visible, #filters-toggle:visible');
         if(await filterToggle.count() && await filterToggle.first().getAttribute('aria-expanded')!=='true') await filterToggle.first().click();

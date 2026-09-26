@@ -2,13 +2,20 @@
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlparse, unquote
-import re, sys
+import json, re, sys
 
 ROOT=Path(__file__).resolve().parents[1]
 DIST=ROOT/'dist'
 errors=[]
 checks=0
 target_cache={}
+master_path=ROOT/'public/data/listed-companies/master.json'
+listed_codes=set()
+if master_path.exists():
+    try:
+        listed_codes={str(x.get('securityCode')) for x in json.loads(master_path.read_text(encoding='utf-8')).get('records',[]) if x.get('securityCode')}
+    except Exception:
+        listed_codes=set()
 
 def check(cond,msg):
     global checks
@@ -70,6 +77,9 @@ def target_exists(route,ref):
     if u.scheme in ('http','https') or u.netloc:
         target_cache[key]=True;return True
     path=unquote(urlparse(urljoin('https://datlume.com'+route,ref)).path)
+    match=re.fullmatch(r'/listed-companies/([0-9A-Z]{4})/',path)
+    if match and match.group(1) in listed_codes:
+        target_cache[key]=True;return True
     rel=path.lstrip('/')
     cand=DIST/rel
     if path.endswith('/'): cand=cand/'index.html'

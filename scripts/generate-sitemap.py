@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import json
 from pathlib import Path
 from urllib.parse import quote
 from xml.sax.saxutils import escape
@@ -14,6 +15,14 @@ for p in sorted(DIST.rglob('index.html')):
     route='/'+'/'.join(quote(x,safe='') for x in parts)
     if route!='/' and not route.endswith('/'): route+='/'
     urls.append(BASE+route)
+master_path=ROOT/'public/data/listed-companies/master.json'
+if master_path.exists():
+    master=json.loads(master_path.read_text(encoding='utf-8'))
+    for company in master.get('records',[]):
+        code=company.get('securityCode')
+        if code:
+            urls.append(f"{BASE}/listed-companies/{quote(str(code),safe='')}/")
+urls=sorted(set(urls))
 xml=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
 for u in urls: xml.append(f'  <url><loc>{escape(u)}</loc></url>')
 xml.append('</urlset>')
