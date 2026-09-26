@@ -21,6 +21,11 @@ function walk(dir, out=[]) {
 }
 const builtRoutes=walk(dist).sort((a,b)=>a.localeCompare(b,'ja'));
 const staticRoutes=['/','/about-data/','/analytics/','/procurement/','/realestate/','/regional/','/employment-economy/','/business-industry/','/listed-companies/','/listed-companies/7203/','/listed-companies/compare/','/economy-prices/','/energy/'];
+const listedIndexFile=path.join(process.cwd(),'public','data','listed-companies','index.json');
+const listedIndex=fs.existsSync(listedIndexFile)?JSON.parse(fs.readFileSync(listedIndexFile,'utf8')).records||[]:[];
+const listedNoFinancial=listedIndex.find(x=>x?.securityCode&&!x?.hasFinancials);
+const listedNoFinancialRoute=listedNoFinancial?`/listed-companies/${listedNoFinancial.securityCode}/`:null;
+if(listedNoFinancialRoute)staticRoutes.push(listedNoFinancialRoute);
 const families=[
   ['proc-company', /^\/procurement\/companies\/co_[^/]+\/$/],
   ['proc-market', /^\/procurement\/markets\/(?!index)[^/]+\/$/],
@@ -237,6 +242,8 @@ async function checkListedCompanyDetail(page,label,failures) {
   if(!meta||meta.length<80)failures.push(label+' meta description too short: '+String(meta?.length||0));
   const canonical=await page.locator('link[rel="canonical"]').getAttribute('href').catch(()=>null);
   if(canonical!=='https://datlume.com/listed-companies/7203/')failures.push(label+' canonical mismatch: '+canonical);
+  const robots=await page.locator('meta[name="robots"]').getAttribute('content').catch(()=>null);
+  if(robots?.includes('noindex'))failures.push(label+' indexable company unexpectedly noindex: '+robots);
   const ldTexts=await page.locator('script[type="application/ld+json"]').allTextContents().catch(()=>[]);
   let ldTypes=[];
   for(const text of ldTexts){try{const x=JSON.parse(text); const graph=x?.['@graph']||[x]; ldTypes.push(...graph.map(v=>v?.['@type']).filter(Boolean));}catch{}}
@@ -251,6 +258,14 @@ async function checkListedCompanyDetail(page,label,failures) {
   if((await page.locator('#financial-timeline canvas').count())<1)failures.push(label+' financial timeline missing');
   const source=(await page.locator('.source').last().textContent().catch(()=>''))||'';
   if(!source.includes('EDINET'))failures.push(label+' EDINET source note missing');
+}
+
+async function checkListedNoFinancial(page,label,failures) {
+  const robots=await page.locator('meta[name="robots"]').getAttribute('content').catch(()=>null);
+  if(!robots?.includes('noindex'))failures.push(label+' no-financial company missing noindex: '+robots);
+  const notice=(await page.locator('.notice').textContent().catch(()=>''))||'';
+  if(!notice.includes('財務データ'))failures.push(label+' no-financial notice missing');
+  if(await page.locator('#financial-timeline canvas').count())failures.push(label+' no-financial timeline unexpectedly rendered');
 }
 
 async function checkListedCompanies(page,label,failures) {
@@ -304,6 +319,7 @@ async function checkListedCompanies(page,label,failures) {
         if(route==='/energy/')await checkEnergyCo2History(page,initialLabel,failures);
         if(route==='/listed-companies/')await checkListedCompanies(page,initialLabel,failures);
         if(route==='/listed-companies/7203/')await checkListedCompanyDetail(page,initialLabel,failures);
+        if(listedNoFinancialRoute&&route===listedNoFinancialRoute)await checkListedNoFinancial(page,initialLabel,failures);
         if(route==='/listed-companies/compare/')await checkListedCompare(page,initialLabel,failures);
 
         const filterToggle=page.locator('#filter-toggle:visible, #filters-toggle:visible');

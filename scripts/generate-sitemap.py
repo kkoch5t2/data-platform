@@ -14,12 +14,12 @@ for p in sorted(DIST.rglob('index.html')):
     route='/'+'/'.join(quote(x,safe='') for x in parts)
     if route!='/' and not route.endswith('/'): route+='/'
     urls.append(BASE+route)
-master_path=ROOT/'public/data/listed-companies/master.json'
-if master_path.exists():
-    master=json.loads(master_path.read_text(encoding='utf-8'))
-    for company in master.get('records',[]):
+listed_index_path=ROOT/'public/data/listed-companies/index.json'
+if listed_index_path.exists():
+    listed_index=json.loads(listed_index_path.read_text(encoding='utf-8'))
+    for company in listed_index.get('records',[]):
         code=company.get('securityCode')
-        if code:
+        if code and company.get('hasFinancials') is True:
             urls.append(f"{BASE}/listed-companies/{quote(str(code),safe='')}/")
 company_path=ROOT/'src'/'data'/'companies.json'
 if company_path.exists():
