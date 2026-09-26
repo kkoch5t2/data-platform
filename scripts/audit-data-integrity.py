@@ -378,7 +378,14 @@ for x in org_master:
 published_org_names={x.get('name') for x in org_master}
 ok(all(valid_agency_name(n) for n in published_org_names),'procurement organizations: invalid/placeholder organization name')
 ok(published_org_names==orgs,f'procurement organizations master mismatch: master={len(published_org_names)} referenced={len(orgs)}')
-ok(last is not None and date.fromisoformat(last)>=date.today()-timedelta(days=1),f'procurement not fresh: lastDate={last}')
+
+# Procurement notices are normally sparse on weekends. Require freshness against
+# the most recent weekday rather than a strict one-calendar-day window.
+today=date.today()
+expected=today-timedelta(days=1)
+while expected.weekday()>=5:
+    expected-=timedelta(days=1)
+ok(last is not None and date.fromisoformat(last)>=expected,f'procurement not fresh: lastDate={last} expected>={expected}')
 
 print(f'data audit: {checks} checks, {len(errors)} failures')
 for e in errors[:100]: print('FAIL',e)
