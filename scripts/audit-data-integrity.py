@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import glob, json, math, os, sys
+import glob, json, math, os, re, sys
 from collections import Counter, defaultdict
 from pathlib import Path
 from datetime import date, timedelta
@@ -109,6 +109,76 @@ if tot:
     ok(tot.get('establishments')==sum(r['establishments'] for r in rows),'business: establishment total mismatch')
     ok(tot.get('employees')==sum(r['employees'] for r in rows),'business: employee total mismatch')
 
+
+# Listed companies: JPX master, EDINET mapping and public index consistency.
+listed_dir=DATA/'listed-companies'
+listed=load(listed_dir/'master.json'); listed_rows=listed.get('records',[])
+ok(len(listed_rows)>=3500,f'listed-companies: unexpectedly few companies {len(listed_rows)}')
+listed_codes=[r.get('securityCode') for r in listed_rows]
+ok(len(listed_codes)==len(set(listed_codes)), 'listed-companies: duplicate security codes')
+ok(all(isinstance(c,str) and re.fullmatch(r'[0-9A-Z]{4}',c or '') for c in listed_codes),'listed-companies: invalid 4-character security code')
+ok(all(r.get('name') and r.get('market') and r.get('industry33') for r in listed_rows),'listed-companies: missing company core fields')
+for r in listed_rows:
+    if r.get('market')!='TOKYO PRO Market':
+        ok(bool(r.get('edinetCode')),f'listed-companies {r.get("securityCode")}: EDINET mapping missing')
+    if r.get('edinetCode'):
+        ok(bool(re.fullmatch(r'E\d{5}',r['edinetCode'])),f'listed-companies {r.get("securityCode")}: invalid EDINET code {r.get("edinetCode")}')
+        ok(r.get('edinetMappingMethod') in {'securityCode','exactName'},f'listed-companies {r.get("securityCode")}: mapping method missing')
+counts=listed.get('counts',{})
+ok(counts.get('companies')==len(listed_rows),'listed-companies: master count mismatch')
+ok(counts.get('withEdinetCode')==sum(1 for r in listed_rows if r.get('edinetCode')),'listed-companies: EDINET count mismatch')
+index=load(listed_dir/'index.json'); idx=index.get('records',[])
+ok(len(idx)==len(listed_rows),'listed-companies: public index count mismatch')
+ok({x.get('securityCode') for x in idx}==set(listed_codes),'listed-companies: public index code set mismatch')
+listed_summary=load(listed_dir/'summary.json')
+ok(listed_summary.get('companies')==len(listed_rows),'listed-companies: summary company count mismatch')
+rankings=load(listed_dir/'rankings.json').get('rankings',{})
+for metric,rr in rankings.items():
+    ok(len(rr)<=100,f'listed-companies ranking {metric}: more than 100 rows')
+    ok(all(x.get('securityCode') in set(listed_codes) for x in rr),f'listed-companies ranking {metric}: unknown company')
+    vals=[x.get('value') for x in rr]
+    ok(all(v is not None and math.isfinite(float(v)) for v in vals),f'listed-companies ranking {metric}: non-finite value')
+    ok(vals==sorted(vals,reverse=True),f'listed-companies ranking {metric}: not sorted descending')
+detail_files=sorted((listed_dir/'details').glob('*.json')) if (listed_dir/'details').exists() else []
+if detail_files:
+    ok(len(detail_files)==64,f'listed-companies: detail shard count {len(detail_files)} != 64')
+    detail_by_code={}
+    for detail_path in detail_files:
+        payload=load(detail_path)
+        ok(payload.get('v')==1,f'listed-companies: invalid detail shard version {detail_path.name}')
+        items=payload.get('c') or {}
+        for code,item in items.items():
+            ok(code not in detail_by_code,f'listed-companies: duplicate detail code {code}')
+            detail_by_code[code]=item
+    ok(set(detail_by_code)==set(listed_codes),'listed-companies: detail shard code set mismatch')
+    financial_companies=0; financial_records=0
+    for code,cp in detail_by_code.items():
+        company=cp.get('company',{}); series=cp.get('financials',[])
+        ok(company.get('securityCode')==code,f'listed-companies {code}: shard/code mismatch')
+        ends=[x.get('periodEnd') for x in series]
+        ok(ends==sorted(ends),f'listed-companies {code}: financial periods not sorted')
+        ok(len(ends)==len(set(ends)),f'listed-companies {code}: duplicate financial period')
+        if series: financial_companies+=1
+        financial_records+=len(series)
+        for rec in series:
+            m=rec.get('metrics',{}); label=f'listed-companies {code} {rec.get("periodEnd")}'
+            ok(rec.get('sourceFormat') in {'edinet-csv','xbrl'},f'{label}: invalid source format {rec.get("sourceFormat")}')
+            for key,value in m.items():
+                if isinstance(value,(int,float)):
+                    ok(math.isfinite(float(value)),f'{label}: non-finite {key}')
+            assets=m.get('assets'); liabilities=m.get('liabilities'); equity=m.get('equity')
+            if assets not in (None,0) and liabilities is not None and equity is not None:
+                ok(abs(assets-liabilities-equity)/abs(assets)<=.02,f'{label}: balance sheet equation mismatch')
+            if m.get('revenue') is not None: ok(m['revenue']>=0,f'{label}: negative revenue')
+            if m.get('employees') is not None: ok(m['employees']>0,f'{label}: nonpositive employees')
+            if m.get('averageAge') is not None: ok(15<=m['averageAge']<=100,f'{label}: implausible average age')
+            if m.get('averageTenure') is not None: ok(0<=m['averageTenure']<=80,f'{label}: implausible tenure')
+            if m.get('averageSalary') is not None: ok(100000<=m['averageSalary']<=100000000,f'{label}: implausible average salary')
+            if rec.get('sectorModel')=='financial':
+                ok(m.get('operatingMargin') is None and m.get('netMargin') is None and m.get('debtRatio') is None,f'{label}: generic financial-sector ratios must be disabled')
+    ok(listed_summary.get('financialCompanies')==financial_companies,'listed-companies: financial company summary mismatch')
+    ok(listed_summary.get('financialRecords')==financial_records,'listed-companies: financial record summary mismatch')
+
 # Regional trends.
 d=load(DATA/'regional-trends-2026.json'); rows=d['records']
 years=d.get('years',[])
@@ -192,7 +262,6 @@ for snap in price_hist.get('snapshots',[]):
                 ok(50<=float(r[k])<=160,f'economy-prices-history {snap.get("year")} {r["prefecture"]} {k}: implausible {r[k]}')
 
 # Procurement agency-quality gate.
-import re
 INVALID_AGENCY_EXACT = {'原子力安全庁','不明','未設定','未定','unknown','UNKNOWN'}
 INVALID_AGENCY_RE = re.compile(r'(?:^府省コード\s*\S+|架空|テスト機関|ダミー|仮称)')
 def valid_agency_name(name):

@@ -8,11 +8,11 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
 <head><link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width" />
-  <meta name="description" content="公共調達、不動産、地価、防災、人口、雇用、賃金、企業・産業、物価、エネルギーなど、日本のさまざまなデータを見やすく可視化するデータサイト。" />
+  <meta name="description" content="公共調達、不動産、地価、防災、人口、雇用、賃金、企業・産業、上場企業、物価、エネルギーなど、日本のさまざまなデータを見やすく可視化するデータサイト。" />
   <link rel="canonical" href="https://datlume.com/" />
   <meta property="og:url" content="https://datlume.com/" />
   <meta property="og:title" content="データから、日本を見る。" />
-  <meta property="og:description" content="公共調達、不動産、地価、防災、人口、雇用、賃金、企業・産業、物価、エネルギーなどを、グラフと地図で横断的に見る。" />
+  <meta property="og:description" content="公共調達、不動産、地価、防災、人口、雇用、賃金、企業・産業、上場企業、物価、エネルギーなどを、グラフと地図で横断的に見る。" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
   <title>データから、日本を見る。 | DATLUME</title>
@@ -30,7 +30,7 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
 <body>
 <header>
   <div class="wrap">
-    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="#datasets">データを見る</a><a href="/procurement/">国・自治体の案件</a><a href="/realestate/">不動産・暮らし</a><a href="/regional/">都道府県別推移</a><a href="/employment-economy/">雇用・賃金</a><a href="/business-industry/">企業・産業</a><a href="/economy-prices/">経済・物価</a><a href="/energy/">エネルギー</a><a href="/analytics/">サイト統計</a><a href="/about-data/">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></nav>
+    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="#datasets">データを見る</a><a href="/procurement/">国・自治体の案件</a><a href="/realestate/">不動産・暮らし</a><a href="/regional/">都道府県別推移</a><a href="/employment-economy/">雇用・賃金</a><a href="/business-industry/">企業・産業</a><a href="/listed-companies/">上場企業</a><a href="/economy-prices/">経済・物価</a><a href="/energy/">エネルギー</a><a href="/analytics/">サイト統計</a><a href="/about-data/">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></nav>
     <section class="hero">
       <div class="eyebrow">Data Explorer / Japan</div>
       <h1>データから、日本を見る。</h1>
@@ -43,7 +43,7 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
   <section class="intro-card" aria-label="収録状況">
     <div class="metric"><div class="metric-label">国・自治体の案件</div><div class="metric-value">{fmt(summary.records)}件</div><div class="metric-sub">収録レコード</div></div>
     <div class="metric"><div class="metric-label">収録開始</div><div class="metric-value">{startYear}年</div><div class="metric-sub">国・自治体の案件データ</div></div>
-    <div class="metric"><div class="metric-label">現在のデータ領域</div><div class="metric-value">7領域</div><div class="metric-sub">国・自治体の案件 / 不動産・暮らし / 都道府県別推移 / 雇用・賃金 / 企業・産業 / 経済・物価 / エネルギー</div></div>
+    <div class="metric"><div class="metric-label">現在のデータ領域</div><div class="metric-value">8領域</div><div class="metric-sub">国・自治体の案件 / 不動産・暮らし / 都道府県別推移 / 雇用・賃金 / 企業・産業 / 上場企業 / 経済・物価 / エネルギー</div></div>
   </section>
 
   <section id="datasets" class="section">
@@ -78,6 +78,12 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
         <h3>企業・産業</h3>
         <p>民営事業所、従業者、主要産業の構成比から、地域ごとの企業活動と産業構造を比較する。</p>
         <div class="card-meta"><span>47都道府県 / 2021年</span><span class="open">開く →</span></div>
+      </a>
+      <a class="data-card" href="/listed-companies/">
+        <span class="card-tag">LISTED COMPANIES / FINANCIALS</span>
+        <h3>上場企業</h3>
+        <p>日本の上場企業を、売上・利益・資産・キャッシュフロー・給与などの公開データから1社ずつ分かりやすく見る。</p>
+        <div class="card-meta"><span>JPX × EDINET</span><span class="open">開く →</span></div>
       </a>
       <a class="data-card" href="/economy-prices/">
         <span class="card-tag">ECONOMY / PRICES</span>

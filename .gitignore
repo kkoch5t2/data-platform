@@ -38,3 +38,12 @@ __pycache__/
 /public/data/dashboard.json
 /public/data/dashboard-meta.json
 /public/data/dashboard-*.json
+
+# Generated per-company listed-company payloads (rebuilt from Ubuntu source-of-truth data)
+/public/data/listed-companies/companies/
+
+# Listed-company detail shards are public build artifacts and are tracked.
+
+/.wrangler/
+/tmp/
+/node_modules
