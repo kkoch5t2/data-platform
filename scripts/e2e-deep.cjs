@@ -42,13 +42,19 @@ const families=[
 ];
 const routes=[...staticRoutes];
 for (const [name,re] of families) {
-  const hit=builtRoutes.find(r=>re.test(r));
+  let hit=builtRoutes.find(r=>re.test(r));
+  if (!hit && name==='proc-company') {
+    const companyFile=path.join(process.cwd(),'src','data','companies.json');
+    const companies=fs.existsSync(companyFile)?JSON.parse(fs.readFileSync(companyFile,'utf8')):[];
+    const company=[...companies].sort((a,b)=>Number(b.awardTotal||0)-Number(a.awardTotal||0))[0];
+    if (company?.id) hit=`/procurement/companies/${company.id}/`;
+  }
   if (!hit) throw new Error('No built route for family '+name);
   routes.push(hit);
 }
 const uniqueRoutes=[...new Set(routes)];
 const onlyRoutes=(process.env.E2E_ONLY||'').split(',').map(x=>x.trim()).filter(Boolean);
-const activeRoutes=onlyRoutes.length?uniqueRoutes.filter(r=>onlyRoutes.includes(r)):uniqueRoutes;
+const activeRoutes=onlyRoutes.length?onlyRoutes:uniqueRoutes;
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
 const unique = xs => [...new Set(xs)];
 const safeRoute = r => (r==='/'?'home':r.replace(/^\//,'').replace(/\/$/,'').replace(/[^a-zA-Z0-9_-]+/g,'_')).slice(0,120);

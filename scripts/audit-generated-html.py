@@ -2,13 +2,15 @@
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlparse, unquote
-import re, sys
+import json, re, sys
 
 ROOT=Path(__file__).resolve().parents[1]
 DIST=ROOT/'dist'
 errors=[]
 checks=0
 target_cache={}
+company_path=ROOT/'src'/'data'/'companies.json'
+company_ids={x.get('id') for x in json.loads(company_path.read_text(encoding='utf-8'))} if company_path.exists() else set()
 
 def check(cond,msg):
     global checks
@@ -70,6 +72,9 @@ def target_exists(route,ref):
     if u.scheme in ('http','https') or u.netloc:
         target_cache[key]=True;return True
     path=unquote(urlparse(urljoin('https://datlume.com'+route,ref)).path)
+    m=re.fullmatch(r'/procurement/companies/(co_[0-9a-f]{12})/?',path)
+    if m:
+        exists=m.group(1) in company_ids; target_cache[key]=exists; return exists
     rel=path.lstrip('/')
     cand=DIST/rel
     if path.endswith('/'): cand=cand/'index.html'
@@ -80,7 +85,7 @@ def target_exists(route,ref):
     return exists
 
 files=sorted(DIST.rglob('*.html'))
-check(len(files)>16000,f'generated html count too small: {len(files)}')
+check(1000<len(files)<5000,f'generated html count outside dynamic-company architecture range: {len(files)}')
 for file in files:
     route=route_for(file)
     try: raw=file.read_text(encoding='utf-8')

@@ -25,6 +25,16 @@ if [ "$SOURCE_SHARDS" -lt 1 ] || [ "$SOURCE_RECORDS" -lt 1000 ]; then
   echo "Refusing incomplete deploy: procurement shards=$SOURCE_SHARDS records=$SOURCE_RECORDS"
   exit 2
 fi
+if [ ! -f "functions/procurement/companies/[id].js" ] || [ ! -s "dist/_routes.json" ]; then
+  echo 'Refusing incomplete deploy: company Pages Function or routes config missing.'
+  exit 3
+fi
+COMPANY_DETAIL_SHARDS=$(find dist/data/company-details -maxdepth 1 -type f -name '*.json' 2>/dev/null | wc -l)
+if [ "$COMPANY_DETAIL_SHARDS" -ne 256 ]; then
+  echo "Refusing incomplete deploy: company detail shards=$COMPANY_DETAIL_SHARDS expected=256"
+  exit 3
+fi
+npx wrangler pages functions build functions --outfile /tmp/datlume-pages-functions.js --output-routes-path /tmp/datlume-pages-routes.json --minify >/dev/null
 FILE_COUNT=$(find dist -type f | wc -l)
 MAX_SIZE=$(find dist -type f -printf '%s\n' | awk 'BEGIN{m=0} {if ($1>m) m=$1} END{print m}')
 if [ "$FILE_COUNT" -gt 20000 ]; then echo "Too many files: $FILE_COUNT"; exit 1; fi
