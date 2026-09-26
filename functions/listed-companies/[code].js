@@ -129,7 +129,7 @@ ${renderSeoSummary(company,latest,financials)}
 ${renderFinancialSections(company,latest,financials)}
 <section class="section two"><a class="card link-card" href="/listed-companies/compare/?codes=${esc(company.securityCode)}"><b>この企業を比較に追加</b><span>2〜5社を同じ尺度で横並び比較します。</span><div class="open">企業比較へ →</div></a><a class="card link-card" href="${esc(industryUrl)}"><b>${esc(company.industry33||'同業種')}の企業を比較</b><span>同じ業種の企業を一覧・財務指標で比較します。</span><div class="open">同業比較へ →</div></a><a class="card link-card" href="/business-industry/"><b>地域の産業構造を見る</b><span>企業1社ではなく、都道府県ごとの産業集積を見る。</span><div class="open">企業・産業へ →</div></a></section>
 <section class="section card section-card source"><div class="section-head"><h2>出典とデータ品質</h2></div><p>企業マスタ：日本取引所グループ「東証上場銘柄一覧」＋金融庁「EDINETコードリスト」。財務：EDINET 有価証券報告書のXBRL/CSV。原則として連結財務を優先し、連結がない場合のみ個別財務を使用します。</p>${latest?`<p>最新参照書類：<code>${esc(latest.docID)}</code> · 提出 ${esc(latest.submitDateTime||'—')} · 会計基準 ${esc(latest.accountingStandard||'未判定')} · 形式 ${esc(latest.sourceFormat||'—')}</p>`:''}<p>金融業は一般企業と財務構造が異なるため、負債比率・営業利益率などを同じ意味で評価しません。欠損値や未取得値を推測で補完しません。</p></section>
-</main><footer><div class="wrap">DATLUME · 日本企業分析 · <a href="/listed-companies/">企業一覧に戻る</a></div></footer>
+</main><footer><div class="wrap">DATLUME · 日本企業分析 · <a href="/listed-companies/">企業一覧に戻る</a> · <a href="/privacy/">プライバシーポリシー</a></div></footer>
 <script type="application/json" id="financial-data">${scriptJson(chartPayload)}</script><script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script><script src="/listed-company.js"></script></body></html>`;
 }
 
