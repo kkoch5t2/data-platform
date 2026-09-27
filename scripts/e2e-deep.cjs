@@ -47,12 +47,14 @@ const families=[
   ['regional-indicator', /^\/regional\/indicators\/[^/]+\/$/],
 ];
 const onlyRoutes=(process.env.E2E_ONLY||'').split(',').map(x=>x.trim()).filter(Boolean);
+const localWithoutFunctions=/^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/?$/i.test(base)&&process.env.E2E_INCLUDE_FUNCTIONS!=='1';
 let activeRoutes;
 if (onlyRoutes.length) {
   activeRoutes=[...new Set(onlyRoutes)];
 } else {
-  const routes=[...staticRoutes];
+  const routes=[...staticRoutes].filter(r=>!(localWithoutFunctions&&/^\/listed-companies\/[0-9A-Z]{4}\/$/.test(r)));
   for (const [name,re] of families) {
+    if(localWithoutFunctions&&name==='proc-company')continue;
     let hit=builtRoutes.find(r=>re.test(r));
     if (!hit && name==='proc-company') {
       const companyFile=path.join(process.cwd(),'src','data','companies.json');
@@ -293,6 +295,7 @@ async function checkListedCompanies(page,label,failures) {
   fs.mkdirSync(shotRoot,{recursive:true});
   const browser=await chromium.launch({headless:true});
   const failures=[], warnings=[];
+  if(localWithoutFunctions&&!onlyRoutes.length)console.log('E2E local mode: Cloudflare Pages Function routes are covered separately on production');
   console.log('E2E routes',activeRoutes.length,activeRoutes.join(' '));
 
   for (const vp of viewports) {
