@@ -18,7 +18,7 @@
     "e2e": "node scripts/e2e-smoke.cjs && node scripts/e2e-deep.cjs",
     "e2e:smoke": "node scripts/e2e-smoke.cjs",
     "e2e:deep": "node scripts/e2e-deep.cjs",
-    "audit:data": "node scripts/run-python.cjs scripts/audit-data-integrity.py",
+    "audit:data": "node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py",
     "audit:html": "node scripts/run-python.cjs scripts/audit-generated-html.py",
     "collect:listed-master": "node scripts/run-python.cjs -m collector.listed_companies.collect_master",
     "collect:listed-documents": "node scripts/run-python.cjs -m collector.listed_companies.collect_documents",
@@ -31,7 +31,11 @@
     "report:listed-coverage": "node scripts/run-python.cjs scripts/report-listed-coverage.py",
     "normalize:listed-incremental": "node scripts/run-python.cjs -m collector.listed_companies.normalize_incremental",
     "validate:listed-salary": "node scripts/run-python.cjs -m collector.listed_companies.validate_salary_outliers",
-    "refresh:listed-daily": "npm run collect:listed-documents && npm run collect:listed-bulk && npm run normalize:listed-incremental && npm run validate:listed-salary && npm run build:listed-data"
+    "validate:listed-shareholders": "node scripts/run-python.cjs -m collector.listed_companies.validate_shareholder_outliers",
+    "refresh:listed-daily": "npm run collect:listed-documents && npm run collect:listed-bulk && npm run normalize:listed-incremental && npm run validate:listed-salary && npm run validate:listed-shareholders && npm run validate:listed-financials && npm run audit:listed-cross-filing && npm run build:listed-data",
+    "validate:listed-financials": "node scripts/run-python.cjs scripts/audit-listed-normalized.py",
+    "audit:listed-cross-filing": "node scripts/run-python.cjs scripts/audit-listed-cross-filing.py",
+    "audit:listed-source": "node scripts/run-python.cjs scripts/audit-listed-source-values.py"
   },
   "dependencies": {
     "astro": "^7.3.4",

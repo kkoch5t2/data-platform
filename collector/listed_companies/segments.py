@@ -5,7 +5,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from .normalize_financials import local_concept, parse_number
+from .normalize_financials import is_jpy_fact, local_concept, parse_number
 
 XLINK = "{http://www.w3.org/1999/xlink}"
 EXCLUDED_MEMBERS = {
@@ -99,15 +99,18 @@ def label_for_member(member: str, labels: dict[str, str]) -> str | None:
 
 
 def _select(rows: list[dict], context: str, concepts: tuple[str, ...], label_terms=()):
-    by_concept = {local_concept(row["concept"]): row for row in rows if row["context"] == context}
+    # Segment amounts are rendered and compared as yen in DATLUME. A filing may expose
+    # the same context in USD and JPY, so keep only JPY facts rather than relying on row order.
+    candidates = [row for row in rows if row["context"] == context and is_jpy_fact(row)]
+    by_concept = {local_concept(row["concept"]): row for row in candidates}
     for concept in concepts:
         row = by_concept.get(concept)
         if row:
             value = parse_number(row["value"])
             if value is not None:
                 return value, row
-    for row in rows:
-        if row["context"] != context or not any(term in row["label"] for term in label_terms):
+    for row in candidates:
+        if not any(term in row["label"] for term in label_terms):
             continue
         value = parse_number(row["value"])
         if value is not None:

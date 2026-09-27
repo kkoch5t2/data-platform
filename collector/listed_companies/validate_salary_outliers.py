@@ -9,6 +9,7 @@ from .common import RAW, edinet_api_key, write_json
 from .download_edinet_data import download_document
 from .normalize_financials import choose_documents, load_master, normalize_document
 from .salary import recover_average_salary
+from .source_corrections import CORRECTIONS
 
 LOW = 1_000_000
 HIGH = 20_000_000
@@ -47,6 +48,12 @@ def compute_stats(records: list[dict], missing: int = 0) -> dict:
         "missingArchives": missing,
         "csvRecords": sum(1 for r in records if r.get("sourceFormat") == "edinet-csv"),
         "xbrlFallbackRecords": sum(1 for r in records if r.get("sourceFormat") == "xbrl"),
+        "validatedSourceCorrections": sum(
+            1 for r in records for w in r.get("warnings", []) if w.get("type") == "validatedSourceCorrection"
+        ),
+        "presentationUnitRecoveries": sum(
+            1 for r in records for w in r.get("warnings", []) if w.get("type") == "presentationUnitRecovery"
+        ),
         "balanceSheetWarnings": sum(
             1 for r in records
             if any(w.get("type") == "balanceSheetEquation" for w in r.get("warnings", []))
@@ -59,6 +66,7 @@ def main() -> None:
     payload = json.loads(path.read_text(encoding="utf-8"))
     records = payload.get("records", [])
     candidates = candidate_doc_ids(records)
+    candidates.update(doc_id for (doc_id, metric) in CORRECTIONS if metric == "averageSalary")
     docs = {d.get("docID"): d for d in choose_documents() if d.get("docID")}
     _, by_code = load_master()
     positions = {r.get("docID"): i for i, r in enumerate(records) if r.get("docID")}
@@ -87,8 +95,20 @@ def main() -> None:
                 unresolved.append(f"{doc_id}: XBRL download failed: {type(exc).__name__}")
                 continue
         recovered, recovery_source = recover_average_salary(xbrl_path)
+        correction = CORRECTIONS.get((doc_id, "averageSalary"))
         if recovered is None:
             unresolved.append(f"{doc_id}: presentation salary could not be recovered")
+            continue
+        # High executive-heavy averages can be genuine; a sub-1M annual salary is
+        # only accepted when explicitly reviewed in the correction/omission registry.
+        if recovered < LOW and correction is None:
+            unresolved.append(f"{doc_id}: presentation salary remains implausibly low: {recovered}")
+            continue
+        if correction is not None and recovered != correction["expected"]:
+            unresolved.append(
+                f"{doc_id}: verified salary correction source changed: "
+                f"expected presentation={correction['expected']} actual={recovered}"
+            )
             continue
         company = by_code.get(str(record.get("securityCode") or ""))
         if not company:
@@ -100,7 +120,8 @@ def main() -> None:
             continue
         current = (record.get("metrics") or {}).get("averageSalary")
         new_value = (replacement.get("metrics") or {}).get("averageSalary")
-        if new_value != recovered:
+        expected_value = correction["value"] if correction is not None else recovered
+        if new_value != expected_value:
             unresolved.append(f"{doc_id}: recovered/re-normalized salary mismatch")
             continue
         if current != new_value:
@@ -108,6 +129,33 @@ def main() -> None:
         else:
             verified += 1
         records[pos] = replacement
+
+    # Presentation agreement alone is not enough: source filings can themselves
+    # contain a dropped digit. Any remaining 10x salary jump must be reviewed.
+    by_salary_code: dict[str, list[dict]] = defaultdict(list)
+    for record in records:
+        salary = (record.get("metrics") or {}).get("averageSalary")
+        if isinstance(salary, (int, float)) and salary > 0:
+            by_salary_code[str(record.get("securityCode") or "")].append(record)
+    for company_records in by_salary_code.values():
+        company_records.sort(key=lambda r: r.get("periodEnd") or "")
+        salaries = [(r.get("metrics") or {}).get("averageSalary") for r in company_records]
+        median = statistics.median(salaries) if salaries else None
+        for index, record in enumerate(company_records):
+            salary = salaries[index]
+            comparison_factors = []
+            if median:
+                comparison_factors.append(max(salary, median) / min(salary, median))
+            if index > 0:
+                other = salaries[index - 1]
+                comparison_factors.append(max(salary, other) / min(salary, other))
+            if index + 1 < len(salaries):
+                other = salaries[index + 1]
+                comparison_factors.append(max(salary, other) / min(salary, other))
+            if comparison_factors and max(comparison_factors) >= 10:
+                unresolved.append(
+                    f"{record.get('docID')}: unreviewed >=10x salary jump remains: {salary}"
+                )
 
     if unresolved:
         for message in unresolved:

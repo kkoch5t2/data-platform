@@ -14,6 +14,12 @@ def stats(records: list[dict], missing: int = 0) -> dict:
         "missingArchives": missing,
         "csvRecords": sum(1 for r in records if r.get("sourceFormat") == "edinet-csv"),
         "xbrlFallbackRecords": sum(1 for r in records if r.get("sourceFormat") == "xbrl"),
+        "validatedSourceCorrections": sum(
+            1 for r in records for w in r.get("warnings", []) if w.get("type") == "validatedSourceCorrection"
+        ),
+        "presentationUnitRecoveries": sum(
+            1 for r in records for w in r.get("warnings", []) if w.get("type") == "presentationUnitRecovery"
+        ),
         "balanceSheetWarnings": sum(
             1 for r in records
             if any(w.get("type") == "balanceSheetEquation" for w in r.get("warnings", []))

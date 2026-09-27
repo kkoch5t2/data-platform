@@ -64,9 +64,12 @@ def build_municipal_stats():
     return stats
 
 def attach_centroids(stats):
-    path=OUT/'land-prices-2026.json'
-    if not path.exists(): return stats
-    land=json.loads(path.read_text(encoding='utf-8'))['records']
+    land=[]
+    for name in ('land-prices-2026.json','land-survey-2026.json'):
+        path=OUT/name
+        if path.exists():
+            land.extend(json.loads(path.read_text(encoding='utf-8'))['records'])
+    if not land: return stats
     by_pref=defaultdict(list)
     for s in stats: by_pref[s['prefecture']].append(s['municipality'])
     for p in by_pref: by_pref[p].sort(key=len,reverse=True)
@@ -74,7 +77,10 @@ def attach_centroids(stats):
     for r in land:
         lon,lat,address,pref=r[1],r[2],r[6],r[7]
         rest=address.replace(pref,'',1).strip()
-        muni=next((m for m in by_pref.get(pref,[]) if rest.startswith(m)),None)
+        starts=[rest]
+        if '郡' in rest:
+            starts.append(rest.split('郡',1)[1])
+        muni=next((m for m in by_pref.get(pref,[]) if any(x.startswith(m) for x in starts)),None)
         if muni: pts[(pref,muni)].append((lon,lat))
     for s in stats:
         p=pts.get((s['prefecture'],s['municipality']))

@@ -107,6 +107,7 @@ def read_xbrl_fact_rows(path: Path) -> list[dict[str, str]]:
                     "relativeYear": meta.get("relativeYear", ""),
                     "consolidation": meta.get("consolidation", ""),
                     "periodType": meta.get("periodType", ""),
+                    "unitId": element.attrib.get("unitRef", ""),
                     "unit": element.attrib.get("unitRef", ""),
                     "value": re.sub(r"[\r\n\t]+", " ", (element.text or "")).strip(),
                     "sourceFile": name,
