@@ -18,6 +18,8 @@ from collector.listed_companies.normalize_financials import (
 
 NORMALIZED = RAW / "normalized" / "financials.json"
 FACTOR_LIMIT = 10.0
+COUNT_FACTOR_LIMIT = 5.0
+COUNT_METRICS = {"employees", "sharesOutstanding"}
 AUDIT_METRICS = set(METRICS) - {"averageSalary"}
 
 # Both filings were checked at presentation level. These are later comparative
@@ -102,10 +104,10 @@ def main() -> int:
     for series in by_company.values():
         series.sort(key=lambda r: r.get("periodEnd") or "")
 
-    # The outlier gate is deliberately 10x, but 10x alone is not an error:
+    # The general outlier gate is 10x; employee/share counts use 5x. A threshold hit alone is not an error:
     # real corporate events often move profits/cash flows by more than 10x.
     # Historical scale-error candidates are the stronger "round-trip" pattern:
-    # the middle year differs >=10x from both neighbours while the neighbours
+    # the middle year differs beyond its metric threshold from both neighbours while the neighbours
     # remain within 5x. Those candidates are checked against the following
     # filing's Prior1Year fact with the same concept/context/unit.
     candidate_pairs: list[tuple[str, dict, dict, list[str]]] = []
@@ -127,9 +129,10 @@ def main() -> int:
                 next_value = (following.get("metrics") or {}).get(metric)
                 if not all(isinstance(x, (int, float)) and x != 0 for x in (before_value, value, next_value)):
                     continue
+                limit = COUNT_FACTOR_LIMIT if metric in COUNT_METRICS else FACTOR_LIMIT
                 if (
-                    factor(before_value, value) >= FACTOR_LIMIT
-                    and factor(value, next_value) >= FACTOR_LIMIT
+                    factor(before_value, value) >= limit
+                    and factor(value, next_value) >= limit
                     and factor(before_value, next_value) <= 5.0
                 ):
                     metrics.append(metric)
@@ -175,7 +178,8 @@ def main() -> int:
             if not isinstance(comparison, (int, float)) or comparison == 0:
                 continue
             checks += 1
-            if factor(value, comparison) < FACTOR_LIMIT:
+            limit = COUNT_FACTOR_LIMIT if metric in COUNT_METRICS else FACTOR_LIMIT
+            if factor(value, comparison) < limit:
                 continue
             key = (code, current.get("periodEnd"), metric, doc_id)
             allowed = KNOWN_DIFFERENCES.get(key)
@@ -195,7 +199,7 @@ def main() -> int:
 
     print(
         f"listed cross-filing audit: {len(by_company)} companies, "
-        f"{transition_count} 10x round-trip candidates, {len(candidate_pairs)} filing pairs, "
+        f"{transition_count} round-trip candidates (10x general / 5x counts), {len(candidate_pairs)} filing pairs, "
         f"{checks} prior-year comparisons, {known} known differences, {len(failures)} failures"
     )
     for failure in failures[:100]:

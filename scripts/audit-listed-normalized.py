@@ -27,6 +27,8 @@ STABLE_METRICS = (
     "employees", "averageSalary", "sharesOutstanding",
 )
 ROUND_TRIP_FACTOR_LIMIT = 10.0
+COUNT_FACTOR_LIMIT = 5.0
+COUNT_METRICS = {"employees", "sharesOutstanding"}
 
 # Reviewed against exact EDINET concept/context/unit and surrounding statements.
 # Values are pinned so a future source correction or a changed extraction fails loudly.
@@ -294,9 +296,9 @@ def main() -> int:
                         f"neighbours={neighbour_factor:.1f}x threshold={ROUND_TRIP_FACTOR_LIMIT:.1f}x"
                     )
 
-    # Latest-year values have no following filing yet. Treat any >=10x change in
-    # stable metrics as review-required. Current reviewed source-exact pairs are
-    # pinned; any new pair fails the release audit until manually verified.
+    # Latest count metrics are more sensitive to unit/context defects. Any >=5x
+    # change must be backed by the filing presentation itself; the daily validator
+    # downloads the XBRL archive for these candidates before this audit runs.
     from datetime import date
     for code, series in by_company.items():
         series.sort(key=lambda r: r.get("periodEnd") or "")
@@ -309,7 +311,47 @@ def main() -> int:
             gap_days = 99999
         if gap_days > 550:
             continue
+        for metric in COUNT_METRICS:
+            before = previous.get("metrics", {}).get(metric)
+            value = current.get("metrics", {}).get(metric)
+            if factor(before, value) < COUNT_FACTOR_LIMIT:
+                continue
+            checks += 1
+            source = current.get("metricSources", {}).get(metric)
+            xbrl = RAW / "xbrl" / f"{current.get('docID')}.zip"
+            if not source or not xbrl.exists():
+                failures.append(
+                    f"{code} {current.get('periodEnd')} {metric}: >=5x latest change lacks source/XBRL verification"
+                )
+                continue
+            recovered, _ = recover_count_metric(xbrl, metric, source)
+            if recovered is None:
+                failures.append(
+                    f"{code} {current.get('periodEnd')} {metric}: >=5x latest presentation value unavailable"
+                )
+                continue
+            if recovered != value and (current.get("docID"), metric) not in CORRECTIONS:
+                failures.append(
+                    f"{code} {current.get('periodEnd')} {metric}: >=5x latest presentation={recovered} normalized={value}"
+                )
+
+    # Latest-year non-count values have no following filing yet. Treat any >=10x
+    # change as review-required. Current reviewed source-exact pairs are pinned;
+    # any new pair fails the release audit until manually verified.
+    for code, series in by_company.items():
+        series.sort(key=lambda r: r.get("periodEnd") or "")
+        if len(series) < 2:
+            continue
+        previous, current = series[-2], series[-1]
+        try:
+            gap_days = (date.fromisoformat(current["periodEnd"]) - date.fromisoformat(previous["periodEnd"])).days
+        except (TypeError, ValueError):
+            gap_days = 99999
+        if gap_days > 550:
+            continue
         for metric in STABLE_METRICS:
+            if metric in COUNT_METRICS:
+                continue
             if current.get("sectorModel") == "financial" and metric == "revenue":
                 continue
             a = previous.get("metrics", {}).get(metric)
@@ -329,7 +371,7 @@ def main() -> int:
     print(
         f"listed normalized audit: {checks} checks, {len(failures)} failures, "
         f"{len(KNOWN_ROUND_TRIPS)} reviewed 10x round-trips, "
-        f"{len(KNOWN_LATEST_10X)} reviewed latest 10x changes"
+        f"{sum(1 for key in KNOWN_LATEST_10X if key[2] not in COUNT_METRICS)} reviewed latest non-count 10x changes"
     )
     for warning in outlier_warnings[:100]:
         print("WARN", warning)

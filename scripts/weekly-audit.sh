@@ -59,6 +59,7 @@ if [[ -n "$bad" ]]; then
 fi
 
 run_step "listed-salary-validation" npm run validate:listed-salary
+run_step "listed-count-5x-validation" npm run validate:listed-counts
 run_step "listed-shareholder-validation" npm run validate:listed-shareholders
 run_step "listed-financial-validation" npm run validate:listed-financials
 run_step "listed-public-data-build" npm run build:listed-data

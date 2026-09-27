@@ -31,6 +31,7 @@
     "report:listed-coverage": "node scripts/run-python.cjs scripts/report-listed-coverage.py",
     "normalize:listed-incremental": "node scripts/run-python.cjs -m collector.listed_companies.normalize_incremental",
     "validate:listed-salary": "node scripts/run-python.cjs -m collector.listed_companies.validate_salary_outliers",
+    "validate:listed-counts": "node scripts/run-python.cjs -m collector.listed_companies.validate_count_outliers",
     "validate:listed-shareholders": "node scripts/run-python.cjs -m collector.listed_companies.validate_shareholder_outliers",
     "refresh:listed-daily": "npm run collect:listed-documents && npm run collect:listed-bulk && npm run normalize:listed-incremental && npm run validate:listed-salary && npm run validate:listed-shareholders && npm run validate:listed-financials && npm run audit:listed-cross-filing && npm run build:listed-data",
     "validate:listed-financials": "node scripts/run-python.cjs scripts/audit-listed-normalized.py",
