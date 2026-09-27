@@ -4,7 +4,13 @@ import json
 from datetime import datetime, timezone
 
 from .common import RAW, write_json
-from .normalize_financials import choose_documents, load_master, normalize_document
+from .normalize_financials import (
+    NORMALIZER_REVISION,
+    choose_documents,
+    load_master,
+    normalize_document,
+    source_archive_signature,
+)
 
 
 def stats(records: list[dict], missing: int = 0) -> dict:
@@ -39,13 +45,22 @@ def main() -> None:
     }
     changed = 0
     missing = 0
-    for doc in choose_documents():
+    documents = choose_documents()
+    total = len(documents)
+    for index, doc in enumerate(documents, 1):
+        if index % 500 == 0:
+            print(f"incremental progress={index}/{total} changed={changed} missing={missing}", flush=True)
         company = by_edinet.get(doc.get("edinetCode"))
         if not company:
             continue
         key = (company["securityCode"], doc.get("periodEnd"))
         old = records.get(key)
-        if old and old.get("docID") == doc.get("docID"):
+        if (
+            old
+            and old.get("docID") == doc.get("docID")
+            and old.get("normalizerRevision") == NORMALIZER_REVISION
+            and old.get("sourceArchive") == source_archive_signature(doc["docID"])
+        ):
             continue
         record = normalize_document(doc, company)
         if record is None:
@@ -58,6 +73,7 @@ def main() -> None:
     payload = {
         "dataset": "listed-companies-normalized-financials",
         "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "normalizerRevision": NORMALIZER_REVISION,
         "records": ordered,
         "stats": stats(ordered, missing),
     }

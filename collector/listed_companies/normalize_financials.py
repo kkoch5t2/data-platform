@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import io
 import json
 import math
@@ -12,6 +13,35 @@ from pathlib import Path
 
 from .common import PUBLIC, RAW, write_json
 from .presentation import recover_count_metric
+
+NORMALIZER_INPUT_FILES = (
+    "normalize_financials.py",
+    "presentation.py",
+    "salary.py",
+    "segments.py",
+    "ownership.py",
+    "source_corrections.py",
+    "xbrl_facts.py",
+)
+
+def _normalizer_revision() -> str:
+    base = Path(__file__).resolve().parent
+    digest = hashlib.sha256()
+    for name in NORMALIZER_INPUT_FILES:
+        digest.update(name.encode("utf-8"))
+        digest.update((base / name).read_bytes())
+    return digest.hexdigest()[:16]
+
+NORMALIZER_REVISION = _normalizer_revision()
+
+def source_archive_signature(doc_id: str) -> dict | None:
+    signature = {}
+    for kind in ("csv", "xbrl"):
+        archive = RAW / kind / f"{doc_id}.zip"
+        if archive.exists():
+            stat = archive.stat()
+            signature[kind] = {"size": stat.st_size, "mtimeNs": stat.st_mtime_ns}
+    return signature or None
 
 METRICS = {
     "revenue": {
@@ -534,6 +564,8 @@ def normalize_document(doc: dict, company: dict) -> dict | None:
         "docID": doc.get("docID"),
         "docTypeCode": doc.get("docTypeCode"),
         "sourceFormat": source_format,
+        "normalizerRevision": NORMALIZER_REVISION,
+        "sourceArchive": source_archive_signature(doc["docID"]),
         "accountingStandard": standard,
         "consolidatedPreferred": prefer_consolidated,
         "metrics": metrics,
@@ -567,6 +599,7 @@ def main() -> None:
     payload = {
         "dataset": "listed-companies-normalized-financials",
         "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "normalizerRevision": NORMALIZER_REVISION,
         "records": records,
         "stats": {
             "records": len(records),
