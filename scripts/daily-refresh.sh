@@ -11,6 +11,8 @@ LOCK="$STATE_DIR/daily-refresh.lock"
 LAST_SUCCESS="$STATE_DIR/last-success-date"
 MODE="${1:-manual}"
 RELEASE_LOCK="$STATE_DIR/release.lock"
+SCHEDULED_HOST_MARKER="$HOME/.config/datlume/allow-scheduled-refresh"
+EXPECTED_SCHEDULED_HOST="kota-Intel"
 
 assert_release_tree_safe() {
   local bad
@@ -61,6 +63,11 @@ run_step() {
 }
 
 if [[ "$MODE" == "--scheduled" ]]; then
+  if [[ "$(uname -s)" != "Linux" || "$(hostname)" != "$EXPECTED_SCHEDULED_HOST" || ! -f "$SCHEDULED_HOST_MARKER" ]] \
+     || ! grep -qx "$EXPECTED_SCHEDULED_HOST" "$SCHEDULED_HOST_MARKER"; then
+    echo "ERROR: scheduled DATLUME refresh is authorized only on the production Ubuntu host" >&2
+    exit 23
+  fi
   hour="$(date +%H)"
   if (( 10#$hour < 6 )); then exit 0; fi
 fi
@@ -189,6 +196,7 @@ run_step "listed-documents" npm run collect:listed-documents -- --start "$CATCHU
 run_step "listed-download" npm run collect:listed-bulk
 run_step "listed-normalize" npm run normalize:listed-incremental
 run_step "listed-salary-validation" npm run validate:listed-salary
+run_step "listed-count-5x-validation" npm run validate:listed-counts
 run_step "listed-shareholder-validation" npm run validate:listed-shareholders
 run_step "listed-financial-validation" npm run validate:listed-financials
 run_step "listed-cross-filing-10x-validation" npm run audit:listed-cross-filing
