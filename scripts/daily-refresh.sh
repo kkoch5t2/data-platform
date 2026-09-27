@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH"
@@ -30,6 +30,35 @@ assert_release_tree_safe() {
 
 mkdir -p "$STATE_DIR" "$BACKUP_DIR" "$LOG_DIR"
 cd "$ROOT"
+TODAY="$(date +%F)"
+LOG="$LOG_DIR/$TODAY.log"
+FAILURE_LOG="$LOG_DIR/failures.log"
+CURRENT_STEP="startup"
+
+record_stop() {
+  local rc="$1"
+  local reason="$2"
+  reason="${reason//$'\n'/ }"
+  reason="${reason//$'\t'/ }"
+  printf '%s\tstep=%s\trc=%s\treason=%s\tdaily_log=%s\n' \
+    "$(date -Is)" "$CURRENT_STEP" "$rc" "$reason" "$LOG" >> "$FAILURE_LOG"
+}
+
+on_error() {
+  local rc="$1" line="$2" command="$3"
+  trap - ERR
+  command="${command//$'\n'/ }"
+  echo "ERROR: DATLUME refresh stopped: step=$CURRENT_STEP rc=$rc line=$line command=$command"
+  record_stop "$rc" "line=$line command=$command"
+  exit "$rc"
+}
+
+run_step() {
+  CURRENT_STEP="$1"
+  shift
+  echo "--- step: $CURRENT_STEP ---"
+  "$@"
+}
 
 if [[ "$MODE" == "--scheduled" ]]; then
   hour="$(date +%H)"
@@ -40,15 +69,16 @@ exec 9>"$LOCK"
 if ! flock -n 9; then exit 0; fi
 
 if [[ "$MODE" == "--scheduled" ]] && ! assert_release_tree_safe; then
+  CURRENT_STEP="pre-refresh-release-tree-safety"
+  record_stop 22 "non-generated working-tree changes detected before refresh"
   exit 22
 fi
 
-TODAY="$(date +%F)"
 if [[ "$MODE" == "--scheduled" && -f "$LAST_SUCCESS" ]] && grep -qx "$TODAY" "$LAST_SUCCESS"; then
   exit 0
 fi
-LOG="$LOG_DIR/$(date +%F).log"
 exec > >(tee -a "$LOG") 2>&1
+trap 'on_error "$?" "$LINENO" "$BASH_COMMAND"' ERR
 find "$LOG_DIR" -type f -name '*.log' -mtime +30 -delete || true
 # EDINET annual-report Raw is the long-term source of truth and must not be aged out.
 find "$ROOT/data/raw" -path "$ROOT/data/raw/listed-companies" -prune -o -type f -mtime +45 -delete 2>/dev/null || true
@@ -57,7 +87,9 @@ find "$ROOT/data/raw" -path "$ROOT/data/raw/listed-companies" -prune -o -type d 
 echo "=== DATLUME refresh start $(date -Is) mode=$MODE ==="
 FREE_KB="$(df -Pk "$ROOT" | awk 'NR==2 {print $4}')"
 if (( FREE_KB < 10485760 )); then
+  CURRENT_STEP="disk-space-check"
   echo "ERROR: less than 10 GiB free; aborting"
+  record_stop 20 "less than 10 GiB free"
   exit 20
 fi
 
@@ -91,6 +123,8 @@ else
 fi
 echo "Procurement catch-up window: $CATCHUP_FROM -> $TODAY"
 
+CURRENT_STEP="procurement-collection"
+trap - ERR
 set +e
 python3 collector/collect_jetro.py --pages 20 --detail-limit 150 \
   --backfill-from "$CATCHUP_FROM" --backfill-to "$TODAY" --backfill-all-notices-monthly
@@ -126,15 +160,19 @@ if (( collect_rc == 0 )); then
   collect_rc=$?
 fi
 set -e
+trap 'on_error "$?" "$LINENO" "$BASH_COMMAND"' ERR
 if (( collect_rc != 0 )); then
   echo "ERROR: procurement collection failed rc=$collect_rc"
   [[ -s "$backup" ]] && cp "$backup" "$DB"
+  record_stop "$collect_rc" "procurement collector returned a non-zero status; database restored from backup when available"
   exit "$collect_rc"
 fi
 
+CURRENT_STEP="procurement-health-check"
 if ! python3 collector/check_health.py --source jetro --source jetro_local --source yokohama_procurement --source sapporo_procurement --source kobe_procurement --source fukuoka_procurement --source chiba_procurement --source kyoto_procurement; then
   echo "ERROR: procurement health check failed; restoring database"
   [[ -s "$backup" ]] && cp "$backup" "$DB"
+  record_stop 21 "procurement health check failed; database restored from backup when available"
   exit 21
 fi
 
@@ -147,11 +185,14 @@ if [[ ! -f "$LISTED_MASTER_MARKER" ]] || ! grep -qx "$MONTH" "$LISTED_MASTER_MAR
 fi
 
 echo "Listed-company EDINET catch-up window: $CATCHUP_FROM -> $TODAY"
-npm run collect:listed-documents -- --start "$CATCHUP_FROM" --end "$TODAY"
-npm run collect:listed-bulk
-npm run normalize:listed-incremental
-npm run validate:listed-salary
-npm run build:listed-data
+run_step "listed-documents" npm run collect:listed-documents -- --start "$CATCHUP_FROM" --end "$TODAY"
+run_step "listed-download" npm run collect:listed-bulk
+run_step "listed-normalize" npm run normalize:listed-incremental
+run_step "listed-salary-validation" npm run validate:listed-salary
+run_step "listed-shareholder-validation" npm run validate:listed-shareholders
+run_step "listed-financial-validation" npm run validate:listed-financials
+run_step "listed-cross-filing-10x-validation" npm run audit:listed-cross-filing
+run_step "listed-public-data-build" npm run build:listed-data
 
 MONTH="$(date +%Y-%m)"
 MONTH_MARKER="$STATE_DIR/last-monthly-refresh"
@@ -184,16 +225,20 @@ if python3 scripts/cloudflare_web_analytics.py --days 7 --save public/data/site-
 else
   echo "WARNING: analytics refresh failed; continuing with the last saved snapshot"
 fi
+echo "Running full published-data integrity audit before release"
+run_step "full-published-data-audit" npm run audit:data
+CURRENT_STEP="pre-deploy-release-tree-safety"
 if [[ "$MODE" == "--scheduled" ]] && ! assert_release_tree_safe; then
   echo "ERROR: refusing scheduled deploy because source-code changes appeared during collection"
+  record_stop 23 "non-generated source-code changes appeared during collection"
   exit 23
 fi
 exec 8>"$RELEASE_LOCK"
 echo "Waiting for DATLUME release lock: $RELEASE_LOCK"
 flock 8
 export DATLUME_RELEASE_LOCK_HELD=1
-npm run build
-bash ./deploy-datlume.sh
+run_step "astro-build" npm run build
+run_step "cloudflare-deploy" bash ./deploy-datlume.sh
 unset DATLUME_RELEASE_LOCK_HELD
 
 python3 - "$ROOT/src/data/summary.json" "$STATE_DIR/history.jsonl" "$before_records" "$after_records" <<'PY'

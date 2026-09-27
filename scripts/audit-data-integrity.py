@@ -30,10 +30,24 @@ def finite_tree(x,path='root'):
     elif isinstance(x,list):
         for i,v in enumerate(x): finite_tree(v,f'{path}[{i}]')
 
-# Every published JSON must parse and contain no NaN/Infinity.
-for p in DATA.glob('*.json'):
-    try: finite_tree(load(p),p.name)
-    except Exception as e: fail(f'{p.name}: JSON parse failed: {e}')
+# Every published JSON, including nested detail shards, must parse and contain no NaN/Infinity.
+for p in DATA.rglob('*.json'):
+    rel=p.relative_to(DATA)
+    try: finite_tree(load(p),str(rel))
+    except Exception as e: fail(f'{rel}: JSON parse failed: {e}')
+
+# Site analytics snapshot: internal arithmetic/shape only. This does not assert that RUM visits are unique humans.
+analytics=load(DATA/'site-analytics.json')
+ok(analytics.get('host')=='datlume.com','site-analytics: unexpected host')
+ok(isinstance(analytics.get('pageviews'),int) and analytics['pageviews']>=0,'site-analytics: invalid pageviews')
+ok(isinstance(analytics.get('visits'),int) and analytics['visits']>=0,'site-analytics: invalid visits')
+daily=analytics.get('daily') or []
+ok(sum(x.get('pageviews',0) for x in daily)==analytics.get('pageviews'),'site-analytics: daily pageviews do not sum to total')
+ok(sum(x.get('visits',0) for x in daily)==analytics.get('visits'),'site-analytics: daily visits do not sum to total')
+ok([x.get('date') for x in daily]==sorted({x.get('date') for x in daily}),'site-analytics: daily dates not sorted/unique')
+ok(all(x.get('pageviews',-1)>=0 and x.get('visits',-1)>=0 for x in daily),'site-analytics: negative daily counts')
+ok(all(x.get('pageviews',-1)>=0 and x.get('visits',-1)>=0 for x in analytics.get('topPages',[])),'site-analytics: invalid top-page counts')
+ok(all(x.get('pageviews',-1)>=0 and x.get('visits',-1)>=0 for x in analytics.get('topReferrers',[])),'site-analytics: invalid referrer counts')
 
 # Energy: official household-survey arithmetic and subset semantics.
 d=load(DATA/'energy.json'); rows=d['records']; unique47(rows,'energy')
@@ -56,6 +70,15 @@ for r in rows+[d['nationwide']]:
     if r.get('monthlyConsumptionYen') and r.get('monthlyUtilityWaterYen') is not None:
         calc=r['monthlyUtilityWaterYen']/r['monthlyConsumptionYen']*100
         ok(abs(calc-r['utilityBurdenRate'])<=.02,f'energy {name}: utility burden mismatch')
+
+# The 2025 annual household table does not publish Otsu, so Shiga is the one
+# known annual-source gap. Any new prefecture/field gap must stop publication.
+annual_energy_fields=['annualUtilityWaterYen','annualEnergyYen','annualElectricityYen','annualGasYen','annualCityGasYen','annualPropaneYen','annualOtherHeatYen','annualKeroseneYen','annualWaterYen','monthlyEnergyYen','energyBurdenRate']
+for r in rows:
+    missing={k for k in annual_energy_fields if r.get(k) is None}
+    expected=set(annual_energy_fields) if r['prefecture']=='滋賀県' else set()
+    ok(missing==expected,f'energy {r["prefecture"]}: unexpected annual-source gaps {sorted(missing)}')
+    ok(r.get('monthlyConsumptionYen') is not None and r.get('monthlyUtilityWaterYen') is not None,f'energy {r["prefecture"]}: monthly household values missing')
 
 # Economy / prices.
 d=load(DATA/'economy-prices.json'); rows=d['records']; unique47(rows,'economy-prices')
@@ -206,6 +229,33 @@ for fn,expected_min in [('land-prices-2026.json',25000),('land-survey-2026.json'
 ok(load(DATA/'land-prices-2026.json').get('year')==2026,'land prices: year mismatch')
 ok(load(DATA/'land-survey-2026.json').get('year')==2026,'land survey: year mismatch')
 
+# Crime / traffic / POI layers used by the real-estate map.
+crime=load(DATA/'crime-prefecture-2025.json'); unique47(crime.get('records',[]),'crime')
+ok(crime.get('year')==2025 and crime.get('populationYear')==2024,'crime: year metadata mismatch')
+for r in crime.get('records',[]):
+    ok(r.get('count',-1)>=0 and r.get('population',0)>0,f'crime {r.get("prefecture")}: invalid count/population')
+    ok(abs(r['count']/r['population']*1000-r.get('ratePer1000',-999))<=.011,f'crime {r.get("prefecture")}: rate mismatch')
+    ok(122<=r.get('lon',0)<=154 and 20<=r.get('lat',0)<=46,f'crime {r.get("prefecture")}: coordinate out of range')
+traffic=load(DATA/'traffic-accidents-2024.json')
+ok(traffic.get('year')==2024 and traffic.get('fields')==['lon','lat','accidents','deaths','injuries'],'traffic: metadata/schema mismatch')
+ok(len(traffic.get('records',[]))>=40000,f'traffic: unexpectedly few grid cells {len(traffic.get("records",[]))}')
+for r in traffic.get('records',[]):
+    ok(len(r)==5 and 122<=r[0]<=154 and 20<=r[1]<=46,f'traffic: invalid row {r[:2]}')
+    if len(r)==5:
+        ok(all(isinstance(x,(int,float)) and x>=0 for x in r[2:]),f'traffic: negative/non-numeric counts {r}')
+for fn,year,fields,minrows in [
+    ('poi-hospitals-2020.json',2020,['lon','lat','name','address','beds'],8000),
+    ('poi-schools-2023.json',2023,['lon','lat','name','type','address'],25000),
+    ('poi-stations-2025.json',2025,['lon','lat','name','line','operator'],9000),
+]:
+    layer=load(DATA/fn); rs=layer.get('records',[])
+    ok(layer.get('year')==year and layer.get('fields')==fields,f'{fn}: metadata/schema mismatch')
+    ok(len(rs)>=minrows,f'{fn}: unexpectedly few rows {len(rs)}')
+    for r in rs:
+        ok(len(r)==5 and 122<=r[0]<=154 and 20<=r[1]<=46,f'{fn}: invalid coordinate/shape {r[:2]}')
+        ok(bool(r[2]),f'{fn}: missing name')
+        if fn=='poi-hospitals-2020.json': ok(r[4] is None or r[4]>=0,f'{fn}: negative beds')
+
 # Municipality layer.
 d=load(DATA/'municipality-stats-2026.json'); rows=d['records']
 ok(len(rows)>=1700,'municipality: unexpectedly few rows')
@@ -222,6 +272,10 @@ for r in rows:
         ok(r.get('births',0)-r.get('deaths',0)==r.get('naturalChange'),f'municipality {c}: natural change mismatch')
         if r.get('population'):
             ok(abs((r.get('foreignPopulation',0)/r['population']*100)-r.get('foreignRate',-999))<=.011,f'municipality {c}: foreign rate mismatch')
+        lon=r.get('lon'); lat=r.get('lat')
+        ok(isinstance(lon,(int,float)) and isinstance(lat,(int,float)),f'municipality {c}: coordinates missing')
+        if isinstance(lon,(int,float)) and isinstance(lat,(int,float)):
+            ok(122<=lon<=154 and 20<=lat<=46,f'municipality {c}: coordinates out of Japan range {lon},{lat}')
 if codes: ok(len(codes)==len(set(codes)),'municipality: duplicate codes')
 
 # History datasets: sorted years and expected coverage.
@@ -247,9 +301,60 @@ for r in energy_hist.get('records',[]):
             ok(all(x is None or float(x)>=0 for x in v[1:]),f'energy-consumption-history {r.get("prefecture")} {v[0]}: negative value')
             ok(v[5] is None or float(v[5])<40,f'energy-consumption-history {r.get("prefecture")} {v[0]}: implausible CO2 per capita')
 
+# Validate every value column in the compact history datasets.
+wage_hist=load(DATA/'employment-wage-history.json')
+for r in wage_hist.get('records',[]):
+    vals=r.get('values',[])
+    ok(len(vals)==len(wage_hist.get('years',[])),f'employment-wage-history {r.get("prefecture")}: point count mismatch')
+    for v in vals:
+        ok(len(v)==9,f'employment-wage-history {r.get("prefecture")}: column count mismatch')
+        if len(v)!=9: continue
+        year,monthly,scheduled,bonus,annual,age,tenure,hours,overtime=v
+        ok(year in wage_hist['years'],f'employment-wage-history {r.get("prefecture")}: unknown year {year}')
+        ok(monthly>0 and scheduled>0 and bonus>=0,f'employment-wage-history {r.get("prefecture")} {year}: invalid wage values')
+        ok(abs(monthly*12+bonus-annual)<=.11,f'employment-wage-history {r.get("prefecture")} {year}: annual wage mismatch')
+        ok(15<=age<=100 and 0<=tenure<=80,f'employment-wage-history {r.get("prefecture")} {year}: age/tenure implausible')
+        ok(0<hours<=300 and 0<=overtime<=150,f'employment-wage-history {r.get("prefecture")} {year}: hours implausible')
+
+migration_hist=load(DATA/'regional-migration-history.json')
+for r in migration_hist.get('records',[]):
+    vals=r.get('values',[])
+    ok(len(vals)==len(migration_hist.get('years',[])),f'regional-migration-history {r.get("prefecture")}: point count mismatch')
+    for v in vals:
+        ok(len(v)==4,f'regional-migration-history {r.get("prefecture")}: column count mismatch')
+        if len(v)==4:
+            year,in_m,out_m,net=v
+            expected_gap=(r.get('prefecture')=='沖縄県' and year<=1972)
+            if expected_gap:
+                ok(in_m is None and out_m is None and net is None,f'regional-migration-history 沖縄県 {year}: pre-reversion gap changed')
+            else:
+                ok(year in migration_hist['years'] and in_m is not None and out_m is not None and in_m>=0 and out_m>=0,f'regional-migration-history {r.get("prefecture")} {year}: invalid counts')
+                if in_m is not None and out_m is not None:
+                    ok(in_m-out_m==net,f'regional-migration-history {r.get("prefecture")} {year}: net migration mismatch')
+
 for fn,minyears in [('land-price-history.json',7),('economy-prices-history.json',13),('business-industry-history.json',2)]:
     d=load(DATA/fn); ys=d.get('years',[])
     ok(len(ys)>=minyears and ys==sorted(set(ys)),f'{fn}: bad year coverage/order')
+
+land_hist=load(DATA/'land-price-history.json')
+for series_name,series in land_hist.get('series',{}).items():
+    ok([x.get('year') for x in series]==land_hist.get('years'),f'land-price-history {series_name}: year mismatch')
+    for snap in series:
+        prefs=snap.get('prefectures',[])
+        unique47(prefs,f'land-price-history {series_name} {snap.get("year")}')
+        ok(snap.get('count')==sum(x.get('count',0) for x in prefs),f'land-price-history {series_name} {snap.get("year")}: count mismatch')
+        ok(snap.get('medianPrice',0)>0 and snap.get('averagePrice',0)>0,f'land-price-history {series_name} {snap.get("year")}: invalid national price')
+        for x in prefs:
+            ok(x.get('count',0)>0 and x.get('medianPrice',0)>0 and x.get('averagePrice',0)>0,f'land-price-history {series_name} {snap.get("year")} {x.get("prefecture")}: invalid values')
+
+biz_hist=load(DATA/'business-industry-history.json')
+for snap in biz_hist.get('snapshots',[]):
+    rs=snap.get('records',[]); unique47(rs,f'business-industry-history {snap.get("year")}')
+    for r in rs:
+        ok(r.get('establishments',0)>0 and r.get('employees',0)>0,f'business-industry-history {snap.get("year")} {r.get("prefecture")}: invalid totals')
+        for key,x in (r.get('industries') or {}).items():
+            ok(x.get('establishments',0)>=0 and x.get('employees',0)>=0,f'business-industry-history {snap.get("year")} {r.get("prefecture")} {key}: negative values')
+            ok(x.get('establishments',0)<=r['establishments'] and x.get('employees',0)<=r['employees'],f'business-industry-history {snap.get("year")} {r.get("prefecture")} {key}: industry exceeds total')
 
 price_hist=load(DATA/'economy-prices-history.json')
 ok(price_hist.get('years')==list(range(2013,2026)),'economy-prices-history: expected continuous 2013-2025 coverage')
@@ -298,6 +403,20 @@ for p in shards:
             first=nd if first is None or nd<first else first; last=nd if last is None or nd>last else last
         ok(bool(r.get('title')) and bool(r.get('agency')) and bool(r.get('sourceUrl')),f'procurement {rid}: missing core fields')
         ok(valid_agency_name(r.get('agency')),f'procurement {rid}: invalid agency {r.get("agency")!r}')
+        ok(r.get('source') in {'jetro','jetro-local','geps','yokohama','sapporo','kobe','fukuoka','chiba','kyoto'},f'procurement {rid}: unknown source {r.get("source")!r}')
+        ok(isinstance(r.get('organizationId'),str) and bool(re.fullmatch(r'org_[0-9a-f]{12}',r['organizationId'])),f'procurement {rid}: invalid organizationId')
+        ok(isinstance(r.get('isIt'),bool),f'procurement {rid}: isIt must be boolean')
+        ok(isinstance(r.get('detailFetched'),bool),f'procurement {rid}: detailFetched must be boolean')
+        ok(isinstance(r.get('tags'),list) and all(isinstance(x,str) and x.strip() for x in r.get('tags',[])),f'procurement {rid}: invalid tags')
+        ok(str(r.get('sourceUrl') or '').startswith(('https://','http://')),f'procurement {rid}: invalid source URL')
+        ok((not r.get('awardDate')) or bool(re.fullmatch(r'\d{4}-\d{2}-\d{2}',r['awardDate'])),f'procurement {rid}: invalid awardDate {r.get("awardDate")!r}')
+        ok(bool(r.get('winnerName'))==bool(r.get('companyId')),f'procurement {rid}: winner/companyId pairing mismatch')
+        if r.get('companyId'):
+            ok(bool(re.fullmatch(r'co_[0-9a-f]{12}',r['companyId'])),f'procurement {rid}: invalid companyId {r.get("companyId")!r}')
+        for optional_text in ('noticeType','contractMethod','awardMethod','winnerName'):
+            value=r.get(optional_text)
+            if value is not None:
+                ok(isinstance(value,str),f'procurement {rid}: {optional_text} must be string/null')
         category_counts[r.get('category') or 'その他'] += 1
         amount=float(r.get('awardAmount') or 0)
         if r.get('awardAmount') is not None: ok(amount>=0,f'procurement {rid}: negative award amount')

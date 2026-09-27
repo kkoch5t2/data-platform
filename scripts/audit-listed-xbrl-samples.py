@@ -11,15 +11,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+from collector.listed_companies.presentation import recover_count_metric
 from collector.listed_companies.salary import recover_average_salary
+from collector.listed_companies.source_corrections import CORRECTIONS
 RAW = ROOT / "data/raw/listed-companies"
 NORMALIZED = RAW / "normalized/financials.json"
-METRICS = (
-    "revenue", "operatingIncome", "ordinaryIncome", "profitBeforeTax",
-    "netIncome", "assets", "liabilities", "equity", "cash",
-    "operatingCashFlow", "investingCashFlow", "financingCashFlow",
-    "employees", "averageSalary",
-)
 
 
 def numeric(text: str):
@@ -44,13 +40,15 @@ def public_xbrl_roots(path: Path):
     return roots
 
 
-def values_for(roots, local_name: str, context: str):
+def values_for(roots, local_name: str, context: str, unit_id: str):
     values = []
     for root in roots:
         for element in root.iter():
             if element.tag.rsplit("}", 1)[-1] != local_name:
                 continue
             if element.attrib.get("contextRef") != context:
+                continue
+            if (element.attrib.get("unitRef") or "").upper() != unit_id.upper():
                 continue
             value = numeric(element.text or "")
             if value is not None:
@@ -75,10 +73,9 @@ def main() -> int:
             failures.append(f"{record['securityCode']}: no PublicDoc XBRL")
             continue
         audited_companies += 1
-        for metric in METRICS:
-            source = record.get("metricSources", {}).get(metric)
+        for metric, source in record.get("metricSources", {}).items():
             value = record.get("metrics", {}).get(metric)
-            if not source or value is None:
+            if value is None:
                 continue
             checks += 1
             expected = Decimal(str(value))
@@ -89,8 +86,26 @@ def main() -> int:
                         f"{record['securityCode']} {metric}: presentation {recovered} != {expected}"
                     )
                 continue
+            if metric in {"employees", "sharesOutstanding"} and source.get("presentationRecovery"):
+                recovered, _ = recover_count_metric(archive, metric, source)
+                if recovered is None or Decimal(str(recovered)) != expected:
+                    failures.append(
+                        f"{record['securityCode']} {metric}: presentation {recovered} != {expected}"
+                    )
+                continue
             local_name = source["concept"].rsplit(":", 1)[-1]
-            found = values_for(roots, local_name, source["context"])
+            unit_id = (source.get("unitId") or source.get("unit") or "")
+            found = values_for(roots, local_name, source["context"], unit_id)
+            correction = CORRECTIONS.get((record["docID"], metric))
+            if correction is not None:
+                original = (source.get("validatedCorrection") or {}).get("originalValue")
+                original_expected = Decimal(str(original)) if original is not None else None
+                if expected != Decimal(str(correction["value"])) or original_expected not in found:
+                    failures.append(
+                        f"{record['securityCode']} {metric}: correction/source mismatch "
+                        f"normalized={expected} original={original_expected} found={found[:4]}"
+                    )
+                continue
             if expected not in found:
                 failures.append(
                     f"{record['securityCode']} {metric}: {expected} not in {found[:4]}"

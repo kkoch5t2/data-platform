@@ -7,12 +7,17 @@ DATLUMEは「画面が開く」だけでなく、数値・出典・リンク・�
 テストはローカルだけで完了扱いにせず、重要変更では本番URLも再確認する。
 
 ## 2. データ監査
-`npm run audit:data` / `scripts/audit-data-integrity.py` で、公開データ間の整合性、件数、必須項目、異常値等を検査する。
-大量件数でも全件走査を前提とし、失敗時はリリースを止める。
+`npm run audit:data` で、公開データ間の整合性、件数、必須項目、異常値等を全件検査する。
+構成は `audit-data-integrity.py`、生活・履歴系を深掘りする `audit-living-history.py`、上場企業正規化を検査する `audit-listed-normalized.py`、正規化値から公開64 shard/indexへの変換一致を検査する `audit-listed-public.py`。大量件数でも全件走査を前提とし、失敗時はリリースを止める。
+市区町村座標、犯罪・事故、病院/学校/駅POI、履歴年次グリッド、派生式、source-nativeな欠損許容範囲まで監査対象とする。
 
 ## 3. EDINET/XBRL監査
-`npm run audit:listed-xbrl` で、正規化値と原典XBRL/CSVの対応を検査する。
-平均年間給与は通常監査に加え `npm run validate:listed-salary` で外れ値候補をiXBRL表示まで再確認する。
+`npm run validate:listed-financials` で、企業文書種別、連結/個別context、unit、従業員数・株式数presentation、セグメント、主要株主、検証済み補正、持続しない極端な桁変動を検査する。
+`npm run audit:listed-cross-filing` は当年値と翌年有報の前期比較値を、同一concept・連結区分・period type・unitで突合する。10倍以上の新しい不一致は失敗とし、確認済みの過年度組替え・訂正・比較表側の原典異常だけを値付きallowlistで管理する。
+単純な前年比10倍は、赤字転落・増資・事業売却等でも起こり得るため、それだけで誤りとは判定しない。前後年が近いのに中間年だけ10倍以上跳ねる「往復型」は `audit-listed-normalized.py` で全件検出し、原典確認済みの値付き固定リストだけを許可する。新規往復型はFAIL。同一年度の翌年有報比較でも10倍以上食い違う場合は `audit-listed-cross-filing.py` でFAILする。さらに最新年度は翌年有報で再確認できないため、安定指標の前年比10倍以上を原典確認済みペアとして固定し、新規の10倍以上変動はFAILする。
+`npm run audit:listed-source` は全正規化レコードを変換CSVの完全一致concept/contextと再照合し、現在の選択ルールで選ばれる原典factと保存済みsourceが一致することも確認する。重いため週次監査で実行する。
+`npm run audit:listed-xbrl` ではXBRLサンプルとの対応を別系統で検査する。
+平均年間給与は通常監査に加え `npm run validate:listed-salary` で外れ値候補をiXBRL表示まで再確認する。原典表示が一致していても10倍級の給与変動が残れば未解決として停止する。訂正値を一意に確定できる原典異常だけ検証済み補正し、一意に確定できない原典異常は推測値を作らずその年度を欠損扱いにする。主要株主は `npm run validate:listed-shareholders` で変換CSVの欠落候補を検出し、必要時だけiXBRL presentationから再検証する。
 
 ## 4. HTML監査
 `npm run audit:html` / `scripts/audit-generated-html.py` で全静的HTMLを走査する。

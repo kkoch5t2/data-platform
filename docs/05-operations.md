@@ -31,17 +31,24 @@
 7. 月初回のみJPX/EDINET企業マスタ更新。
 8. EDINET文書取得、download、incremental normalize。
 9. 平均年間給与外れ値を原典検証。
-10. 上場企業public data再生成。
-11. 月初回のみ各統計領域更新。
-12. Cloudflare Web Analyticsスナップショット更新。
-13. build、Cloudflare deploy。
-14. 成功履歴とlast-success-date更新。
+10. 上場企業正規化データの全件整合・異常値監査。前後年が近いのに中間年だけ10倍以上動く往復型に加え、翌年有報がまだない最新年度の安定指標も前年比10倍以上をレビュー対象とする。原典確認済みの固定値だけ許可し、新規候補は停止する。
+11. 同一年度を翌年有報の前期欄と照合する10倍cross-filing監査。未確認の10倍以上不一致は停止。
+12. 上場企業public data再生成。
+13. 月初回のみ各統計領域更新。
+14. Cloudflare Web Analyticsスナップショット更新。
+15. 公開予定の全領域データ監査を実行。失敗時はbuild/deploy前に停止。
+16. build、Cloudflare deploy。
+17. 成功履歴とlast-success-date更新。
 
 ## 4. 週次監査
 `scripts/weekly-audit.sh` は週1回、以下を実行する。
 - 平均年間給与外れ値検証
+- 主要株主のpresentation補完検証
+- 上場企業正規化データ監査
 - 上場企業public data再生成
 - 全体データ監査
+- 当年値と翌年有報の同一unit・前期比較値を突合するcross-filing監査
+- 上場企業の全正規化値を変換CSVの完全一致concept/contextへ再照合するsource監査
 - EDINET/XBRLサンプル監査
 - full build
 - HTML監査
@@ -64,12 +71,18 @@ Cloudflare認証情報はホームディレクトリ配下の専用ファイル�
 ## 6. 障害時対応
 - 公共調達収集失敗: バックアップDBへ復元し、その日のデプロイを中止。
 - health check失敗: デプロイを中止。
-- EDINET給与外れ値未解決: 上場企業更新を失敗させる。
+- EDINET給与外れ値未解決: 上場企業更新を失敗させる。原典自体が異常で訂正値を確定できない場合は推測補正せず、その年度の値を欠損扱いにする。
+- 上場企業のunit/context/連結選択/異常値監査に未解決がある: public data生成前に停止する。
+- 全領域データ監査に欠損・式不整合・重複・範囲異常がある: build/deployを停止する。
 - build/audit失敗: 本番反映しない。
 - Cloudflare deploy失敗: last-success-dateを書かず、次回scheduledで再試行可能にする。
 
 ## 7. ログ・状態ファイル
 主な状態は `data/automation/` に保持する。
+- `logs/YYYY-MM-DD.log`: 日次処理の全標準出力・監査FAIL/WARN。
+- `logs/failures.log`: 日次処理が停止した時刻、step、終了コード、失敗コマンド、対応する日次ログ。
+- `weekly-audit-logs/YYYY-MM-DD.log`: 週次監査の全出力。
+- `weekly-audit-logs/failures.log`: 週次監査の停止理由。
 - `last-success-date`
 - `last-listed-master-refresh`
 - `last-monthly-refresh`

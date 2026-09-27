@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .common import PUBLIC, RAW, write_json
+from .presentation import recover_count_metric
 
 METRICS = {
     "revenue": {
@@ -30,7 +31,11 @@ METRICS = {
     },
     "netIncome": {
         "period": "duration",
-        "concepts": ["ProfitLossAttributableToOwnersOfParent", "ProfitLoss"],
+        "concepts": [
+            "ProfitLossAttributableToOwnersOfParentSummaryOfBusinessResults",
+            "ProfitLossAttributableToOwnersOfParent",
+            "ProfitLoss",
+        ],
         "labels": ["親会社株主に帰属する当期純利益", "当期純利益"],
     },
 }
@@ -120,22 +125,51 @@ for _metric, _aliases in COMMON_CONCEPT_ALIASES.items():
     METRICS[_metric]["concepts"] = _aliases + METRICS[_metric]["concepts"]
 
 IFRS_METRICS = {
-    "revenue": {"concepts": ["RevenueIFRS", "RevenueIFRSSummaryOfBusinessResults", "NetSalesIFRS", "NetSalesIFRSSummaryOfBusinessResults", "OperatingRevenuesIFRSKeyFinancialData", "TotalNetRevenuesIFRS", "SalesRevenuesIFRS"], "labels": ["売上収益（IFRS）", "売上高（IFRS）"]},
-    "operatingIncome": {"concepts": ["OperatingProfitLossIFRS", "OperatingProfitLossIFRSSummaryOfBusinessResults"], "labels": ["営業利益（△損失）（IFRS）"]},
+    "revenue": {"concepts": ["RevenueIFRS", "RevenueIFRSSummaryOfBusinessResults", "RevenueKeyFinancialData", "NetSalesIFRS", "NetSalesIFRSSummaryOfBusinessResults", "OperatingRevenuesIFRSKeyFinancialData", "TotalNetRevenuesIFRS", "SalesRevenuesIFRS"], "labels": ["売上収益（IFRS）", "売上収益、経営指標等", "売上高（IFRS）"]},
+    "operatingIncome": {"concepts": ["OperatingProfitLossIFRS", "OperatingProfitLossIFRSSummaryOfBusinessResults", "OperatingIncomeIFRSSummaryOfBusinessResults", "OperatingProfitIFRSSummaryOfBusinessResults", "OperatingIncomeLossIFRSSummaryOfBusinessResults", "OperatingProfitLossIFRSKeyFinancialData"], "labels": ["営業利益（△損失）（IFRS）"]},
     "ordinaryIncome": None,
     "profitBeforeTax": {"concepts": ["ProfitLossBeforeTaxIFRS", "ProfitLossBeforeTaxIFRSSummaryOfBusinessResults"], "labels": ["継続事業からの税引前利益（△損失）（IFRS）"]},
     "netIncome": {"concepts": ["ProfitLossAttributableToOwnersOfParentIFRS", "ProfitLossAttributableToOwnersOfParentIFRSSummaryOfBusinessResults", "ProfitLossIFRS", "ProfitLossIFRSSummaryOfBusinessResults"], "labels": ["親会社の所有者、当期利益（△損失）（IFRS）", "当期利益（△損失）（IFRS）"]},
-    "assets": {"concepts": ["AssetsIFRS", "AssetsIFRSSummaryOfBusinessResults"], "labels": ["資産（IFRS）"]},
+    "assets": {"concepts": ["AssetsIFRS", "AssetsIFRSSummaryOfBusinessResults", "TotalAssetsIFRSSummaryOfBusinessResults"], "labels": ["資産（IFRS）", "総資産額（IFRS）、経営指標等"]},
     "liabilities": {"concepts": ["LiabilitiesIFRS"], "labels": ["負債（IFRS）"]},
-    "equity": {"concepts": ["EquityIFRS"], "labels": ["資本（IFRS）"]},
-    "parentEquity": {"concepts": ["EquityAttributableToOwnersOfParentIFRS"], "labels": ["親会社の所有者に帰属する持分（IFRS）"]},
+    "equity": {"concepts": ["EquityIFRS", "TotalEquityIFRSSummaryOfBusinessResults"], "labels": ["資本（IFRS）"]},
+    "parentEquity": {"concepts": ["EquityAttributableToOwnersOfParentIFRS", "EquityAttributableToOwnersOfParentIFRSSummaryOfBusinessResults"], "labels": ["親会社の所有者に帰属する持分（IFRS）", "親会社の所有者に帰属する持分（IFRS）、経営指標等"]},
     "reportedRoe": {"concepts": ["RateOfReturnOnEquityIFRSSummaryOfBusinessResults"], "labels": ["親会社所有者帰属持分利益率（IFRS）、経営指標等"]},
-    "reportedEquityRatio": None,
+    "reportedEquityRatio": {"concepts": ["RatioOfOwnersEquityToGrossAssetsIFRSSummaryOfBusinessResults"], "labels": ["親会社所有者帰属持分比率（IFRS）、経営指標等"]},
     "cash": {"concepts": ["CashAndCashEquivalentsIFRS", "CashAndCashEquivalentsIFRSSummaryOfBusinessResults"], "labels": ["現金及び現金同等物（IFRS）"]},
     "operatingCashFlow": {"concepts": ["CashFlowsFromUsedInOperatingActivitiesIFRS", "CashFlowsFromUsedInOperatingActivitiesIFRSSummaryOfBusinessResults"], "labels": ["営業活動によるキャッシュ・フロー（IFRS）、経営指標等"]},
     "investingCashFlow": {"concepts": ["CashFlowsFromUsedInInvestingActivitiesIFRS", "CashFlowsFromUsedInInvestingActivitiesIFRSSummaryOfBusinessResults"], "labels": ["投資活動によるキャッシュ・フロー（IFRS）、経営指標等"]},
     "financingCashFlow": {"concepts": ["CashFlowsFromUsedInFinancingActivitiesIFRS", "CashFlowsFromUsedInFinancingActivitiesIFRSSummaryOfBusinessResults"], "labels": ["財務活動によるキャッシュ・フロー（IFRS）、経営指標等"]},
+    "employees": {
+        "concepts": [
+            "NumberOfEmployeesIFRS",
+            "NumberOfEmployeeIFRS",
+            "NumberOfEmployeesIFRSSummaryOfBusinessResults",
+            "NumberOfEmployees",
+        ],
+        "labels": ["従業員数"],
+    },
 }
+
+USGAAP_METRICS = {
+    "revenue": {"concepts": ["RevenuesUSGAAPSummaryOfBusinessResults"], "labels": ["売上高（US GAAP）、経営指標等"]},
+    "operatingIncome": {"concepts": ["OperatingIncomeLossUSGAAPSummaryOfBusinessResults"], "labels": ["営業利益又は営業損失（△）（US GAAP）、経営指標等"]},
+    "ordinaryIncome": None,
+    "profitBeforeTax": {"concepts": ["ProfitLossBeforeTaxUSGAAPSummaryOfBusinessResults"], "labels": ["税引前利益又は税引前損失（△）（US GAAP）、経営指標等"]},
+    "netIncome": {"concepts": ["NetIncomeLossAttributableToOwnersOfParentUSGAAPSummaryOfBusinessResults"], "labels": ["当社株主に帰属する純利益又は純損失（△）（US GAAP）、経営指標等"]},
+    "assets": {"concepts": ["TotalAssetsUSGAAPSummaryOfBusinessResults"], "labels": ["総資産額（US GAAP）、経営指標等"]},
+    "liabilities": None,
+    "equity": {"concepts": ["EquityIncludingPortionAttributableToNonControllingInterestUSGAAPSummaryOfBusinessResults"], "labels": ["純資産額（US GAAP）、経営指標等"]},
+    "parentEquity": {"concepts": ["EquityAttributableToOwnersOfParentUSGAAPSummaryOfBusinessResults"], "labels": ["株主資本（US GAAP）、経営指標等"]},
+    "reportedRoe": {"concepts": ["RateOfReturnOnEquityUSGAAPSummaryOfBusinessResults"], "labels": ["株主資本利益率（US GAAP）、経営指標等"]},
+    "reportedEquityRatio": {"concepts": ["EquityToAssetRatioUSGAAPSummaryOfBusinessResults"], "labels": ["自己資本比率（US GAAP）、経営指標等"]},
+    "cash": {"concepts": ["CashAndCashEquivalentsUSGAAPSummaryOfBusinessResults"], "labels": ["現金及び現金同等物（US GAAP）、経営指標等"]},
+    "operatingCashFlow": {"concepts": ["CashFlowsFromUsedInOperatingActivitiesUSGAAPSummaryOfBusinessResults"], "labels": ["営業活動によるキャッシュ・フロー（US GAAP）、経営指標等"]},
+    "investingCashFlow": {"concepts": ["CashFlowsFromUsedInInvestingActivitiesUSGAAPSummaryOfBusinessResults"], "labels": ["投資活動によるキャッシュ・フロー（US GAAP）、経営指標等"]},
+    "financingCashFlow": {"concepts": ["CashFlowsFromUsedInFinancingActivitiesUSGAAPSummaryOfBusinessResults"], "labels": ["財務活動によるキャッシュ・フロー（US GAAP）、経営指標等"]},
+    "employees": {"concepts": ["NumberOfEmployees"], "labels": ["従業員数"]},
+}
+
 
 HEADER_ALIASES = {
     "concept": ("要素ID", "要素ＩＤ"),
@@ -144,6 +178,7 @@ HEADER_ALIASES = {
     "relativeYear": ("相対年度",),
     "consolidation": ("連結・個別",),
     "periodType": ("期間・時点",),
+    "unitId": ("ユニットID", "ユニットＩＤ"),
     "unit": ("単位",),
     "value": ("値",),
 }
@@ -175,6 +210,7 @@ def read_fact_rows(path: Path) -> list[dict[str, str]]:
                     "relativeYear": _header_value(source, "relativeYear"),
                     "consolidation": _header_value(source, "consolidation"),
                     "periodType": _header_value(source, "periodType"),
+                    "unitId": _header_value(source, "unitId"),
                     "unit": _header_value(source, "unit"),
                     "value": _header_value(source, "value"),
                     "sourceFile": name,
@@ -226,8 +262,14 @@ def is_current_context(row: dict[str, str], period: str) -> bool:
     return True
 
 def metric_spec(metric: str, base_spec: dict, standard: str | None) -> dict | None:
-    if standard and "IFRS" in standard.upper() and metric in IFRS_METRICS:
-        override = IFRS_METRICS[metric]
+    normalized_standard = (standard or "").strip().strip('"').upper()
+    overrides = None
+    if "IFRS" in normalized_standard:
+        overrides = IFRS_METRICS
+    elif "US GAAP" in normalized_standard:
+        overrides = USGAAP_METRICS
+    if overrides is not None and metric in overrides:
+        override = overrides[metric]
         if override is None:
             return None
         return {"period": base_spec["period"], **override}
@@ -237,7 +279,9 @@ def metric_spec(metric: str, base_spec: dict, standard: str | None) -> dict | No
 def row_score(row: dict[str, str], spec: dict, prefer_consolidated: bool) -> int:
     local = local_concept(row["concept"])
     if local in spec["concepts"]:
-        score = 100
+        # Concept order is semantic priority. For example, parent-attributable
+        # profit must beat total profit when both share the same context.
+        score = 100 + (len(spec["concepts"]) - spec["concepts"].index(local))
     elif row["label"] in spec["labels"]:
         score = 65
     else:
@@ -267,12 +311,42 @@ def metric_fact_declared(rows: list[dict[str, str]], metric: str, spec: dict, pr
     return any(row_score(row, selected_spec, prefer_consolidated) > -10000 for row in rows)
 
 
+MONETARY_METRICS = {
+    "revenue", "operatingIncome", "ordinaryIncome", "profitBeforeTax", "netIncome",
+    "assets", "liabilities", "equity", "parentEquity", "cash",
+    "operatingCashFlow", "investingCashFlow", "financingCashFlow",
+    "averageSalary", "ordinaryRevenue", "insuranceRevenue",
+}
+CURRENCY_UNIT_IDS = {"JPY", "USD", "EUR", "GBP", "CNY", "HKD", "SGD", "KRW", "AUD", "CAD", "CHF"}
+
+
+def effective_unit_id(row: dict[str, str]) -> str:
+    return ((row.get("unitId") or row.get("unit") or "").strip()).upper()
+
+
+def is_jpy_fact(row: dict[str, str]) -> bool:
+    return effective_unit_id(row) == "JPY" or (row.get("unit") or "").strip() == "円"
+
+
+def _unit_compatible(metric: str, row: dict[str, str]) -> bool:
+    unit_id = effective_unit_id(row)
+    if metric in MONETARY_METRICS:
+        # DATLUME compares listed-company monetary values in yen. Never let a USD/EUR
+        # fact silently flow into yen-formatted output; use the filing's JPY fact or omit it.
+        return is_jpy_fact(row)
+    if metric in {"employees", "sharesOutstanding"}:
+        return unit_id not in CURRENCY_UNIT_IDS and (row.get("unit") or "").strip() != "円"
+    return True
+
+
 def select_metric(rows: list[dict[str, str]], metric: str, spec: dict, prefer_consolidated: bool, standard: str | None):
     selected_spec = metric_spec(metric, spec, standard)
     if selected_spec is None:
         return None, None
     candidates = []
     for row in rows:
+        if not _unit_compatible(metric, row):
+            continue
         value = parse_number(row["value"])
         if value is None:
             continue
@@ -289,6 +363,7 @@ def select_metric(rows: list[dict[str, str]], metric: str, spec: dict, prefer_co
         "context": row["context"],
         "relativeYear": row["relativeYear"],
         "consolidation": row["consolidation"],
+        "unitId": row.get("unitId", ""),
         "unit": row["unit"],
         "score": score,
     }
@@ -320,6 +395,11 @@ def choose_documents() -> list[dict]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
     for doc in payload.get("annualReports", []):
+        # Corporate annual reports use Cabinet Office Ordinance code 010.
+        # The same EDINET code can also file fund/trust reports (e.g. ordinance 030),
+        # which must never be merged into the listed company's financial time series.
+        if str(doc.get("ordinanceCode") or "") != "010":
+            continue
         if str(doc.get("csvFlag")) != "1":
             continue
         key = (doc.get("edinetCode") or "", doc.get("periodEnd") or "")
@@ -365,9 +445,26 @@ def normalize_document(doc: dict, company: dict) -> dict | None:
         metrics[key] = value
         if source:
             sources[key] = source
+
+    from .source_corrections import CORRECTIONS, apply_verified_source_corrections
+    source_correction_warnings = apply_verified_source_corrections(doc["docID"], metrics, sources)
+
+    presentation_recoveries = []
+    if xbrl_path.exists():
+        for metric in ("employees", "sharesOutstanding"):
+            if (doc["docID"], metric) in CORRECTIONS:
+                continue
+            source = sources.get(metric)
+            if not source:
+                continue
+            recovered, recovery_source = recover_count_metric(xbrl_path, metric, source)
+            if recovered is not None and recovered != metrics.get(metric):
+                presentation_recoveries.append((metric, metrics.get(metric), recovered))
+                metrics[metric] = recovered
+                source["presentationRecovery"] = recovery_source
     salary_anomaly = False
     salary = metrics.get("averageSalary")
-    if salary is not None and xbrl_path.exists():
+    if salary is not None and xbrl_path.exists() and (doc["docID"], "averageSalary") not in CORRECTIONS:
         from .salary import recover_average_salary
         recovered, recovery_source = recover_average_salary(xbrl_path)
         if recovered is not None:
@@ -396,7 +493,14 @@ def normalize_document(doc: dict, company: dict) -> dict | None:
     if metrics["equityRatio"] is None:
         metrics["equityRatio"] = safe_ratio(metrics.get("parentEquity") or metrics.get("equity"), metrics.get("assets"))
     metrics["debtRatio"] = safe_ratio(metrics.get("liabilities"), metrics.get("equity"))
-    warnings = []
+    warnings = list(source_correction_warnings)
+    for metric, original, recovered in presentation_recoveries:
+        warnings.append({
+            "type": "presentationUnitRecovery",
+            "metric": metric,
+            "originalValue": original,
+            "recoveredValue": recovered,
+        })
     if salary_anomaly:
         warnings.append({"type": "implausibleAverageSalary", "message": "XBRL presentation unit could not be recovered; value omitted"})
     assets = metrics.get("assets")
@@ -413,8 +517,9 @@ def normalize_document(doc: dict, company: dict) -> dict | None:
         warnings.append({"type": "financialSector", "message": "一般企業と同じ利益率・負債比率評価をしない"})
     from .segments import extract_segments
     from .ownership import extract_major_shareholders
-    segments = extract_segments(rows, RAW / "xbrl" / f"{doc['docID']}.zip")
-    major_shareholders = extract_major_shareholders(rows)
+    xbrl_archive = RAW / "xbrl" / f"{doc['docID']}.zip"
+    segments = extract_segments(rows, xbrl_archive)
+    major_shareholders = extract_major_shareholders(rows, xbrl_archive)
     return {
         "securityCode": company["securityCode"],
         "edinetCode": company["edinetCode"],
@@ -469,6 +574,12 @@ def main() -> None:
             "missingArchives": missing_archives,
             "csvRecords": sum(1 for x in records if x.get("sourceFormat") == "edinet-csv"),
             "xbrlFallbackRecords": sum(1 for x in records if x.get("sourceFormat") == "xbrl"),
+            "validatedSourceCorrections": sum(
+                1 for x in records for w in x.get("warnings", []) if w.get("type") == "validatedSourceCorrection"
+            ),
+            "presentationUnitRecoveries": sum(
+                1 for x in records for w in x.get("warnings", []) if w.get("type") == "presentationUnitRecovery"
+            ),
             "balanceSheetWarnings": sum(
                 1 for x in records if any(w["type"] == "balanceSheetEquation" for w in x["warnings"])
             ),
