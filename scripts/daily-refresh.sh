@@ -198,8 +198,7 @@ run_step "listed-normalize" npm run normalize:listed-incremental
 run_step "listed-salary-validation" npm run validate:listed-salary
 run_step "listed-count-5x-validation" npm run validate:listed-counts
 run_step "listed-shareholder-validation" npm run validate:listed-shareholders
-run_step "listed-financial-validation" npm run validate:listed-financials
-run_step "listed-cross-filing-10x-validation" npm run audit:listed-cross-filing
+# Heavy read-only audits run on the Windows production-data mirror, not on the production collector host.
 run_step "listed-public-data-build" npm run build:listed-data
 
 MONTH="$(date +%Y-%m)"
@@ -233,8 +232,7 @@ if python3 scripts/cloudflare_web_analytics.py --days 7 --save public/data/site-
 else
   echo "WARNING: analytics refresh failed; continuing with the last saved snapshot"
 fi
-echo "Running full published-data integrity audit before release"
-run_step "full-published-data-audit" npm run audit:data
+# Full published-data audits run on the Windows production-data mirror.
 CURRENT_STEP="pre-deploy-release-tree-safety"
 if [[ "$MODE" == "--scheduled" ]] && ! assert_release_tree_safe; then
   echo "ERROR: refusing scheduled deploy because source-code changes appeared during collection"
