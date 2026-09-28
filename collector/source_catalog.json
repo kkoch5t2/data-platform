@@ -78,12 +78,12 @@
       "domain": "employment-economy"
     },
     "business_industry": {
-      "label": "統計センター SSDSE-E-2026 企業・産業",
+      "label": "総務省統計局 令和6年経済センサス‐基礎調査 企業・産業",
       "enabled": true,
       "frequency": "monthly",
       "maxAgeHours": 840,
       "minRecords": 47,
-      "acquisition": "official-open-data-csv",
+      "acquisition": "official-open-data-xlsx",
       "command": [
         "python3",
         "collector/collect_business_industry.py"
