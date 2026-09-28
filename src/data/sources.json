@@ -266,6 +266,19 @@
         "endDate": "2026-09-24"
       },
       "previousRecordCount": 1485
+    },
+    "social_population": {
+      "label": "e-Stat 統計ダッシュボード（社会・人口統計体系）",
+      "status": "ok",
+      "startedAt": "2026-09-28T11:03:30.408636+00:00",
+      "finishedAt": "2026-09-28T11:03:51.074089+00:00",
+      "durationSeconds": 20.67,
+      "metrics": {
+        "records": 1741,
+        "municipalities": 1741,
+        "metricCount": 7,
+        "minCoverageRate": 60.83
+      }
     }
   }
 }

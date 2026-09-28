@@ -151,6 +151,12 @@ async function checkRegionalMunicipal(page,label,failures) {
   await page.selectOption('#municipal-metric','netMigration').catch(()=>{});await page.waitForTimeout(150);
   const migration=(await page.locator('#municipal-status').textContent().catch(()=>''))?.trim();
   if(!(migration||'').includes('転入超過・転出超過')||!(migration||'').includes('2024年値'))failures.push(label+' municipal migration filter failed: '+migration);
+  await page.selectOption('#municipal-pref','').catch(()=>{});await page.selectOption('#municipal-metric','vacantHouseRate').catch(()=>{});await page.waitForTimeout(150);
+  const vacancy=(await page.locator('#municipal-status').textContent().catch(()=>''))?.trim();
+  if(!(vacancy||'').includes('1,059市区町村')||!(vacancy||'').includes('空き家率')||!(vacancy||'').includes('2023年値'))failures.push(label+' municipal vacancy filter failed: '+vacancy);
+  await page.selectOption('#municipal-metric','physicians').catch(()=>{});await page.waitForTimeout(150);
+  const physicians=(await page.locator('#municipal-status').textContent().catch(()=>''))?.trim();
+  if(!(physicians||'').includes('1,741市区町村')||!(physicians||'').includes('医師数')||!(physicians||'').includes('2022年値'))failures.push(label+' municipal physician filter failed: '+physicians);
   if(!(await page.locator('#municipal-chart canvas').count()))failures.push(label+' municipal chart canvas missing');
 }
 

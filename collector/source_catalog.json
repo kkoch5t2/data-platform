@@ -276,6 +276,21 @@
       "country": "JP",
       "domain": "procurement",
       "note": "京都市入札情報館の電子入札執行結果（物品、工事・測量設計等）を収集。落札額は公式ページ掲載値（税抜き）。"
+    },
+    "social_population": {
+      "label": "e-Stat 統計ダッシュボード（社会・人口統計体系）",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 1741,
+      "acquisition": "official-public-api-no-registration",
+      "command": [
+        "python3",
+        "collector/collect_social_population.py"
+      ],
+      "country": "JP",
+      "domain": "regional",
+      "note": "市区町村1,741コードを既存正本に固定し、既存指標と重複しない指標のみ公開。空き家指標は原表で実値が公表される自治体のみ値を保持。"
     }
   }
 }
