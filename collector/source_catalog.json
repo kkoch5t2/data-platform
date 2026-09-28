@@ -291,6 +291,21 @@
       "country": "JP",
       "domain": "regional",
       "note": "市区町村1,741コードを既存正本に固定し、既存指標と重複しない指標のみ公開。空き家指標は原表で実値が公表される自治体のみ値を保持。"
+    },
+    "retail_prices_city": {
+      "label": "総務省統計局 小売物価統計調査（動向編）都市別小売価格",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 500,
+      "acquisition": "official-public-xlsx",
+      "command": [
+        "python3",
+        "collector/collect_retail_prices_city.py"
+      ],
+      "country": "JP",
+      "domain": "economy-prices",
+      "note": "e-Stat公開Excelから都市別の実価格を24か月収集。地域差指数とは別metric。ガソリンは2026年2月までの早期公表別表も補完し、欠損記号はnull、公式表の数値0はそのまま保持。"
     }
   }
 }

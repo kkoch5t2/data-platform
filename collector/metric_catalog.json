@@ -6,7 +6,8 @@
   },
   "sources": {
     "ssdse_a_2026": {"tier": "official_open_data", "label": "統計センター SSDSE-A-2026"},
-    "estat_dashboard_social_population": {"tier": "official_repackaged", "label": "e-Stat 統計ダッシュボード（社会・人口統計体系）"}
+    "estat_dashboard_social_population": {"tier": "official_repackaged", "label": "e-Stat 統計ダッシュボード（社会・人口統計体系）"},
+    "estat_retail_prices_city": {"tier": "primary_official", "label": "総務省統計局 小売物価統計調査（動向編）都市別小売価格"}
   },
   "metrics": [
     {"metricId":"municipality.population.total","label":"総人口","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"population"}},
@@ -28,6 +29,19 @@
     {"metricId":"municipality.health.hospital_beds","label":"病院病床数","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"hospitalBeds"}},
     {"metricId":"municipality.environment.waste_daily_per_capita","label":"1人1日当たりごみ排出量","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"wasteDailyPerCapita"}},
     {"metricId":"municipality.environment.recycling_rate","label":"ごみリサイクル率","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"recyclingRate"}},
-    {"metricId":"municipality.education.libraries","label":"図書館数","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"libraries"}}
+    {"metricId":"municipality.education.libraries","label":"図書館数","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"libraries"}},
+    {"metricId":"city_price.rice.koshihikari","label":"コシヒカリ","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.1001"}},
+    {"metricId":"city_price.bread","label":"食パン","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.1021"}},
+    {"metricId":"city_price.beef.domestic","label":"牛肉（国産）","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.1201"}},
+    {"metricId":"city_price.pork.domestic_belly","label":"豚肉（国産・バラ）","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.1211"}},
+    {"metricId":"city_price.milk","label":"牛乳","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.1303"}},
+    {"metricId":"city_price.eggs","label":"鶏卵","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.1341"}},
+    {"metricId":"city_price.cabbage","label":"キャベツ","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.1401"}},
+    {"metricId":"city_price.curry.restaurant","label":"カレーライス（外食）","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.2133"}},
+    {"metricId":"city_price.rent.private","label":"民営家賃","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.3001"}},
+    {"metricId":"city_price.electricity","label":"電気代","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.3511"}},
+    {"metricId":"city_price.city_gas","label":"都市ガス代","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.3605"}},
+    {"metricId":"city_price.water","label":"水道料","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.3800"}},
+    {"metricId":"city_price.gasoline","label":"ガソリン","canonical":{"source":"estat_retail_prices_city","dataset":"retail-prices-city-monthly.json","field":"values.7301"}}
   ]
 }
