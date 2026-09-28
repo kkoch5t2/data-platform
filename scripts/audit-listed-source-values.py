@@ -19,6 +19,7 @@ from collector.listed_companies.normalize_financials import (
     parse_number,
     read_fact_rows,
     select_metric,
+    should_use_ordinary_revenue_topline,
 )
 from collector.listed_companies.presentation import recover_count_metric
 from collector.listed_companies.salary import recover_average_salary
@@ -42,8 +43,26 @@ def audit_record(record: dict) -> tuple[int, list[str]]:
     rows = read_fact_rows(csv_path)
     standard = accounting_standard(rows)
     prefer_consolidated = bool(record.get("consolidatedPreferred"))
+    preferred_metrics = {}
+    preferred_sources = {}
     for metric, spec in METRICS.items():
-        _, preferred_source = select_metric(rows, metric, spec, prefer_consolidated, standard)
+        value, source = select_metric(rows, metric, spec, prefer_consolidated, standard)
+        preferred_metrics[metric] = value
+        if source:
+            preferred_sources[metric] = source
+
+    company = {"industry33": record.get("industry33")}
+    if should_use_ordinary_revenue_topline(company, preferred_metrics, preferred_sources, prefer_consolidated):
+        preferred_metrics["revenue"] = preferred_metrics["ordinaryRevenue"]
+        preferred_sources["revenue"] = {**preferred_sources["ordinaryRevenue"], "toplineBasis": "ordinaryRevenue"}
+        # The normalizer intentionally drops standalone operating income when the
+        # consolidated group topline is ordinary revenue. Mirror that policy here
+        # so source validation does not demand the discarded standalone fact.
+        preferred_metrics["operatingIncome"] = None
+        preferred_sources.pop("operatingIncome", None)
+
+    for metric in METRICS:
+        preferred_source = preferred_sources.get(metric)
         stored_source = record.get("metricSources", {}).get(metric)
         checks += 1
         preferred_key = (
