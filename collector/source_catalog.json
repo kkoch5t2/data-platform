@@ -277,6 +277,21 @@
       "domain": "procurement",
       "note": "京都市入札情報館の電子入札執行結果（物品、工事・測量設計等）を収集。落札額は公式ページ掲載値（税抜き）。"
     },
+    "housing_land_2023": {
+      "label": "総務省統計局 令和5年住宅・土地統計調査（確報）",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 1059,
+      "acquisition": "official-public-xlsx",
+      "command": [
+        "python3",
+        "collector/collect_housing_land_2023.py"
+      ],
+      "country": "JP",
+      "domain": "realestate",
+      "note": "e-Stat確報の第1-2表・第5-3表・第10-4表から、住宅総数・空き家内訳・持ち家率・建て方・住宅面積・建築時期を市区町村単位で収録。"
+    },
     "social_population": {
       "label": "e-Stat 統計ダッシュボード（社会・人口統計体系）",
       "enabled": true,
@@ -290,7 +305,7 @@
       ],
       "country": "JP",
       "domain": "regional",
-      "note": "市区町村1,741コードを既存正本に固定し、既存指標と重複しない指標のみ公開。空き家指標は原表で実値が公表される自治体のみ値を保持。"
+      "note": "市区町村1,741コードを既存正本に固定し、住宅・土地統計調査と重複しない医療・環境・教育指標のみ公開。"
     },
     "retail_prices_city": {
       "label": "総務省統計局 小売物価統計調査（動向編）都市別小売価格",

@@ -28,8 +28,8 @@ def main():
         if not canonical or canonical.get("dataset") != DATA.name or canonical.get("field") != field:
             errors.append(f"{field}: canonical registry mismatch")
     fields = [m["field"] for m in data.get("metrics", [])]
-    if len(fields) != len(set(fields)) or len(fields) != 7:
-        errors.append(f"expected 7 unique metric fields, got {fields}")
+    if len(fields) != len(set(fields)) or len(fields) != 5:
+        errors.append(f"expected 5 unique metric fields, got {fields}")
     if errors:
         print("social population audit failed:\n- " + "\n- ".join(errors), file=sys.stderr)
         raise SystemExit(1)
