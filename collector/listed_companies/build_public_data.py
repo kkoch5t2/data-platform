@@ -65,6 +65,7 @@ def compact_history_record(record: dict) -> dict:
         "sourceFormat": record.get("sourceFormat"),
         "accountingStandard": record.get("accountingStandard"),
         "sectorModel": record.get("sectorModel"),
+        "toplineBasis": record.get("toplineBasis"),
         "metrics": record.get("metrics", {}),
     }
 
@@ -80,6 +81,7 @@ def compact_latest_record(record: dict | None) -> dict | None:
         "sourceFormat": record.get("sourceFormat"),
         "accountingStandard": record.get("accountingStandard"),
         "sectorModel": record.get("sectorModel"),
+        "toplineBasis": record.get("toplineBasis"),
         "metrics": record.get("metrics", {}),
         "segments": record.get("segments", []),
         "majorShareholders": record.get("majorShareholders", []),
@@ -137,6 +139,8 @@ def main() -> None:
         }
         if latest:
             compact["latestPeriodEnd"] = latest.get("periodEnd")
+            if latest.get("toplineBasis"):
+                compact["toplineBasis"] = latest.get("toplineBasis")
             for metric in (
                 "revenue", "ordinaryRevenue", "insuranceRevenue",
                 "operatingIncome", "ordinaryIncome", "profitBeforeTax", "operatingMargin",
@@ -156,6 +160,8 @@ def main() -> None:
     for metric in RANKING_METRICS:
         rows = []
         for item in latest_rows:
+            if metric in {"revenue", "revenueGrowth"} and item["record"].get("toplineBasis") == "ordinaryRevenue":
+                continue
             value = item["record"]["metrics"].get(metric)
             if value is None:
                 continue

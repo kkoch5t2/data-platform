@@ -12,7 +12,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from collector.listed_companies.common import RAW
-from collector.listed_companies.normalize_financials import MONETARY_METRICS
+from collector.listed_companies.normalize_financials import FINANCIAL_INDUSTRIES, MONETARY_METRICS
 from collector.listed_companies.presentation import recover_count_metric
 from collector.listed_companies.source_corrections import CORRECTIONS
 
@@ -178,6 +178,51 @@ def main() -> int:
             share_unit = (share_source.get("unitId") or share_source.get("unit") or "").upper()
             check(share_unit not in {"円", "JPY", "USD", "EUR", "GBP", "CNY", "HKD", "SGD"}, f"{key}: shares selected from currency unit {share_unit}")
         metrics = record.get("metrics", {})
+
+        # A consolidated group must not silently keep a standalone revenue fact
+        # when the same filing exposes a much larger consolidated ordinary-revenue
+        # topline. This is the failure mode that previously understated Japan Post.
+        revenue_source = record.get("metricSources", {}).get("revenue") or {}
+        ordinary_revenue_source = record.get("metricSources", {}).get("ordinaryRevenue") or {}
+        ordinary_income_source = record.get("metricSources", {}).get("ordinaryIncome") or {}
+        revenue_nonconsolidated = (
+            "個別" in (revenue_source.get("consolidation") or "")
+            or "NonConsolidatedMember" in (revenue_source.get("context") or "")
+        )
+        ordinary_revenue_nonconsolidated = (
+            "個別" in (ordinary_revenue_source.get("consolidation") or "")
+            or "NonConsolidatedMember" in (ordinary_revenue_source.get("context") or "")
+        )
+        ordinary_income_nonconsolidated = (
+            "個別" in (ordinary_income_source.get("consolidation") or "")
+            or "NonConsolidatedMember" in (ordinary_income_source.get("context") or "")
+        )
+        revenue_value = metrics.get("revenue")
+        ordinary_revenue_value = metrics.get("ordinaryRevenue")
+        ordinary_income_value = metrics.get("ordinaryIncome")
+        ordinary_revenue_concept = (ordinary_revenue_source.get("concept") or "").rsplit(":", 1)[-1]
+        unhandled_ordinary_topline = (
+            bool(record.get("consolidatedPreferred"))
+            and record.get("industry33") not in FINANCIAL_INDUSTRIES
+            and revenue_nonconsolidated
+            and revenue_value not in (None, 0)
+            and ordinary_revenue_value is not None
+            and ordinary_income_value is not None
+            and not ordinary_revenue_nonconsolidated
+            and not ordinary_income_nonconsolidated
+            and ordinary_revenue_concept == "OrdinaryIncomeSummaryOfBusinessResults"
+            and abs(ordinary_revenue_value) >= abs(revenue_value) * 1.5
+        )
+        check(not unhandled_ordinary_topline, f"{key}: consolidated ordinary-revenue topline left behind standalone revenue")
+
+        ordinary_topline_warning = any(w.get("type") == "ordinaryRevenueTopline" for w in record.get("warnings", []))
+        if ordinary_topline_warning:
+            check(record.get("toplineBasis") == "ordinaryRevenue", f"{key}: ordinaryRevenueTopline basis missing")
+            check(record.get("sectorModel") == "financial", f"{key}: ordinaryRevenueTopline must use financial sector model")
+            check(metrics.get("operatingIncome") is None, f"{key}: ordinaryRevenueTopline retained standalone operating income")
+            check(same_number(metrics.get("revenue"), metrics.get("ordinaryRevenue")), f"{key}: ordinaryRevenueTopline revenue mismatch")
+            check(revenue_source.get("toplineBasis") == "ordinaryRevenue", f"{key}: ordinaryRevenueTopline source basis missing")
+
         salary = metrics.get("averageSalary")
         if salary is not None:
             check(100_000 <= salary <= 100_000_000, f"{key}: implausible averageSalary={salary}")

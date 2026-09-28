@@ -143,7 +143,7 @@ METRICS["reportedEquityRatio"] = {"period": "instant", "concepts": ["EquityToAss
 METRICS["ordinaryRevenue"] = {"period": "duration", "concepts": ["OrdinaryIncomeSummaryOfBusinessResults", "OrdinaryIncomeBNK"], "labels": ["経常収益、経営指標等", "経常収益、銀行業"]}
 METRICS["insuranceRevenue"] = {"period": "duration", "concepts": ["InsuranceRevenueIFRSKeyFinancialData", "InsuranceRevenueIFRS"], "labels": ["保険収益（IFRS）"]}
 COMMON_CONCEPT_ALIASES = {
-    "revenue": ["NetSalesSummaryOfBusinessResults", "OperatingRevenue1", "OperatingRevenue2", "OperatingRevenueSummaryOfBusinessResults"],
+    "revenue": ["NetSalesSummaryOfBusinessResults", "GrossOperatingRevenueSummaryOfBusinessResults", "OperatingRevenue1SummaryOfBusinessResults", "RevenueSummaryOfBusinessResults", "OperatingRevenue1", "OperatingRevenue2", "OperatingRevenueSummaryOfBusinessResults"],
     "averageAge": ["AverageAgeYearsInformationAboutReportingCompanyInformationAboutEmployees"],
     "averageTenure": ["AverageLengthOfServiceYearsInformationAboutReportingCompanyInformationAboutEmployees"],
     "averageSalary": ["AverageAnnualSalaryInformationAboutReportingCompanyInformationAboutEmployees"],
@@ -411,6 +411,31 @@ def accounting_standard(rows: list[dict[str, str]]) -> str | None:
 FINANCIAL_INDUSTRIES = {"銀行業", "保険業", "証券、商品先物取引業", "その他金融業"}
 
 
+
+def _source_is_nonconsolidated(source: dict | None) -> bool:
+    if not source:
+        return False
+    return "個別" in (source.get("consolidation") or "") or "NonConsolidatedMember" in (source.get("context") or "")
+
+def should_use_ordinary_revenue_topline(company: dict, metrics: dict, sources: dict, prefer_consolidated: bool) -> bool:
+    if not prefer_consolidated or company.get("industry33") in FINANCIAL_INDUSTRIES:
+        return False
+    revenue = metrics.get("revenue")
+    ordinary_revenue = metrics.get("ordinaryRevenue")
+    ordinary_income = metrics.get("ordinaryIncome")
+    if revenue in (None, 0) or ordinary_revenue is None or ordinary_income is None:
+        return False
+    revenue_source = sources.get("revenue")
+    ordinary_revenue_source = sources.get("ordinaryRevenue")
+    ordinary_income_source = sources.get("ordinaryIncome")
+    if not _source_is_nonconsolidated(revenue_source):
+        return False
+    if _source_is_nonconsolidated(ordinary_revenue_source) or _source_is_nonconsolidated(ordinary_income_source):
+        return False
+    if local_concept((ordinary_revenue_source or {}).get("concept", "")) != "OrdinaryIncomeSummaryOfBusinessResults":
+        return False
+    return abs(ordinary_revenue) >= abs(revenue) * 1.5
+
 def load_master() -> tuple[dict[str, dict], dict[str, dict]]:
     payload = json.loads((PUBLIC / "master.json").read_text(encoding="utf-8"))
     by_edinet = {x["edinetCode"]: x for x in payload["records"] if x.get("edinetCode")}
@@ -479,6 +504,14 @@ def normalize_document(doc: dict, company: dict) -> dict | None:
     from .source_corrections import CORRECTIONS, apply_verified_source_corrections
     source_correction_warnings = apply_verified_source_corrections(doc["docID"], metrics, sources)
 
+    ordinary_revenue_topline = should_use_ordinary_revenue_topline(company, metrics, sources, prefer_consolidated)
+    if ordinary_revenue_topline:
+        metrics["revenue"] = metrics["ordinaryRevenue"]
+        sources["revenue"] = {**sources["ordinaryRevenue"], "toplineBasis": "ordinaryRevenue"}
+        metrics["operatingIncome"] = None
+        sources.pop("operatingIncome", None)
+    financial_model = company.get("industry33") in FINANCIAL_INDUSTRIES or ordinary_revenue_topline
+
     presentation_recoveries = []
     if xbrl_path.exists():
         for metric in ("employees", "sharesOutstanding"):
@@ -533,6 +566,8 @@ def normalize_document(doc: dict, company: dict) -> dict | None:
         })
     if salary_anomaly:
         warnings.append({"type": "implausibleAverageSalary", "message": "XBRL presentation unit could not be recovered; value omitted"})
+    if ordinary_revenue_topline:
+        warnings.append({"type": "ordinaryRevenueTopline", "message": "Consolidated ordinary revenue is used as the group topline; standalone operating income is omitted"})
     assets = metrics.get("assets")
     liabilities = metrics.get("liabilities")
     equity = metrics.get("equity")
@@ -540,7 +575,7 @@ def normalize_document(doc: dict, company: dict) -> dict | None:
         gap = abs(assets - liabilities - equity)
         if gap / abs(assets) > 0.02:
             warnings.append({"type": "balanceSheetEquation", "gap": gap})
-    if company.get("industry33") in FINANCIAL_INDUSTRIES:
+    if financial_model:
         metrics["operatingMargin"] = None
         metrics["netMargin"] = None
         metrics["debtRatio"] = None
@@ -556,7 +591,8 @@ def normalize_document(doc: dict, company: dict) -> dict | None:
         "name": company["name"],
         "industry33": company.get("industry33"),
         "market": company.get("market"),
-        "sectorModel": "financial" if company.get("industry33") in FINANCIAL_INDUSTRIES else "general",
+        "sectorModel": "financial" if financial_model else "general",
+        "toplineBasis": "ordinaryRevenue" if ordinary_revenue_topline else None,
         "fiscalYear": (doc.get("periodEnd") or "")[:4] or None,
         "periodStart": doc.get("periodStart"),
         "periodEnd": doc.get("periodEnd"),

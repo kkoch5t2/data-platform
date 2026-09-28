@@ -38,24 +38,25 @@ function num(value, unit='') {
 function neg(value) { return Number(value)<0?'negative':''; }
 function isBank(company){return company.industry33==='銀行業';}
 function isInsurance(company){return company.industry33==='保険業';}
-function revenueMetric(company, metrics){
-  return isBank(company)?metrics.ordinaryRevenue:isInsurance(company)?(metrics.insuranceRevenue??metrics.ordinaryRevenue):metrics.revenue;
+function usesOrdinaryRevenueTopline(record){return record?.toplineBasis==='ordinaryRevenue';}
+function revenueMetric(company, metrics, record){
+  return isBank(company)?metrics.ordinaryRevenue:isInsurance(company)?(metrics.insuranceRevenue??metrics.ordinaryRevenue):usesOrdinaryRevenueTopline(record)?(metrics.ordinaryRevenue??metrics.revenue):metrics.revenue;
 }
-function revenueLabel(company){return isBank(company)?'経常収益':isInsurance(company)?'保険収益':'売上高';}
-function profitMetric(company, metrics){
-  return isBank(company)?metrics.ordinaryIncome:isInsurance(company)?metrics.profitBeforeTax:metrics.operatingIncome;
+function revenueLabel(company, record){return isBank(company)?'経常収益':isInsurance(company)?'保険収益':usesOrdinaryRevenueTopline(record)?'経常収益':'売上高';}
+function profitMetric(company, metrics, record){
+  return isBank(company)?metrics.ordinaryIncome:isInsurance(company)?metrics.profitBeforeTax:usesOrdinaryRevenueTopline(record)?metrics.ordinaryIncome:metrics.operatingIncome;
 }
-function profitLabel(company){return isBank(company)?'経常利益':isInsurance(company)?'税引前利益':'営業利益';}
+function profitLabel(company, record){return isBank(company)?'経常利益':isInsurance(company)?'税引前利益':usesOrdinaryRevenueTopline(record)?'経常利益':'営業利益';}
 function scriptJson(value){return JSON.stringify(value).replaceAll('<','\\u003c');}
 function renderKpis(company, latest) {
   if (!latest) return `<div class="card kpi"><div class="kpi-label">市場</div><div class="kpi-value">${esc(company.market)}</div><div class="kpi-sub">JPX公式一覧</div></div>
     <div class="card kpi"><div class="kpi-label">業種</div><div class="kpi-value" style="font-size:16px">${esc(company.industry33||'—')}</div><div class="kpi-sub">東証33業種</div></div>
     <div class="card kpi"><div class="kpi-label">EDINET</div><div class="kpi-value" style="font-size:18px">${esc(company.edinetCode||'未対応')}</div><div class="kpi-sub">金融庁コード</div></div>
     <div class="card kpi"><div class="kpi-label">連結財務</div><div class="kpi-value" style="font-size:18px">${company.consolidatedAvailable===true?'あり':company.consolidatedAvailable===false?'なし':'—'}</div><div class="kpi-sub">EDINETコードリスト</div></div>`;
-  const m=latest.metrics||{}, revenue=revenueMetric(company,m), profit=profitMetric(company,m);
-  const sub=(isBank(company)||isInsurance(company))?`ROE ${num(m.roe,'%')}`:`営業利益率 ${num(m.operatingMargin,'%')}`;
-  return `<div class="card kpi"><div class="kpi-label">${revenueLabel(company)}</div><div class="kpi-value ${neg(revenue)}">${esc(money(revenue))}</div><div class="kpi-sub">${esc(latest.periodEnd||'')}</div></div>
-    <div class="card kpi"><div class="kpi-label">${profitLabel(company)}</div><div class="kpi-value ${neg(profit)}">${esc(money(profit))}</div><div class="kpi-sub">${esc(sub)}</div></div>
+  const m=latest.metrics||{}, revenue=revenueMetric(company,m,latest), profit=profitMetric(company,m,latest);
+  const sub=(isBank(company)||isInsurance(company)||usesOrdinaryRevenueTopline(latest))?`ROE ${num(m.roe,'%')}`:`営業利益率 ${num(m.operatingMargin,'%')}`;
+  return `<div class="card kpi"><div class="kpi-label">${revenueLabel(company,latest)}</div><div class="kpi-value ${neg(revenue)}">${esc(money(revenue))}</div><div class="kpi-sub">${esc(latest.periodEnd||'')}</div></div>
+    <div class="card kpi"><div class="kpi-label">${profitLabel(company,latest)}</div><div class="kpi-value ${neg(profit)}">${esc(money(profit))}</div><div class="kpi-sub">${esc(sub)}</div></div>
     <div class="card kpi"><div class="kpi-label">当期純利益</div><div class="kpi-value ${neg(m.netIncome)}">${esc(money(m.netIncome))}</div><div class="kpi-sub">ROE ${esc(num(m.roe,'%'))}</div></div>
     <div class="card kpi"><div class="kpi-label">総資産</div><div class="kpi-value">${esc(money(m.assets))}</div><div class="kpi-sub">自己資本比率 ${esc(num(m.equityRatio,'%'))}</div></div>`;
 }
@@ -66,14 +67,14 @@ function seoDescription(company, latest, financials){
   const years=financials.length;
   const span=years>=2?`最大${years}期の業績推移、`:'';
   const salary=latest?.metrics?.averageSalary!=null?'・平均年収':'';
-  return `${company.name}（${company.securityCode}）の企業分析。${span}${revenueLabel(company)}・${profitLabel(company)}・純利益・ROE・総資産・キャッシュフロー${salary}をEDINET有価証券報告書から可視化。開示がある場合はセグメント・主要株主も掲載し、同業他社と比較できます。`;
+  return `${company.name}（${company.securityCode}）の企業分析。${span}${revenueLabel(company,latest)}・${profitLabel(company,latest)}・純利益・ROE・総資産・キャッシュフロー${salary}をEDINET有価証券報告書から可視化。開示がある場合はセグメント・主要株主も掲載し、同業他社と比較できます。`;
 }
 function renderSeoSummary(company, latest, financials){
   if(!latest) return `<section class="section card section-card"><div class="section-head"><h2>${esc(company.name)}の企業概要</h2></div><p>${esc(company.name)}は${esc(company.market)}上場、東証33業種では${esc(company.industry33||'業種未設定')}に分類される企業です。このページではJPXとEDINETの公式公開データを使い、確認できた企業情報だけを掲載しています。</p></section>`;
-  const m=latest.metrics||{}, revenue=revenueMetric(company,m), profit=profitMetric(company,m);
+  const m=latest.metrics||{}, revenue=revenueMetric(company,m,latest), profit=profitMetric(company,m,latest);
   const bits=[];
-  if(revenue!=null) bits.push(`${revenueLabel(company)}は${money(revenue)}`);
-  if(profit!=null) bits.push(`${profitLabel(company)}は${money(profit)}`);
+  if(revenue!=null) bits.push(`${revenueLabel(company,latest)}は${money(revenue)}`);
+  if(profit!=null) bits.push(`${profitLabel(company,latest)}は${money(profit)}`);
   if(m.netIncome!=null) bits.push(`当期純利益は${money(m.netIncome)}`);
   if(m.assets!=null) bits.push(`総資産は${money(m.assets)}`);
   if(m.averageSalary!=null) bits.push(`平均年間給与は${money(m.averageSalary)}`);
@@ -102,7 +103,7 @@ function renderFinancialSections(company, latest, financials) {
   if (!latest) return `<div class="notice"><b>財務データはまだこの企業ページに連携されていません。</b><br>会社情報を推測で埋めず、EDINETの原データを取得・検証できた項目だけ表示します。</div>`;
   const m=latest.metrics||{}, segments=latest.segments||[], holders=latest.majorShareholders||[];
   const treemap=segments.length>=2?`<section class="section card section-card"><div class="section-head"><div><h2>事業別の稼ぐ力</h2><p>面積＝セグメント売上、濃さ＝営業利益率。XBRLで正式名称と数値を確認できた企業のみ表示。</p></div><p>${esc(latest.periodEnd||'')}</p></div><div id="segment-treemap" class="chart"></div></section>`:'';
-  const timeline=financials.length?`<section class="section card section-card"><div class="section-head"><div><h2>10年の業績推移</h2></div><p>${revenueLabel(company)}（棒） / ${profitLabel(company)}（線）</p></div><div id="financial-timeline" class="chart"></div></section>`:'';
+  const timeline=financials.length?`<section class="section card section-card"><div class="section-head"><div><h2>10年の業績推移</h2></div><p>${revenueLabel(company,latest)}（棒） / ${profitLabel(company,latest)}（線）</p></div><div id="financial-timeline" class="chart"></div></section>`:'';
   const balance=`<section class="section two"><div class="card section-card"><div class="section-head"><h2>資産と負債</h2><p>最新年度</p></div><div class="mini-grid">${mini('総資産',m.assets)}${mini('負債',m.liabilities)}${mini('純資産',m.equity)}${mini('現預金',m.cash)}</div></div><div class="card section-card"><div class="section-head"><h2>キャッシュフロー</h2><p>最新年度</p></div><div class="mini-grid">${mini('営業CF',m.operatingCashFlow)}${mini('投資CF',m.investingCashFlow)}${mini('財務CF',m.financingCashFlow)}${mini('FCF',m.freeCashFlow)}</div></div></section>`;
   const work=`<section class="section card section-card"><div class="section-head"><div><h2>働くデータ</h2></div><p>有価証券報告書に会社別で開示された値のみ</p></div><div class="facts">${fact('従業員数',num(m.employees,'人'))}${fact('平均年間給与',money(m.averageSalary))}${fact('平均年齢',num(m.averageAge,'歳'))}${fact('平均勤続年数',num(m.averageTenure,'年'))}</div></section>`;
   const ownership=holders.length?`<section class="section card section-card"><div class="section-head"><div><h2>主要株主ネットワーク</h2><p>有価証券報告書の主要株主と持株比率。上場企業として一意に照合できた株主は企業ページへ移動できます。</p></div><p>${esc(latest.periodEnd||'')}</p></div><div id="ownership-network" class="chart"></div><p class="source">線の太さ＝持株比率。上場企業マスタと一意に対応しない株主は名称のみ表示します。子会社・系列関係は検証済みデータが揃うまで混在させません。</p></section>`:'';
@@ -113,10 +114,10 @@ function renderCompany(item) {
   const company=item.company, financials=item.financials||[], latest=item.latest, metrics=latest?.metrics||{};
   const chartRows=financials.map(r=>({
     periodEnd:r.periodEnd,
-    revenue:revenueMetric(company,r.metrics||{}),
-    profit:profitMetric(company,r.metrics||{})
+    revenue:revenueMetric(company,r.metrics||{},r),
+    profit:profitMetric(company,r.metrics||{},r)
   }));
-  const chartPayload={rows:chartRows,revenueLabel:revenueLabel(company),profitLabel:profitLabel(company),segments:latest?.segments||[],shareholders:latest?.majorShareholders||[],companyName:company.name,companyCode:company.securityCode};
+  const chartPayload={rows:chartRows,revenueLabel:revenueLabel(company,latest),profitLabel:profitLabel(company,latest),segments:latest?.segments||[],shareholders:latest?.majorShareholders||[],companyName:company.name,companyCode:company.securityCode};
   const industryUrl=company.industry33?`/listed-companies/industries/${encodeURIComponent(company.industry33)}/`:'/listed-companies/';
   const canonical=`https://datlume.com/listed-companies/${company.securityCode}/`;
   const title=seoTitle(company,latest), description=seoDescription(company,latest,financials);
