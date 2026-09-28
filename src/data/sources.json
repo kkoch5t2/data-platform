@@ -271,15 +271,16 @@
     "social_population": {
       "label": "e-Stat 統計ダッシュボード（社会・人口統計体系）",
       "status": "ok",
-      "startedAt": "2026-09-28T11:03:30.408636+00:00",
-      "finishedAt": "2026-09-28T11:03:51.074089+00:00",
-      "durationSeconds": 20.67,
+      "startedAt": "2026-09-28T16:45:57.824990+00:00",
+      "finishedAt": "2026-09-28T16:46:15.116684+00:00",
+      "durationSeconds": 17.29,
       "metrics": {
         "records": 1741,
         "municipalities": 1741,
-        "metricCount": 7,
-        "minCoverageRate": 60.83
-      }
+        "metricCount": 5,
+        "minCoverageRate": 98.68
+      },
+      "previousRecordCount": 1741
     },
     "retail_prices_city": {
       "label": "総務省統計局 小売物価統計調査（動向編）都市別小売価格",
@@ -295,6 +296,20 @@
         "latestMonth": "2026-08"
       },
       "previousRecordCount": 26208
+    },
+    "housing_land_2023": {
+      "label": "総務省統計局 令和5年住宅・土地統計調査（確報）",
+      "status": "ok",
+      "startedAt": "2026-09-28T16:44:45.823481+00:00",
+      "finishedAt": "2026-09-28T16:44:52.912403+00:00",
+      "durationSeconds": 7.09,
+      "metrics": {
+        "records": 1059,
+        "municipalities": 1059,
+        "year": 2023,
+        "nationalHousing": 65046700,
+        "nationalVacancyRate": 13.84
+      }
     }
   }
 }

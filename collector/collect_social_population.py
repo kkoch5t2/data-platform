@@ -23,8 +23,6 @@ API_GUIDE = "https://dashboard.e-stat.go.jp/static/api"
 UA = {"User-Agent": "DATLUME/1.0 (+https://datlume.com/)"}
 
 METRICS = [
-    {"metricId":"municipality.housing.vacant_houses","field":"vacantHouses","label":"空き家数","indicatorCode":"0801010101000010040","cycle":3,"unit":"戸","integer":True,"minCoverage":0.60},
-    {"metricId":"municipality.housing.vacant_house_rate","field":"vacantHouseRate","label":"空き家率","indicatorCode":"0801010101000020040","cycle":4,"unit":"%","minCoverage":0.60},
     {"metricId":"municipality.health.physicians","field":"physicians","label":"医師数","indicatorCode":"1505040000000010000","cycle":3,"unit":"人","integer":True,"minCoverage":0.99},
     {"metricId":"municipality.health.hospital_beds","field":"hospitalBeds","label":"病院病床数","indicatorCode":"1505030000000010000","cycle":3,"unit":"床","integer":True,"minCoverage":0.99},
     {"metricId":"municipality.environment.waste_daily_per_capita","field":"wasteDailyPerCapita","label":"1人1日当たりごみ排出量","indicatorCode":"1405050102000010010","cycle":4,"unit":"g/人日","minCoverage":0.98},

@@ -13,12 +13,13 @@
     "collect": "node scripts/run-python.cjs collector/run_all.py",
     "collect:realestate": "node scripts/run-python.cjs collector/collect_land_prices.py",
     "collect:living": "node scripts/run-python.cjs collector/collect_living_layers.py",
+    "collect:housing-land-2023": "node scripts/run-python.cjs collector/collect_housing_land_2023.py",
     "health": "node scripts/run-python.cjs collector/check_health.py",
     "release:check": "npm audit --omit=dev && npm run health && npm run audit:data && npm run build && npm run audit:html",
     "e2e": "node scripts/e2e-smoke.cjs && node scripts/e2e-deep.cjs",
     "e2e:smoke": "node scripts/e2e-smoke.cjs",
     "e2e:deep": "node scripts/e2e-deep.cjs",
-    "audit:data": "node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && npm run audit:retail-prices-city && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py",
+    "audit:data": "node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && npm run audit:housing-land-2023 && npm run audit:retail-prices-city && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py",
     "audit:html": "node scripts/run-python.cjs scripts/audit-generated-html.py",
     "collect:listed-master": "node scripts/run-python.cjs -m collector.listed_companies.collect_master",
     "collect:listed-documents": "node scripts/run-python.cjs -m collector.listed_companies.collect_documents",
@@ -39,7 +40,8 @@
     "audit:listed-source": "node scripts/run-python.cjs scripts/audit-listed-source-values.py",
     "collect:social-population": "node scripts/run-python.cjs collector/collect_social_population.py",
     "collect:retail-prices-city": "node scripts/run-python.cjs collector/collect_retail_prices_city.py",
-    "audit:retail-prices-city": "node scripts/run-python.cjs scripts/audit-retail-prices-city.py"
+    "audit:retail-prices-city": "node scripts/run-python.cjs scripts/audit-retail-prices-city.py",
+    "audit:housing-land-2023": "node scripts/run-python.cjs scripts/audit-housing-land-2023.py"
   },
   "dependencies": {
     "astro": "^7.3.4",

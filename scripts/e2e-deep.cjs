@@ -136,6 +136,18 @@ async function checkRealestateMapPalette(page,label,failures) {
     if(kind==='single'&&!String(state.legend||'').includes('単身世帯率'))failures.push(label+' single-household legend missing');
     if(kind==='migration'&&!String(state.legend||'').includes('人口移動'))failures.push(label+' migration legend missing');
   }
+  const housingMeta=await page.evaluate(async()=>{const r=await fetch('/data/housing-land-2023.json');if(!r.ok)return{};const d=await r.json();return{count:d.records?.length,national:d.national,surveyDate:d.surveyDate}}).catch(()=>({}));
+  if(housingMeta.count!==1059||housingMeta.surveyDate!=='2023-10-01')failures.push(label+' housing dataset coverage invalid: '+JSON.stringify(housingMeta));
+  for(const [kind,colors,legendText] of [['vacancy',['#ccfbf1','#0f766e'],'空き家率（2023）'],['owner',['#e0f2fe','#075985'],'持ち家率（2023）']]){
+    await page.evaluate(k=>{const el=document.querySelector('#stat-layer');if(el){el.value=k;el.dispatchEvent(new Event('change',{bubbles:true}));}},kind).catch(()=>{});
+    await page.waitForFunction(()=>window.__DATLUME_MAP__?.getLayer?.('housing-stat-points'),{timeout:5000}).catch(()=>{});
+    await page.waitForTimeout(120);
+    const state=await page.evaluate(()=>({paint:window.__DATLUME_MAP__?.getPaintProperty?.('housing-stat-points','circle-color'),visible:window.__DATLUME_MAP__?.getLayoutProperty?.('housing-stat-points','visibility'),legend:document.querySelector('#legend')?.textContent||''})).catch(()=>({}));
+    const enc=JSON.stringify(state.paint||[]);
+    for(const color of colors)if(!enc.includes(color))failures.push(label+' '+kind+' housing palette missing '+color);
+    if(state.visible==='none')failures.push(label+' '+kind+' housing layer did not become visible');
+    if(!String(state.legend||'').includes(legendText))failures.push(label+' '+kind+' housing legend missing');
+  }
 }
 
 async function checkRegionalMunicipal(page,label,failures) {
@@ -154,6 +166,9 @@ async function checkRegionalMunicipal(page,label,failures) {
   await page.selectOption('#municipal-pref','').catch(()=>{});await page.selectOption('#municipal-metric','vacantHouseRate').catch(()=>{});await page.waitForTimeout(150);
   const vacancy=(await page.locator('#municipal-status').textContent().catch(()=>''))?.trim();
   if(!(vacancy||'').includes('1,059市区町村')||!(vacancy||'').includes('空き家率')||!(vacancy||'').includes('2023年値'))failures.push(label+' municipal vacancy filter failed: '+vacancy);
+  await page.selectOption('#municipal-metric','ownerOccupiedRate').catch(()=>{});await page.waitForTimeout(150);
+  const owner=(await page.locator('#municipal-status').textContent().catch(()=>''))?.trim();
+  if(!(owner||'').includes('1,059市区町村')||!(owner||'').includes('持ち家率')||!(owner||'').includes('2023年値'))failures.push(label+' municipal owner-occupied filter failed: '+owner);
   await page.selectOption('#municipal-metric','physicians').catch(()=>{});await page.waitForTimeout(150);
   const physicians=(await page.locator('#municipal-status').textContent().catch(()=>''))?.trim();
   if(!(physicians||'').includes('1,741市区町村')||!(physicians||'').includes('医師数')||!(physicians||'').includes('2022年値'))failures.push(label+' municipal physician filter failed: '+physicians);
