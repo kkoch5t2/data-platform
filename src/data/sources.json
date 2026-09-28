@@ -310,6 +310,20 @@
         "nationalHousing": 65046700,
         "nationalVacancyRate": 13.84
       }
+    },
+    "reinfolib_transactions": {
+      "label": "国土交通省 不動産情報ライブラリ「不動産取引価格情報」",
+      "status": "ok",
+      "startedAt": "2026-09-28T23:04:44.724240+00:00",
+      "finishedAt": "2026-09-28T23:04:50.432163+00:00",
+      "durationSeconds": 5.71,
+      "metrics": {
+        "records": 1703,
+        "transactionRecords": 321682,
+        "publishedResidentialRecords": 278595,
+        "latestPeriod": "2026Q1",
+        "acquisition": "official-web-csv-bootstrap"
+      }
     }
   }
 }
