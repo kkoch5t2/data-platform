@@ -72,18 +72,19 @@
       "previousRecordCount": 47
     },
     "business_industry": {
-      "label": "統計センター SSDSE-E-2026",
+      "label": "総務省統計局 令和6年経済センサス‐基礎調査（確報）",
       "status": "ok",
-      "startedAt": "2026-09-24T18:40:20.944781+00:00",
-      "finishedAt": "2026-09-24T18:40:21.057861+00:00",
-      "durationSeconds": 0.11,
+      "startedAt": "2026-09-28T16:12:17.637372+00:00",
+      "finishedAt": "2026-09-28T16:12:26.142323+00:00",
+      "durationSeconds": 8.5,
       "metrics": {
         "records": 47,
         "prefectures": 47,
-        "year": 2021,
-        "establishments": 5156063,
-        "employees": 57949915
-      }
+        "year": 2024,
+        "establishments": 4023941,
+        "employees": 56285043
+      },
+      "previousRecordCount": 47
     },
     "economy_prices": {
       "label": "総務省統計局 小売物価統計調査（構造編）",
