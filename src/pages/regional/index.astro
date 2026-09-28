@@ -50,9 +50,9 @@ const latestRows=data.records.filter((r)=>r.year===latest);
     <div class="card chart-card"><div class="chart-head"><div><h2 id="ranking-title">ランキング</h2><div id="ranking-sub" class="chart-sub">—</div></div></div><div id="ranking" class="chart"></div></div>
   </section>
   <section class="card history-card">
-    <div class="history-head"><div><h2>市区町村を比べる</h2><p>SSDSE-A-2026の1,741市区町村。人口、高齢化、単身世帯、転入転出、自然増減を必要なときだけ読み込み、全国または都道府県内で比較します。</p></div><button id="municipal-load" class="load-btn" type="button">市区町村データを読み込む</button></div>
+    <div class="history-head"><div><h2>市区町村を比べる</h2><p>1,741市区町村の人口・世帯に、空き家、医療、ごみ、図書館などの公的統計を重ねて比較します。指標ごとに公表自治体数と年度が異なります。</p></div><button id="municipal-load" class="load-btn" type="button">市区町村データを読み込む</button></div>
     <div id="municipal-body" hidden>
-      <div class="history-tools"><select id="municipal-pref"><option value="">全国</option></select><select id="municipal-metric"><option value="population">総人口</option><option value="elderlyRate">高齢化率</option><option value="singleHouseholdRate">単身世帯率</option><option value="netMigration">転入超過・転出超過</option><option value="naturalChange">出生−死亡</option><option value="foreignRate">外国人人口比率</option></select><select id="municipal-order"><option value="desc">高い順</option><option value="asc">低い順</option></select></div>
+      <div class="history-tools"><select id="municipal-pref"><option value="">全国</option></select><select id="municipal-metric"><option value="population">総人口</option><option value="elderlyRate">高齢化率</option><option value="singleHouseholdRate">単身世帯率</option><option value="netMigration">転入超過・転出超過</option><option value="naturalChange">出生−死亡</option><option value="foreignRate">外国人人口比率</option><option value="vacantHouseRate">空き家率</option><option value="vacantHouses">空き家数</option><option value="physicians">医師数</option><option value="hospitalBeds">病院病床数</option><option value="wasteDailyPerCapita">1人1日当たりごみ排出量</option><option value="recyclingRate">ごみリサイクル率</option><option value="libraries">図書館数</option></select><select id="municipal-order"><option value="desc">高い順</option><option value="asc">低い順</option></select></div>
       <div id="municipal-chart" class="history-chart"></div><div id="municipal-status" class="history-status"></div>
     </div>
   </section>
@@ -68,7 +68,7 @@ const latestRows=data.records.filter((r)=>r.year===latest);
     <div class="card insight"><strong>地価上昇を見る</strong><span>「住宅地平均価格」→「期間で増えた順」で、住宅地価格の上昇率を比較できます。</span></div>
     <div class="card insight"><strong>平均との差を見る</strong><span>選択した都道府県Aの最新値と47都道府県の単純平均との差を上のカードに表示します。</span></div>
   </section>
-  <div class="note">出典：独立行政法人 統計センター「SSDSE-B-2026（県別推移）」。都道府県平均は各年の収録値の単純平均です。「求人倍率（参考）」は月間有効求人数÷月間有効求職者数を当サイトで計算した参考値です。指標ごとに元統計の時点・定義が異なります。</div>
+  <div class="note">出典：独立行政法人 統計センター「SSDSE-B-2026（県別推移）」「SSDSE-A-2026」。市区町村の追加指標は「e-Stat 統計ダッシュボード」（https://dashboard.e-stat.go.jp/）を加工して作成。都道府県平均は各年の収録値の単純平均です。「求人倍率（参考）」は月間有効求人数÷月間有効求職者数を当サイトで計算した参考値です。指標ごとに元統計の時点・定義・公表自治体数が異なります。</div>
   <section class="pref-list"><h2>指標から見る</h2><div class="pref-grid"><a href="/regional/indicators/population/">総人口</a><a href="/regional/indicators/elderly-rate/">高齢化率</a><a href="/regional/indicators/net-migration/">人口純移動</a><a href="/regional/indicators/job-opening-ratio/">求人倍率（参考）</a><a href="/regional/indicators/housing-starts/">住宅着工</a><a href="/regional/indicators/hotel-nights/">宿泊者数</a><a href="/regional/indicators/foreign-stay-share/">外国人宿泊比率</a><a href="/regional/indicators/land-price/">住宅地価格</a></div></section>
   <section class="pref-list"><h2>都道府県から見る</h2><div class="pref-grid">{data.prefectures.map((p)=><a href={`/regional/prefectures/${encodeURIComponent(p)}/`}>{p}</a>)}</div></section>
 </main>
@@ -93,7 +93,7 @@ let migrationData=null,migrationChart=null;
 const migrationLoad=document.getElementById('migration-load'),migrationBody=document.getElementById('migration-body'),migrationMetric=document.getElementById('migration-metric'),migrationFrom=document.getElementById('migration-from');
 let municipalData=null,municipalChart=null;
 const municipalLoad=document.getElementById('municipal-load'),municipalBody=document.getElementById('municipal-body'),municipalPref=document.getElementById('municipal-pref'),municipalMetric=document.getElementById('municipal-metric'),municipalOrder=document.getElementById('municipal-order'),municipalStatus=document.getElementById('municipal-status');
-const municipalDefs={population:{label:'総人口',unit:'人',digits:0,yearKey:'population'},elderlyRate:{label:'高齢化率',unit:'%',digits:1,yearKey:'population'},singleHouseholdRate:{label:'単身世帯率',unit:'%',digits:1,yearKey:'households'},netMigration:{label:'転入超過・転出超過',unit:'人',digits:0,yearKey:'migration'},naturalChange:{label:'出生−死亡',unit:'人',digits:0,yearKey:'vital'},foreignRate:{label:'外国人人口比率',unit:'%',digits:2,yearKey:'population'}};
+const municipalDefs={population:{label:'総人口',unit:'人',digits:0,yearKey:'population'},elderlyRate:{label:'高齢化率',unit:'%',digits:1,yearKey:'population'},singleHouseholdRate:{label:'単身世帯率',unit:'%',digits:1,yearKey:'households'},netMigration:{label:'転入超過・転出超過',unit:'人',digits:0,yearKey:'migration'},naturalChange:{label:'出生−死亡',unit:'人',digits:0,yearKey:'vital'},foreignRate:{label:'外国人人口比率',unit:'%',digits:2,yearKey:'population'},vacantHouseRate:{label:'空き家率',unit:'%',digits:2,yearKey:'vacantHouseRate'},vacantHouses:{label:'空き家数',unit:'戸',digits:0,yearKey:'vacantHouses'},physicians:{label:'医師数',unit:'人',digits:0,yearKey:'physicians'},hospitalBeds:{label:'病院病床数',unit:'床',digits:0,yearKey:'hospitalBeds'},wasteDailyPerCapita:{label:'1人1日当たりごみ排出量',unit:'g/人日',digits:1,yearKey:'wasteDailyPerCapita'},recyclingRate:{label:'ごみリサイクル率',unit:'%',digits:2,yearKey:'recyclingRate'},libraries:{label:'図書館数',unit:'館',digits:0,yearKey:'libraries'}};
 const nfmt=new Intl.NumberFormat('ja-JP',{maximumFractionDigits:2});
 const valid=v=>v!==null&&v!==undefined&&Number.isFinite(Number(v));
 const fmt=(v,unit='')=>valid(v)?nfmt.format(Number(v))+unit:'—';
@@ -154,7 +154,9 @@ async function loadMunicipal(){
   if(municipalData){municipalBody.hidden=false;drawMunicipal();return}
   municipalLoad.disabled=true;municipalLoad.textContent='読み込み中…';
   try{
-    const r=await fetch('/data/municipality-stats-2026.json');if(!r.ok)throw new Error('取得失敗');municipalData=await r.json();
+    const [baseResponse,socialResponse]=await Promise.all([fetch('/data/municipality-stats-2026.json'),fetch('/data/municipality-social-indicators.json')]);if(!baseResponse.ok||!socialResponse.ok)throw new Error('取得失敗');const base=await baseResponse.json(),social=await socialResponse.json();
+    const socialByCode=new Map(social.records.map(r=>[r.code,r]));const extraYears=Object.fromEntries(social.metrics.map(m=>[m.field,m.year]));
+    municipalData={...base,years:{...(base.years||{}),...extraYears},records:base.records.map(r=>({...r,...(socialByCode.get(r.code)||{}),code:r.code,prefecture:r.prefecture,municipality:r.municipality}))};
     const prefs=[...new Set(municipalData.records.map(r=>r.prefecture))].sort((a,b)=>a.localeCompare(b,'ja'));
     for(const name of prefs){const o=document.createElement('option');o.value=name;o.textContent=name;municipalPref.appendChild(o)}
     municipalBody.hidden=false;municipalChart=echarts.init(document.getElementById('municipal-chart'));municipalLoad.textContent='読み込み済み';drawMunicipal();

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "description": "Raw sources may overlap, but each public metric has exactly one canonical publication target. Alternative sources are QA/comparison inputs unless promoted explicitly.",
+    "sourcePriority": ["primary_official", "official_repackaged", "official_open_data", "datlume_derived"]
+  },
+  "sources": {
+    "ssdse_a_2026": {"tier": "official_open_data", "label": "統計センター SSDSE-A-2026"},
+    "estat_dashboard_social_population": {"tier": "official_repackaged", "label": "e-Stat 統計ダッシュボード（社会・人口統計体系）"}
+  },
+  "metrics": [
+    {"metricId":"municipality.population.total","label":"総人口","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"population"}},
+    {"metricId":"municipality.households.total","label":"世帯数","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"households"}},
+    {"metricId":"municipality.population.elderly_rate","label":"高齢化率","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"elderlyRate"}},
+    {"metricId":"municipality.households.single_rate","label":"単身世帯率","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"singleHouseholdRate"}},
+    {"metricId":"municipality.migration.in","label":"転入者数","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"inMigrants"}},
+    {"metricId":"municipality.migration.out","label":"転出者数","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"outMigrants"}},
+    {"metricId":"municipality.migration.net","label":"転入超過数","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"netMigration"}},
+    {"metricId":"municipality.vital.births","label":"出生数","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"births"}},
+    {"metricId":"municipality.vital.deaths","label":"死亡数","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"deaths"}},
+    {"metricId":"municipality.population.foreign","label":"外国人人口","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"foreignPopulation"}},
+    {"metricId":"municipality.health.hospitals","label":"病院数","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"hospitalCount"}},
+    {"metricId":"municipality.health.clinics","label":"一般診療所数","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"clinicCount"}},
+    {"metricId":"municipality.health.dental_clinics","label":"歯科診療所数","canonical":{"source":"ssdse_a_2026","dataset":"municipality-stats-2026.json","field":"dentalCount"}},
+    {"metricId":"municipality.housing.vacant_houses","label":"空き家数","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"vacantHouses"}},
+    {"metricId":"municipality.housing.vacant_house_rate","label":"空き家率","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"vacantHouseRate"}},
+    {"metricId":"municipality.health.physicians","label":"医師数","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"physicians"}},
+    {"metricId":"municipality.health.hospital_beds","label":"病院病床数","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"hospitalBeds"}},
+    {"metricId":"municipality.environment.waste_daily_per_capita","label":"1人1日当たりごみ排出量","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"wasteDailyPerCapita"}},
+    {"metricId":"municipality.environment.recycling_rate","label":"ごみリサイクル率","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"recyclingRate"}},
+    {"metricId":"municipality.education.libraries","label":"図書館数","canonical":{"source":"estat_dashboard_social_population","dataset":"municipality-social-indicators.json","field":"libraries"}}
+  ]
+}
