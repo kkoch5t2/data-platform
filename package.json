@@ -18,7 +18,7 @@
     "e2e": "node scripts/e2e-smoke.cjs && node scripts/e2e-deep.cjs",
     "e2e:smoke": "node scripts/e2e-smoke.cjs",
     "e2e:deep": "node scripts/e2e-deep.cjs",
-    "audit:data": "node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py",
+    "audit:data": "node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && npm run audit:retail-prices-city && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py",
     "audit:html": "node scripts/run-python.cjs scripts/audit-generated-html.py",
     "collect:listed-master": "node scripts/run-python.cjs -m collector.listed_companies.collect_master",
     "collect:listed-documents": "node scripts/run-python.cjs -m collector.listed_companies.collect_documents",
@@ -37,7 +37,9 @@
     "validate:listed-financials": "node scripts/run-python.cjs scripts/audit-listed-normalized.py",
     "audit:listed-cross-filing": "node scripts/run-python.cjs scripts/audit-listed-cross-filing.py",
     "audit:listed-source": "node scripts/run-python.cjs scripts/audit-listed-source-values.py",
-    "collect:social-population": "node scripts/run-python.cjs collector/collect_social_population.py"
+    "collect:social-population": "node scripts/run-python.cjs collector/collect_social_population.py",
+    "collect:retail-prices-city": "node scripts/run-python.cjs collector/collect_retail_prices_city.py",
+    "audit:retail-prices-city": "node scripts/run-python.cjs scripts/audit-retail-prices-city.py"
   },
   "dependencies": {
     "astro": "^7.3.4",

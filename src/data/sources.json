@@ -279,6 +279,21 @@
         "metricCount": 7,
         "minCoverageRate": 60.83
       }
+    },
+    "retail_prices_city": {
+      "label": "総務省統計局 小売物価統計調査（動向編）都市別小売価格",
+      "status": "ok",
+      "startedAt": "2026-09-28T14:26:26.010372+00:00",
+      "finishedAt": "2026-09-28T14:27:13.382516+00:00",
+      "durationSeconds": 47.37,
+      "metrics": {
+        "records": 25268,
+        "months": 24,
+        "cities": 84,
+        "items": 13,
+        "latestMonth": "2026-08"
+      },
+      "previousRecordCount": 26208
     }
   }
 }
