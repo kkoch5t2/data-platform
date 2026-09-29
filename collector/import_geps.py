@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import argparse, csv, hashlib, json, sqlite3
+import argparse, csv, hashlib, json, re, sqlite3, unicodedata
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -59,6 +59,32 @@ def record_id(row):
     raw='|'.join(row)
     return hashlib.sha1(raw.encode('utf-8')).hexdigest()[:16]
 
+_UNIT_RATE_RE = re.compile(
+    r'(?:A重油|重油|灯油|軽油|ガソリン|プロパンガス|燃料|電力|電気).*(?:供給|契約|購入)'
+    r'|(?:供給|契約|購入).*(?:A重油|重油|灯油|軽油|ガソリン|プロパンガス|燃料|電力|電気)'
+    r'|(?:労働者|人材)?派遣'
+    r'|(?:精麦|白麦|主食パン|給食).*(?:供給|契約|調達|購入)'
+)
+
+def geps_amount_fields(title, price):
+    dec=Decimal(str(price))
+    normalized=unicodedata.normalize('NFKC', title or '')
+    is_unit=(dec != dec.to_integral_value() or '単価' in normalized or
+             (dec < 10000 and _UNIT_RATE_RE.search(normalized)))
+    if is_unit:
+        return None, f'落札価格（単価）: {dec}円'
+    return int(dec), None
+
+def normalize_existing_unit_prices(conn):
+    changed=0
+    rows=conn.execute("SELECT source_id,title,award_amount FROM procurements WHERE source_id LIKE 'geps:%' AND award_amount IS NOT NULL").fetchall()
+    for source_id,title,price in rows:
+        amount,detail=geps_amount_fields(title,price)
+        if amount is None:
+            conn.execute('UPDATE procurements SET award_amount=NULL,detail_text=? WHERE source_id=?',(detail,source_id))
+            changed+=1
+    return changed
+
 def iter_rows(paths, start, end):
     for path in paths:
         with open(path, encoding='utf-8-sig', newline='') as f:
@@ -73,8 +99,7 @@ def upsert(conn, row):
     if not agency:
         raise ValueError(f'unknown GEPS ministry code: {ministry_cd}')
     method=BID_METHODS.get(method_cd,method_cd)
-    decimal_amount=Decimal(price)
-    amount=int(decimal_amount) if decimal_amount==decimal_amount.to_integral_value() else float(decimal_amount)
+    amount,price_detail=geps_amount_fields(title,price)
     is_it,tags,category,category_tags=classify(title)
     org_id=stable_id('org',agency) if agency else None
     company_id=stable_id('co',winner) if winner else None
@@ -97,10 +122,10 @@ def upsert(conn, row):
        category_tags_json=excluded.category_tags_json,tags_json=excluded.tags_json,
        detail_fetched=1,award_date=excluded.award_date,contract_method=excluded.contract_method,
        award_method=excluded.award_method,winner_name=excluded.winner_name,
-       company_id=excluded.company_id,award_amount=excluded.award_amount,collected_at=excluded.collected_at''',
+       company_id=excluded.company_id,award_amount=excluded.award_amount,detail_text=excluded.detail_text,collected_at=excluded.collected_at''',
       (source_id,xid,aid,title,award_date,agency,org_id,'落札実績（調達ポータル）',SOURCE_URL,int(is_it),
        category,json.dumps(category_tags,ensure_ascii=False),json.dumps(tags,ensure_ascii=False),1,
-       award_date,method,award_method_label(method),winner or None,company_id,amount,None,None,now))
+       award_date,method,award_method_label(method),winner or None,company_id,amount,None,price_detail,now))
 def main():
     p=argparse.ArgumentParser()
     p.add_argument('--start',default='2020-01-01')
@@ -113,7 +138,9 @@ def main():
         upsert(conn,row); count+=1
         if count%5000==0:
             conn.commit(); print('imported',count,flush=True)
+    normalized=normalize_existing_unit_prices(conn)
     conn.commit()
+    print('normalized unit prices',normalized)
     summary=export_json(conn)
     print('imported',count,'stored',summary['records'])
 

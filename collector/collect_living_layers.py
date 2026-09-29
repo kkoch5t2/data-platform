@@ -13,6 +13,7 @@ ACCIDENT = 'https://www.npa.go.jp/publications/statistics/koutsuu/opendata/2024/
 SCHOOL = 'https://nlftp.mlit.go.jp/ksj/gml/data/P29/P29-23/P29-23_GML.zip'
 HOSPITAL = 'https://nlftp.mlit.go.jp/ksj/gml/data/P04/P04-20/P04-20_GML.zip'
 STATION = 'https://nlftp.mlit.go.jp/ksj/gml/data/N02/N02-25/N02-25_GML.zip'
+ADMIN_AREA = 'https://nlftp.mlit.go.jp/ksj/gml/data/N03/N03-2025/N03-20250101_{pref}_GML.zip'
 
 def fetch(url, timeout=120):
     req=urllib.request.Request(url,headers=UA)
@@ -63,6 +64,29 @@ def build_municipal_stats():
           'dentalCount':to_int(r[by_name['歯科診療所数']])})
     return stats
 
+def polygon_centroid(ring):
+    if not ring or len(ring) < 3: return None
+    area2=cx=cy=0.0
+    for a,b in zip(ring,ring[1:]+ring[:1]):
+        cross=a[0]*b[1]-b[0]*a[1]
+        area2+=cross; cx+=(a[0]+b[0])*cross; cy+=(a[1]+b[1])*cross
+    if abs(area2)<1e-12:
+        return (sum(x for x,_ in ring)/len(ring),sum(y for _,y in ring)/len(ring),1.0)
+    return (cx/(3*area2),cy/(3*area2),abs(area2)/2)
+
+def geometry_centroid(geometry):
+    if not geometry: return None
+    coords=geometry.get('coordinates') or []
+    polys=[coords] if geometry.get('type')=='Polygon' else coords if geometry.get('type')=='MultiPolygon' else []
+    parts=[]
+    for poly in polys:
+        if poly:
+            c=polygon_centroid(poly[0])
+            if c: parts.append(c)
+    if not parts: return None
+    w=sum(x[2] for x in parts)
+    return (sum(x[0]*x[2] for x in parts)/w,sum(x[1]*x[2] for x in parts)/w,w)
+
 def attach_centroids(stats):
     land=[]
     for name in ('land-prices-2026.json','land-survey-2026.json'):
@@ -98,6 +122,23 @@ def attach_centroids(stats):
             if p:
                 s['lon']=round(sum(x[0] for x in p)/len(p),5); s['lat']=round(sum(x[1] for x in p)/len(p),5)
     except Exception as e: print('school centroid warning',e)
+    # Final fallback: official MLIT administrative boundaries. Some small villages
+    # have neither land-price observations nor school points in the source layers.
+    missing=[s for s in stats if 'lon' not in s]
+    for pref in sorted({s['code'][:2] for s in missing}):
+        try:
+            obj=geojson_from_zip(ADMIN_AREA.format(pref=pref),f'_{pref}.geojson')
+            centers=defaultdict(list)
+            for f in obj.get('features',[]):
+                props=f.get('properties') or {}; code=str(props.get('N03_007') or '')
+                c=geometry_centroid(f.get('geometry'))
+                if code and c: centers[code].append(c)
+            for row in missing:
+                if row['code'][:2]!=pref or not centers.get(row['code']): continue
+                pts=centers[row['code']]; weight=sum(x[2] for x in pts)
+                row['lon']=round(sum(x[0]*x[2] for x in pts)/weight,5)
+                row['lat']=round(sum(x[1]*x[2] for x in pts)/weight,5)
+        except Exception as e: print('admin centroid warning',pref,e)
     return stats
 
 def build_pref_population():
