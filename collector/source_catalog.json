@@ -287,10 +287,10 @@
       "command": ["python3", "collector/collect_kawasaki_procurement.py"],
       "country": "JP",
       "domain": "procurement",
-      "note": "川崎市公式の落札結果から工事・委託・物品を収集。財政局・上下水道局を対象。"
+      "note": "川崎市公式の落札結果を収集。財政局・上下水道局は電子調達、交通局は工事・委託・物品の公開結果、病院局は月別入札結果を対象。交通局・病院局の画像PDFはOCRせず、公式一覧とPDF文字層で確実に確認できる案件・日付・方式・落札情報まで収録。"
     },
     "sendai_procurement": {
-      "label": "仙台市 本庁契約課 発注情報（物品・委託）",
+      "label": "仙台市 入札・契約結果 / 本庁契約課発注情報",
       "enabled": true,
       "frequency": "daily",
       "maxAgeHours": 48,
@@ -299,7 +299,7 @@
       "command": ["python3", "collector/collect_sendai_procurement.py"],
       "country": "JP",
       "domain": "procurement",
-      "note": "仙台市公式の本庁契約課発注情報から物品・委託を収集。工事・コンサルは別系統のため本collectorの対象外。"
+      "note": "仙台市の一般公開入札情報システムから工事・コンサル・物品役務の入札・見積結果を収集し、本庁契約課の未結果発注情報も補完。公開システムで結果が確認できる2023年度以降を正規収録。"
     },
     "reinfolib_transactions": {
       "label": "国土交通省 不動産情報ライブラリ 不動産取引価格情報",
