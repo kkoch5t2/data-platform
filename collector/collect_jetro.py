@@ -449,10 +449,35 @@ def parse_reiwa_date(value):
     y = 2018 + y if y < 100 else y
     return f'{y:04d}-{mo:02d}-{d:02d}'
 
+def _integer_price_token(value):
+    token = re.sub(r'\s+', '', value or '')
+    if re.fullmatch(r'\d+', token):
+        return int(token)
+    # Some source notices mix comma and period as 3-digit group separators.
+    if re.fullmatch(r'\d{1,3}(?:[,.]\d{3})+', token):
+        return int(re.sub(r'[,.]', '', token))
+    return None
+
 def parse_yen(value):
-    s = unicodedata.normalize('NFKC', value or '').replace(',', '')
-    m = re.search(r'(\d+)\s*円', s)
-    return int(m.group(1)) if m else None
+    raw = unicodedata.normalize('NFKC', value or '')
+    s = raw.strip()
+    # Prefer an explicitly labelled total when a notice also publishes unit prices.
+    total = re.search(r'([0-9][0-9,.\s]*)\s*円\s*[（(]?\s*(?:総価|総額|総価格)', s)
+    if total:
+        parsed = _integer_price_token(total.group(1))
+        if parsed is not None:
+            return parsed
+    # Pure unit-price contracts are not comparable with total award amounts.
+    if '単価' in s:
+        return None
+    # Foreign-currency awards must not be presented as yen.
+    if re.search(r'(?:USD|EUR|GBP|米ドル|ドル|ユーロ|ポンド|\$)', s, re.I):
+        return None
+    yen = re.search(r'([0-9][0-9,.\s]*)\s*円', s)
+    if yen:
+        return _integer_price_token(yen.group(1))
+    # Some JETRO notices omit the 円 suffix in the ⑦ award-price field.
+    return _integer_price_token(s)
 
 TERM_MATCHERS = {}
 
@@ -875,15 +900,22 @@ def extract_numbered_fields(text):
     # Indexed/cached historical copies may collapse line breaks, so split on every next ① marker.
     blocks = re.findall(r'①([\s\S]*?)(?=①|$)', text)
     parsed = []
+    markers = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫'
     for block in blocks:
         fields = {}
-        for idx, num in enumerate('①②③④⑤⑥⑦⑧⑨⑩⑪⑫'):
-            target = block if num == '①' else num + block.split(num,1)[1] if num in block else ''
         chunks = re.split(r'([②③④⑤⑥⑦⑧⑨⑩⑪⑫])', '①' + block)
         current = None
         for chunk in chunks:
-            if chunk in '①②③④⑤⑥⑦⑧⑨⑩⑪⑫': current = chunk
-            elif current: fields[current] = clean(fields.get(current,'') + ' ' + chunk)
+            if chunk in markers:
+                # JETRO source data occasionally repeats an earlier marker where ⑦
+                # (award price) should be. If it appears after ⑥ and before a real
+                # ⑦, preserve the sequence semantics instead of dropping the price.
+                if chunk in fields and '⑥' in fields and '⑦' not in fields and chunk in '①②③④⑤⑥':
+                    current = '⑦'
+                else:
+                    current = chunk
+            elif current:
+                fields[current] = clean(fields.get(current,'') + ' ' + chunk)
         if fields.get('②'): parsed.append(fields)
     return parsed
 
@@ -926,10 +958,7 @@ def clean_award_method(value):
             return label
     return s[:80] if len(s) <= 80 else ''
 
-def fetch_detail(op, url, title):
-    headers = {'User-Agent':'Mozilla/5.0 PublicMarketData/0.3','Referer':BASE + LIST_PATH}
-    with open_with_retry(op, urllib.request.Request(url, headers=headers), timeout=30) as res:
-        raw = res.read().decode('utf-8','ignore')
+def parse_detail_html(raw, title):
     block = choose_detail_block(extract_numbered_fields(visible_text(raw)), title)
     if not block: return {}
     winner_field = block.get('⑥','')
@@ -943,6 +972,12 @@ def fetch_detail(op, url, title):
       'estimated_amount': parse_yen(block.get('⑫','')),
       'detail_text': clean(' '.join(block.values()))[:8000],
     }
+
+def fetch_detail(op, url, title):
+    headers = {'User-Agent':'Mozilla/5.0 PublicMarketData/0.3','Referer':BASE + LIST_PATH}
+    with open_with_retry(op, urllib.request.Request(url, headers=headers), timeout=30) as res:
+        raw = res.read().decode('utf-8','ignore')
+    return parse_detail_html(raw, title)
 
 def init_db(conn):
     conn.executescript('''
@@ -1073,11 +1108,41 @@ def enrich_awards(conn, op, limit=None, delay=0.08):
             print(f'detail_error {source_id}: {e}')
         if delay: time.sleep(delay)
     return ok
+def award_amount_status(record):
+    if record.get('awardAmount'):
+        return 'total'
+    if not record.get('detailFetched'):
+        return 'notFetched'
+    detail = unicodedata.normalize('NFKC', record.get('detailText') or '')
+    winner = unicodedata.normalize('NFKC', record.get('winnerName') or '')
+    if any(term in detail or term in winner for term in ('不調','不落','落札者なし','該当者なし')):
+        return 'noAward'
+    if re.search(r'(?:USD|EUR|GBP|米ドル|ドル|ユーロ|ポンド|\$)', detail, re.I):
+        return 'foreignCurrency'
+    if '単価' in detail:
+        return 'unitPrice'
+    return 'notPublished'
+
+def prepare_canonical_procurements(conn):
+    geps_max=conn.execute("SELECT MAX(award_date) FROM procurements WHERE source_id LIKE 'geps:%' AND award_date>=?",('2021-04-01',)).fetchone()[0]
+    conn.execute('DROP VIEW IF EXISTS canonical_procurements')
+    if geps_max and re.fullmatch(r'20\d{2}-\d{2}-\d{2}',geps_max):
+        safe_max=geps_max.replace("'","''")
+        conn.execute(f"""CREATE TEMP VIEW canonical_procurements AS
+          SELECT * FROM procurements WHERE NOT (
+            source_id LIKE 'jetro:%' AND notice_type LIKE '%落札者等の公示%'
+            AND notice_date>='2021-04-01' AND notice_date<='{safe_max}'
+          )""")
+    else:
+        conn.execute('CREATE TEMP VIEW canonical_procurements AS SELECT * FROM procurements')
+    return geps_max or ''
+
 def export_json(conn):
     DATA_DIR.mkdir(parents=True,exist_ok=True)
+    geps_award_coverage_end=prepare_canonical_procurements(conn)
     cols = ['source_id','title','notice_date','agency','organization_id','notice_type','source_url','is_it','category','category_tags_json','tags_json',
       'detail_fetched','award_date','contract_method','award_method','winner_name','company_id','award_amount','estimated_amount','detail_text']
-    rows = conn.execute('SELECT '+','.join(cols)+' FROM procurements ORDER BY notice_date DESC,source_id DESC').fetchall()
+    rows = conn.execute('SELECT '+','.join(cols)+' FROM canonical_procurements ORDER BY notice_date DESC,source_id DESC').fetchall()
     out=[]
     for r in rows:
         d=dict(zip(cols,r)); out.append({
@@ -1089,13 +1154,15 @@ def export_json(conn):
           'awardDate':d['award_date'],'contractMethod':d['contract_method'],'awardMethod':d['award_method'],
           'winnerName':d['winner_name'],'companyId':d['company_id'],'awardAmount':d['award_amount'],
           'estimatedAmount':d['estimated_amount'],'detailText':d['detail_text']})
+        out[-1]['awardAmountStatus']=award_amount_status(out[-1])
     # Gitで保持する静的ページ用データは、未使用の詳細本文等を除外して50MB未満に抑える。
     page_records = [{
       'id':x['id'],'title':x['title'],'noticeDate':x['noticeDate'],'agency':x['agency'],
       'organizationId':x['organizationId'],'noticeType':x['noticeType'],'sourceUrl':x['sourceUrl'],
       'source':x['source'],'isIt':x['isIt'],'category':x['category'],'tags':x['tags'],'detailFetched':x['detailFetched'],
       'awardDate':x['awardDate'],'contractMethod':x['contractMethod'],'awardMethod':x['awardMethod'],
-      'winnerName':x['winnerName'],'companyId':x['companyId'],'awardAmount':x['awardAmount']
+      'winnerName':x['winnerName'],'companyId':x['companyId'],'awardAmount':x['awardAmount'],
+      'awardAmountStatus':x['awardAmountStatus']
     } for x in out]
     # 年別に分割してGitHubの単一ファイル上限を避ける。旧モノリスJSONは移行後に削除する。
     by_year={}
@@ -1167,7 +1234,8 @@ def export_json(conn):
           agency_idx[x['agency'] or ''],category_idx[x['category'] or 'その他'],tag_mask,
           (x['awardDate'] or '').replace('-',''),contract_idx[x['contractMethod'] or ''],
           award_idx[clean_award_method(x.get('awardMethod') or '')],winner_idx[x['winnerName'] or ''],
-          x['awardAmount'] or 0,source_kind
+          x['awardAmount'] or 0,source_kind,
+          {'notFetched':0,'total':1,'unitPrice':2,'foreignCurrency':3,'noAward':4,'notPublished':5}[x['awardAmountStatus']]
         ]
         # Preserve exact official URLs where they cannot be reconstructed safely from the ID.
         if source_kind in (9,10): compact_row.append(x['sourceUrl'] or '')
@@ -1202,7 +1270,7 @@ def export_json(conn):
     companies=[]
     company_detail={}
     company_query=("SELECT c.company_id,c.company_name,COUNT(p.source_id),COALESCE(SUM(p.award_amount),0) "
-      "FROM companies c JOIN procurements p ON p.company_id=c.company_id "
+      "FROM companies c JOIN canonical_procurements p ON p.company_id=c.company_id "
       "GROUP BY c.company_id,c.company_name ORDER BY c.company_name")
     for cid,name,count,total in conn.execute(company_query):
         companies.append({'id':cid,'name':name,'awardCount':count,'awardTotal':total})
@@ -1227,13 +1295,17 @@ def export_json(conn):
     COMPANY_PATH.write_text(json.dumps(companies,ensure_ascii=False,indent=2),encoding='utf-8')
     orgs=[]
     for oid,name in conn.execute('''SELECT organization_id,organization_name FROM organizations
-      WHERE organization_id IN (SELECT DISTINCT organization_id FROM procurements WHERE organization_id IS NOT NULL)
+      WHERE organization_id IN (SELECT DISTINCT organization_id FROM canonical_procurements WHERE organization_id IS NOT NULL)
       ORDER BY organization_name'''):
-        a=conn.execute('SELECT COUNT(*),COALESCE(SUM(award_amount),0) FROM procurements WHERE organization_id=?',(oid,)).fetchone()
-        it=conn.execute('SELECT COUNT(*) FROM procurements WHERE organization_id=? AND is_it=1',(oid,)).fetchone()[0]
+        a=conn.execute('SELECT COUNT(*),COALESCE(SUM(award_amount),0) FROM canonical_procurements WHERE organization_id=?',(oid,)).fetchone()
+        it=conn.execute('SELECT COUNT(*) FROM canonical_procurements WHERE organization_id=? AND is_it=1',(oid,)).fetchone()[0]
         orgs.append({'id':oid,'name':name,'recordCount':a[0],'itCount':it,'awardTotal':a[1]})
     ORG_PATH.write_text(json.dumps(orgs,ensure_ascii=False,indent=2),encoding='utf-8')
     total_it=sum(1 for x in out if x['isIt']); awards=[x for x in out if x['awardAmount']]
+    award_eligible=[x for x in out if x['awardAmountStatus']!='notFetched']
+    award_status_counts={}
+    for x in award_eligible:
+        status=x['awardAmountStatus']; award_status_counts[status]=award_status_counts.get(status,0)+1
     category_counts={}
     for x in out: category_counts[x['category']]=category_counts.get(x['category'],0)+1
     jetro_local_records=sum(1 for x in out if x['id'].startswith('jetro-local:'))
@@ -1257,9 +1329,10 @@ def export_json(conn):
       'chibaRecords':chiba_records,'kyotoRecords':kyoto_records,
       'kawasakiRecords':kawasaki_records,'sendaiRecords':sendai_records,
       'firstDate':min(dates) if dates else None,'lastDate':max(dates) if dates else None,
-      'itRecords':total_it,'awardRecords':len(awards),
+      'itRecords':total_it,'awardRecords':len(awards),'awardEligibleRecords':len(award_eligible),
+      'awardStatusCounts':award_status_counts,
       'awardTotal':sum(x['awardAmount'] for x in awards),'companies':len(companies),'organizations':len(orgs),
-      'categoryCounts':category_counts,'generatedAt':datetime.now(timezone.utc).isoformat()}
+      'categoryCounts':category_counts,'gepsAwardCoverageEnd':geps_award_coverage_end,'generatedAt':datetime.now(timezone.utc).isoformat()}
     SUMMARY_PATH.write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding='utf-8')
     return summary
 

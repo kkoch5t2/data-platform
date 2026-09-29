@@ -130,12 +130,20 @@ else
 fi
 echo "Procurement catch-up window: $CATCHUP_FROM -> $TODAY"
 
+fiscal_year="$(date +%Y)"
+if (( 10#$(date +%m) < 4 )); then fiscal_year="$((10#$fiscal_year-1))"; fi
+previous_fiscal_year="$((10#$fiscal_year-1))"
+
 CURRENT_STEP="procurement-collection"
 trap - ERR
 set +e
-python3 collector/collect_jetro.py --pages 20 --detail-limit 150 \
-  --backfill-from "$CATCHUP_FROM" --backfill-to "$TODAY" --backfill-all-notices-monthly
+python3 collector/collect_geps_awards.py --years "$previous_fiscal_year,$fiscal_year" --no-export
 collect_rc=$?
+if (( collect_rc == 0 )); then
+  python3 collector/collect_jetro.py --pages 20 --detail-limit 0 \
+    --backfill-from "$CATCHUP_FROM" --backfill-to "$TODAY" --backfill-all-notices-monthly
+  collect_rc=$?
+fi
 if (( collect_rc == 0 )); then
   python3 collector/collect_jetro_local.py --pages 20
   collect_rc=$?
@@ -145,8 +153,6 @@ if (( collect_rc == 0 )); then
   collect_rc=$?
 fi
 if (( collect_rc == 0 )); then
-  fiscal_year="$(date +%Y)"
-  if (( 10#$(date +%m) < 4 )); then fiscal_year="$((10#$fiscal_year-1))"; fi
   python3 collector/collect_sapporo_procurement.py --years "$fiscal_year"
   collect_rc=$?
 fi
@@ -184,7 +190,7 @@ if (( collect_rc != 0 )); then
 fi
 
 CURRENT_STEP="procurement-health-check"
-if ! python3 collector/check_health.py --source jetro --source jetro_local --source yokohama_procurement --source sapporo_procurement --source kobe_procurement --source fukuoka_procurement --source chiba_procurement --source kyoto_procurement --source kawasaki_procurement --source sendai_procurement; then
+if ! python3 collector/check_health.py --source geps_awards --source jetro --source jetro_local --source yokohama_procurement --source sapporo_procurement --source kobe_procurement --source fukuoka_procurement --source chiba_procurement --source kyoto_procurement --source kawasaki_procurement --source sendai_procurement; then
   echo "ERROR: procurement health check failed; restoring database"
   [[ -s "$backup" ]] && cp "$backup" "$DB"
   record_stop 21 "procurement health check failed; database restored from backup when available"
