@@ -433,19 +433,29 @@ def save(conn, items):
 def main(years, workers=6, do_export=True, bureau_years=None):
     conn = sqlite3.connect(DB_PATH); init_db(conn)
     parsed = upserted = requests = 0; by_year = {}; bureau_years = bureau_years or years
+    epc_errors = []
     for year in years:
-        items, reqs = collect_year(year, workers); n = save(conn, items)
-        parsed += len(items); upserted += n; requests += reqs; by_year[year] = len(items)
-        print(f'kawasaki {year}: parsed={len(items)} requests={reqs}', flush=True)
+        try:
+            items, reqs = collect_year(year, workers); n = save(conn, items)
+            parsed += len(items); upserted += n; requests += reqs; by_year[year] = len(items)
+            print(f'kawasaki {year}: parsed={len(items)} requests={reqs}', flush=True)
+        except urllib.error.HTTPError as exc:
+            if exc.code != 404:
+                conn.close(); raise
+            by_year[year] = 0
+            epc_errors.append(f'{year}: HTTP 404 from official EPC search link')
+            print(f'WARNING kawasaki {year}: official EPC search link returned HTTP 404; continuing with bureau sources', flush=True)
     traffic = collect_traffic_results(bureau_years)
     hospital = collect_hospital_results(bureau_years, workers)
     bureau_items = traffic + hospital
     upserted += save_bureau_results(conn, bureau_items); parsed += len(bureau_items)
+    if parsed == 0:
+        conn.close(); raise RuntimeError('Kawasaki: no records collected from any official source')
     summary = export_json(conn) if do_export else {'records': conn.execute('SELECT COUNT(*) FROM procurements').fetchone()[0]}
     conn.close()
     print(f'kawasaki: parsed={parsed} upserted={upserted} total={summary["records"]} years={by_year}', flush=True)
     all_years = sorted(set(years) | set(bureau_years))
-    return {'records': parsed, 'upserted': upserted, 'requests': requests, 'trafficRecords': len(traffic), 'hospitalRecords': len(hospital), 'years': len(all_years), 'startYear': min(all_years), 'endYear': max(all_years)}
+    return {'records': parsed, 'upserted': upserted, 'requests': requests, 'trafficRecords': len(traffic), 'hospitalRecords': len(hospital), 'epcUnavailable': len(epc_errors), 'epcErrors': epc_errors, 'years': len(all_years), 'startYear': min(all_years), 'endYear': max(all_years)}
 
 
 if __name__ == '__main__':

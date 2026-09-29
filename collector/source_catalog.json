@@ -19,6 +19,20 @@
       "country": "JP",
       "domain": "procurement"
     },
+    "geps_awards": {
+      "label": "調達ポータル 落札実績オープンデータ",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 48,
+      "minRecords": 1000,
+      "acquisition": "official-open-data-zip",
+      "command": [
+        "python3",
+        "collector/collect_geps_awards.py"
+      ],
+      "country": "JP",
+      "domain": "procurement"
+    },
     "jetro_local": {
       "label": "JETRO 地方政府公共調達データベース",
       "enabled": true,
@@ -120,7 +134,7 @@
       "domain": "energy"
     },
     "yokohama_procurement": {
-      "label": "横浜市 横浜市報調達公告版",
+      "label": "横浜市 入札公告・契約結果",
       "enabled": true,
       "frequency": "daily",
       "maxAgeHours": 48,

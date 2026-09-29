@@ -393,7 +393,7 @@ for p in shards:
     ok(len(dashboard)==len(rs),f'procurement {year}: dashboard/source count mismatch')
     expected=Counter(); actual=Counter()
     for row in dashboard:
-        kind=int(row[11] or 0); direct_url=str(row[12]) if kind in (9,10) and len(row)>12 else ''
+        kind=int(row[11] or 0); direct_url=str(row[13]) if kind in (9,10) and len(row)>13 else ''
         if kind in (9,10): ok(direct_url.startswith(('https://','http://')),f'procurement {year}: missing direct municipal source URL')
         actual[(str(row[0]),row[1],row[2],row[3],row[4],row[9],float(row[10] or 0),kind,direct_url)]+=1
     for r in rs:

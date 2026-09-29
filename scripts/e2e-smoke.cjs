@@ -14,9 +14,15 @@ async function validateDomainNumbers(page, route, label, failures) {
   if (route === '/procurement/') {
     const meta = await fetch(new URL('/data/dashboard-meta.json', base)).then(r=>r.json());
     const year = String(meta.latestYear ?? Math.max(...meta.years.map(Number)));
-    const rows = await fetch(new URL(`/data/dashboard-${year}.json`, base)).then(r=>r.json());
+    const shardNames = (meta.shardInfo || []).filter(x => (x.years || []).map(String).includes(year)).map(x => x.name);
+    const names = shardNames.length ? shardNames : [`dashboard-${year}.json`];
+    const parts = await Promise.all(names.map(name => fetch(new URL(`/data/${name}`, base)).then(r => {
+      if (!r.ok) throw new Error(`${name} HTTP ${r.status}`);
+      return r.json();
+    })));
+    const expectedCount = parts.reduce((n, rows) => n + rows.length, 0);
     const actual = numberFrom(await page.locator('#kpi-count').textContent());
-    if (actual !== rows.length) fail('kpi-count', actual, rows.length);
+    if (actual !== expectedCount) fail('kpi-count', actual, expectedCount);
   } else if (route === '/realestate/') {
     const data = await fetch(new URL('/data/land-prices-2026.json', base)).then(r=>r.json());
     const actual = numberFrom(await page.locator('#kpi-count').textContent());
