@@ -27,9 +27,24 @@ if company_path.exists():
         cid=str(company.get('id') or '')
         if cid: urls.append(BASE+'/procurement/companies/'+quote(cid,safe='')+'/')
 urls=sorted(set(urls))
-if len(urls)>50000: raise SystemExit(f'sitemap URL limit exceeded: {len(urls)}')
-xml=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-for u in urls: xml.append(f'  <url><loc>{escape(u)}</loc></url>')
-xml.append('</urlset>')
-(DIST/'sitemap.xml').write_text('\n'.join(xml)+'\n',encoding='utf-8')
-print(f'sitemap: {len(urls)} URLs -> {DIST/"sitemap.xml"}')
+for old in DIST.glob('sitemap-*.xml'): old.unlink()
+chunk_size=45000
+if len(urls)<=50000:
+    xml=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for u in urls: xml.append(f'  <url><loc>{escape(u)}</loc></url>')
+    xml.append('</urlset>')
+    (DIST/'sitemap.xml').write_text('\n'.join(xml)+'\n',encoding='utf-8')
+    print(f'sitemap: {len(urls)} URLs -> {DIST/"sitemap.xml"}')
+else:
+    names=[]
+    for part,start in enumerate(range(0,len(urls),chunk_size),1):
+        name=f'sitemap-{part:03d}.xml'; names.append(name)
+        xml=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+        for u in urls[start:start+chunk_size]: xml.append(f'  <url><loc>{escape(u)}</loc></url>')
+        xml.append('</urlset>')
+        (DIST/name).write_text('\n'.join(xml)+'\n',encoding='utf-8')
+    index=['<?xml version="1.0" encoding="UTF-8"?>','<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for name in names:index.append(f'  <sitemap><loc>{escape(BASE+"/"+name)}</loc></sitemap>')
+    index.append('</sitemapindex>')
+    (DIST/'sitemap.xml').write_text('\n'.join(index)+'\n',encoding='utf-8')
+    print(f'sitemap: {len(urls)} URLs -> {len(names)} shards + sitemap.xml index')

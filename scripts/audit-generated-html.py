@@ -150,9 +150,13 @@ sitemap_path=DIST/'sitemap.xml'
 if listed_index_path.exists() and sitemap_path.exists():
     records=json.loads(listed_index_path.read_text(encoding='utf-8')).get('records',[])
     expected={str(x.get('securityCode')) for x in records if x.get('securityCode') and x.get('hasFinancials') is True}
-    sitemap=sitemap_path.read_text(encoding='utf-8')
+    sitemap_docs=[p.read_text(encoding='utf-8') for p in sorted(DIST.glob('sitemap*.xml'))]
+    sitemap='\n'.join(sitemap_docs)
     actual=set(re.findall(r'<loc>https://datlume\.com/listed-companies/([0-9A-Z]{4})/</loc>',sitemap))
     check(actual==expected,f'listed sitemap indexability mismatch: sitemap={len(actual)} expected={len(expected)}')
+    for child in DIST.glob('sitemap-*.xml'):
+        url_count=child.read_text(encoding='utf-8').count('<url>')
+        check(url_count<=50000,f'{child.name}: sitemap URL limit exceeded: {url_count}')
 
 print(f'html audit: {len(files)} pages, {checks} checks, {len(errors)} failures')
 for e in errors[:120]: print('FAIL',e)
