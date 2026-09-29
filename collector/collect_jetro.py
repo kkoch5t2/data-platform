@@ -22,7 +22,7 @@ DASHBOARD_DIR = ROOT / 'public' / 'data'
 DASHBOARD_META_PATH = DASHBOARD_DIR / 'dashboard-meta.json'
 DASHBOARD_LEGACY_PATH = DASHBOARD_DIR / 'dashboard.json'
 COMPANY_DETAIL_DIR = DASHBOARD_DIR / 'company-details'
-DASHBOARD_SHARD_ROWS = 50000
+DASHBOARD_SHARD_ROWS = 20000
 BASE = 'https://www.jetro.go.jp'
 LIST_PATH = '/gov_procurement/national/list.html'
 API_PATH = '/view_interface.php?blockId=33235812'
@@ -1083,7 +1083,7 @@ def export_json(conn):
         d=dict(zip(cols,r)); out.append({
           'id':d['source_id'],'title':d['title'],'noticeDate':d['notice_date'],'agency':d['agency'],
           'organizationId':d['organization_id'],'noticeType':d['notice_type'],'sourceUrl':d['source_url'],
-          'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else ('sapporo' if d['source_id'].startswith('sapporo:') else ('kobe' if d['source_id'].startswith('kobe:') else ('fukuoka' if d['source_id'].startswith('fukuoka:') else ('chiba' if d['source_id'].startswith('chiba:') else ('kyoto' if d['source_id'].startswith('kyoto:') else 'jetro'))))))),
+          'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else ('sapporo' if d['source_id'].startswith('sapporo:') else ('kobe' if d['source_id'].startswith('kobe:') else ('fukuoka' if d['source_id'].startswith('fukuoka:') else ('chiba' if d['source_id'].startswith('chiba:') else ('kyoto' if d['source_id'].startswith('kyoto:') else ('kawasaki' if d['source_id'].startswith('kawasaki:') else ('sendai' if d['source_id'].startswith('sendai:') else 'jetro'))))))))),
           'isIt':bool(d['is_it']),'category':d['category'] or 'その他','categoryTags':json.loads(d['category_tags_json'] or '[]'),
           'tags':json.loads(d['tags_json']),'detailFetched':bool(d['detail_fetched']),
           'awardDate':d['award_date'],'contractMethod':d['contract_method'],'awardMethod':d['award_method'],
@@ -1133,6 +1133,8 @@ def export_json(conn):
         is_fukuoka=x['id'].startswith('fukuoka:')
         is_chiba=x['id'].startswith('chiba:')
         is_kyoto=x['id'].startswith('kyoto:')
+        is_kawasaki=x['id'].startswith('kawasaki:')
+        is_sendai=x['id'].startswith('sendai:')
         if is_jetro_local:
             sid=x['id'].split(':',2)[-1]
         elif is_geps:
@@ -1149,19 +1151,27 @@ def export_json(conn):
             sid=x['id'][6:]
         elif is_kyoto:
             sid=x['id'][6:]
+        elif is_kawasaki:
+            sid=x['id'][9:]
+        elif is_sendai:
+            sid=x['id'][7:]
         else:
             sid=x['id'][6:] if x['id'].startswith('jetro:') else x['id']
         source_kind=(1 if is_jetro_local else 2 if is_geps else 3 if is_yokohama else
                      4 if is_sapporo else 5 if is_kobe else 6 if is_fukuoka else
-                     7 if is_chiba else 8 if is_kyoto else 0)
+                     7 if is_chiba else 8 if is_kyoto else 9 if is_kawasaki else
+                     10 if is_sendai else 0)
         tag_mask=sum(1 << tag_idx[t] for t in (x.get('tags') or []) if t in tag_idx)
-        dashboard_rows.append([
+        compact_row=[
           sid,x['title'] or '',(x['noticeDate'] or '').replace('-',''),
           agency_idx[x['agency'] or ''],category_idx[x['category'] or 'その他'],tag_mask,
           (x['awardDate'] or '').replace('-',''),contract_idx[x['contractMethod'] or ''],
           award_idx[clean_award_method(x.get('awardMethod') or '')],winner_idx[x['winnerName'] or ''],
           x['awardAmount'] or 0,source_kind
-        ])
+        ]
+        # Preserve exact official URLs where they cannot be reconstructed safely from the ID.
+        if source_kind in (9,10): compact_row.append(x['sourceUrl'] or '')
+        dashboard_rows.append(compact_row)
     # Browser data is split by year so a year-filtered view only downloads the requested year.
     # Keep a 50k-row safety split within a year to stay comfortably below Pages' asset limit.
     for old_shard in DASHBOARD_DIR.glob('dashboard-*.json'):
@@ -1235,7 +1245,9 @@ def export_json(conn):
     fukuoka_records=sum(1 for x in out if x['id'].startswith('fukuoka:'))
     chiba_records=sum(1 for x in out if x['id'].startswith('chiba:'))
     kyoto_records=sum(1 for x in out if x['id'].startswith('kyoto:'))
-    local_records=jetro_local_records+yokohama_records+sapporo_records+kobe_records+fukuoka_records+chiba_records+kyoto_records
+    kawasaki_records=sum(1 for x in out if x['id'].startswith('kawasaki:'))
+    sendai_records=sum(1 for x in out if x['id'].startswith('sendai:'))
+    local_records=jetro_local_records+yokohama_records+sapporo_records+kobe_records+fukuoka_records+chiba_records+kyoto_records+kawasaki_records+sendai_records
     jetro_records=jetro_national_records+jetro_local_records
     dates=[x['noticeDate'] for x in out if x.get('noticeDate')]
     summary={'records':len(out),'nationalRecords':len(out)-local_records,'localRecords':local_records,
@@ -1243,6 +1255,7 @@ def export_json(conn):
       'yokohamaRecords':yokohama_records,'sapporoRecords':sapporo_records,
       'kobeRecords':kobe_records,'fukuokaRecords':fukuoka_records,
       'chibaRecords':chiba_records,'kyotoRecords':kyoto_records,
+      'kawasakiRecords':kawasaki_records,'sendaiRecords':sendai_records,
       'firstDate':min(dates) if dates else None,'lastDate':max(dates) if dates else None,
       'itRecords':total_it,'awardRecords':len(awards),
       'awardTotal':sum(x['awardAmount'] for x in awards),'companies':len(companies),'organizations':len(orgs),

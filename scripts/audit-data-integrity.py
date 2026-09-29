@@ -393,7 +393,9 @@ for p in shards:
     ok(len(dashboard)==len(rs),f'procurement {year}: dashboard/source count mismatch')
     expected=Counter(); actual=Counter()
     for row in dashboard:
-        actual[(str(row[0]),row[1],row[2],row[3],row[4],row[9],float(row[10] or 0),row[11])]+=1
+        kind=int(row[11] or 0); direct_url=str(row[12]) if kind in (9,10) and len(row)>12 else ''
+        if kind in (9,10): ok(direct_url.startswith(('https://','http://')),f'procurement {year}: missing direct municipal source URL')
+        actual[(str(row[0]),row[1],row[2],row[3],row[4],row[9],float(row[10] or 0),kind,direct_url)]+=1
     for r in rs:
         rid=r.get('id'); ok(bool(rid),f'procurement {year}: missing id')
         if rid: ok(rid not in ids,f'procurement: duplicate id {rid}'); ids.add(rid)
@@ -403,7 +405,7 @@ for p in shards:
             first=nd if first is None or nd<first else first; last=nd if last is None or nd>last else last
         ok(bool(r.get('title')) and bool(r.get('agency')) and bool(r.get('sourceUrl')),f'procurement {rid}: missing core fields')
         ok(valid_agency_name(r.get('agency')),f'procurement {rid}: invalid agency {r.get("agency")!r}')
-        ok(r.get('source') in {'jetro','jetro-local','geps','yokohama','sapporo','kobe','fukuoka','chiba','kyoto'},f'procurement {rid}: unknown source {r.get("source")!r}')
+        ok(r.get('source') in {'jetro','jetro-local','geps','yokohama','sapporo','kobe','fukuoka','chiba','kyoto','kawasaki','sendai'},f'procurement {rid}: unknown source {r.get("source")!r}')
         ok(isinstance(r.get('organizationId'),str) and bool(re.fullmatch(r'org_[0-9a-f]{12}',r['organizationId'])),f'procurement {rid}: invalid organizationId')
         ok(isinstance(r.get('isIt'),bool),f'procurement {rid}: isIt must be boolean')
         ok(isinstance(r.get('detailFetched'),bool),f'procurement {rid}: detailFetched must be boolean')
@@ -434,8 +436,11 @@ for p in shards:
         elif rid.startswith('fukuoka:'): sid=rid[8:]; kind=6
         elif rid.startswith('chiba:'): sid=rid[6:]; kind=7
         elif rid.startswith('kyoto:'): sid=rid[6:]; kind=8
+        elif rid.startswith('kawasaki:'): sid=rid[9:]; kind=9
+        elif rid.startswith('sendai:'): sid=rid[7:]; kind=10
         else: sid=rid[6:] if rid.startswith('jetro:') else rid; kind=0
-        expected[(sid,r.get('title') or '',(nd or '').replace('-',''),agency_idx[r.get('agency') or ''],category_idx[r.get('category') or 'その他'],winner_idx[r.get('winnerName') or ''],amount,kind)]+=1
+        direct_url=(r.get('sourceUrl') or '') if kind in (9,10) else ''
+        expected[(sid,r.get('title') or '',(nd or '').replace('-',''),agency_idx[r.get('agency') or ''],category_idx[r.get('category') or 'その他'],winner_idx[r.get('winnerName') or ''],amount,kind,direct_url)]+=1
     ok(expected==actual,f'procurement {year}: dashboard content mismatch')
 ok(summary.get('records')==total,f'procurement summary records {summary.get("records")} != {total}')
 source_counts = {
@@ -445,10 +450,12 @@ source_counts = {
     'fukuokaRecords': sum(1 for rid in ids if rid.startswith('fukuoka:')),
     'chibaRecords': sum(1 for rid in ids if rid.startswith('chiba:')),
     'kyotoRecords': sum(1 for rid in ids if rid.startswith('kyoto:')),
+    'kawasakiRecords': sum(1 for rid in ids if rid.startswith('kawasaki:')),
+    'sendaiRecords': sum(1 for rid in ids if rid.startswith('sendai:')),
 }
 for key, value in source_counts.items():
     ok(summary.get(key)==value,f'procurement summary {key} {summary.get(key)} != {value}')
-local_expected = sum(1 for rid in ids if rid.startswith(('jetro-local:','yokohama:','sapporo:','kobe:','fukuoka:','chiba:','kyoto:')))
+local_expected = sum(1 for rid in ids if rid.startswith(('jetro-local:','yokohama:','sapporo:','kobe:','fukuoka:','chiba:','kyoto:','kawasaki:','sendai:')))
 ok(summary.get('localRecords')==local_expected,f'procurement localRecords {summary.get("localRecords")} != {local_expected}')
 ok(summary.get('firstDate')==first,f'procurement firstDate mismatch {summary.get("firstDate")} != {first}')
 ok(summary.get('lastDate')==last,f'procurement lastDate mismatch {summary.get("lastDate")} != {last}')

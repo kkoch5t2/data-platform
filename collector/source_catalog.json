@@ -277,6 +277,30 @@
       "domain": "procurement",
       "note": "京都市入札情報館の電子入札執行結果（物品、工事・測量設計等）を収集。落札額は公式ページ掲載値（税抜き）。"
     },
+    "kawasaki_procurement": {
+      "label": "川崎市 入札情報・落札結果",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 48,
+      "minRecords": 1,
+      "acquisition": "official-municipal-html",
+      "command": ["python3", "collector/collect_kawasaki_procurement.py"],
+      "country": "JP",
+      "domain": "procurement",
+      "note": "川崎市公式の落札結果から工事・委託・物品を収集。財政局・上下水道局を対象。"
+    },
+    "sendai_procurement": {
+      "label": "仙台市 本庁契約課 発注情報（物品・委託）",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 48,
+      "minRecords": 1,
+      "acquisition": "official-municipal-html",
+      "command": ["python3", "collector/collect_sendai_procurement.py"],
+      "country": "JP",
+      "domain": "procurement",
+      "note": "仙台市公式の本庁契約課発注情報から物品・委託を収集。工事・コンサルは別系統のため本collectorの対象外。"
+    },
     "reinfolib_transactions": {
       "label": "国土交通省 不動産情報ライブラリ 不動産取引価格情報",
       "enabled": false,
