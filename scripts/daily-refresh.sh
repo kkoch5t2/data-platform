@@ -166,6 +166,14 @@ if (( collect_rc == 0 )); then
   python3 collector/collect_kyoto_procurement.py --years "$(date +%Y)"
   collect_rc=$?
 fi
+if (( collect_rc == 0 )); then
+  python3 collector/collect_kawasaki_procurement.py --years "$(date +%Y)" --workers 6
+  collect_rc=$?
+fi
+if (( collect_rc == 0 )); then
+  python3 collector/collect_sendai_procurement.py --years "$fiscal_year" --workers 6
+  collect_rc=$?
+fi
 set -e
 trap 'on_error "$?" "$LINENO" "$BASH_COMMAND"' ERR
 if (( collect_rc != 0 )); then
