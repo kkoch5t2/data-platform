@@ -184,7 +184,7 @@ if (( collect_rc != 0 )); then
 fi
 
 CURRENT_STEP="procurement-health-check"
-if ! python3 collector/check_health.py --source jetro --source jetro_local --source yokohama_procurement --source sapporo_procurement --source kobe_procurement --source fukuoka_procurement --source chiba_procurement --source kyoto_procurement; then
+if ! python3 collector/check_health.py --source jetro --source jetro_local --source yokohama_procurement --source sapporo_procurement --source kobe_procurement --source fukuoka_procurement --source chiba_procurement --source kyoto_procurement --source kawasaki_procurement --source sendai_procurement; then
   echo "ERROR: procurement health check failed; restoring database"
   [[ -s "$backup" ]] && cp "$backup" "$DB"
   record_stop 21 "procurement health check failed; database restored from backup when available"
