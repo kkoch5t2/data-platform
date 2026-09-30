@@ -9,6 +9,7 @@ LOG_DIR="$STATE_DIR/logs"
 DB="$ROOT/data/public_it.db"
 LOCK="$STATE_DIR/daily-refresh.lock"
 LAST_SUCCESS="$STATE_DIR/last-success-date"
+PREV_SUMMARY="$STATE_DIR/pre-refresh-summary.json"
 MODE="${1:-manual}"
 RELEASE_LOCK="$STATE_DIR/release.lock"
 SCHEDULED_HOST_MARKER="$HOME/.config/datlume/allow-scheduled-refresh"
@@ -116,6 +117,11 @@ if [[ -s "$DB" ]]; then
   cp --reflink=auto "$DB" "$backup.tmp"
   mv "$backup.tmp" "$backup"
 fi
+if [[ -s "$ROOT/src/data/summary.json" ]]; then
+  cp "$ROOT/src/data/summary.json" "$PREV_SUMMARY"
+else
+  rm -f "$PREV_SUMMARY"
+fi
 find "$BACKUP_DIR" -type f -name 'public_it-*.db' -mtime +7 -delete || true
 
 CATCHUP_FROM="$TODAY"
@@ -195,6 +201,15 @@ if ! python3 collector/check_health.py --source geps_awards --source jetro --sou
   [[ -s "$backup" ]] && cp "$backup" "$DB"
   record_stop 21 "procurement health check failed; database restored from backup when available"
   exit 21
+fi
+
+CURRENT_STEP="procurement-regression-check"
+if [[ -s "$PREV_SUMMARY" ]] && ! python3 scripts/check-procurement-regression.py --previous "$PREV_SUMMARY" --current "$ROOT/src/data/summary.json"; then
+  echo "ERROR: procurement coverage regressed; restoring database and previous summary"
+  [[ -s "$backup" ]] && cp "$backup" "$DB"
+  [[ -s "$PREV_SUMMARY" ]] && cp "$PREV_SUMMARY" "$ROOT/src/data/summary.json"
+  record_stop 24 "procurement coverage regressed; deployment blocked"
+  exit 24
 fi
 
 MONTH="$(date +%Y-%m)"
