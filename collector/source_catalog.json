@@ -298,7 +298,10 @@
       "maxAgeHours": 48,
       "minRecords": 1,
       "acquisition": "official-municipal-html",
-      "command": ["python3", "collector/collect_kawasaki_procurement.py"],
+      "command": [
+        "python3",
+        "collector/collect_kawasaki_procurement.py"
+      ],
       "country": "JP",
       "domain": "procurement",
       "note": "川崎市公式の落札結果を収集。財政局・上下水道局は電子調達、交通局は工事・委託・物品の公開結果、病院局は月別入札結果を対象。交通局・病院局の画像PDFはOCRせず、公式一覧とPDF文字層で確実に確認できる案件・日付・方式・落札情報まで収録。"
@@ -310,7 +313,10 @@
       "maxAgeHours": 48,
       "minRecords": 1,
       "acquisition": "official-municipal-html",
-      "command": ["python3", "collector/collect_sendai_procurement.py"],
+      "command": [
+        "python3",
+        "collector/collect_sendai_procurement.py"
+      ],
       "country": "JP",
       "domain": "procurement",
       "note": "仙台市の一般公開入札情報システムから工事・コンサル・物品役務の入札・見積結果を収集し、本庁契約課の未結果発注情報も補完。公開システムで結果が確認できる2023年度以降を正規収録。"
@@ -374,6 +380,23 @@
       "country": "JP",
       "domain": "economy-prices",
       "note": "e-Stat公開Excelから都市別の実価格を24か月収集。地域差指数とは別metric。ガソリンは2026年2月までの早期公表別表も補完し、欠損記号はnull、公式表の数値0はそのまま保持。"
+    },
+    "wikipedia_topics": {
+      "label": "Wikimedia Analytics API 日本語版Wikipedia Pageviews",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 120,
+      "minRecords": 100,
+      "acquisition": "official-public-api-no-registration",
+      "command": [
+        "python3",
+        "collector/collect_wikipedia_topics.py",
+        "--days",
+        "14"
+      ],
+      "country": "GLOBAL",
+      "domain": "topics",
+      "note": "日本語版Wikipediaの日別閲覧上位を取得。日本全体の検索トレンドや世論を示す指標ではない。"
     }
   }
 }

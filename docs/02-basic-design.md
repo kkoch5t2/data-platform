@@ -1,6 +1,6 @@
 # DATLUME 基本設計書
 
-最終更新: 2026-09-27
+最終更新: 2026-10-01
 
 ## 1. 全体アーキテクチャ
 DATLUME は「収集」「正規化・監査」「公開データ生成」「静的ビルド」「動的詳細ページ」「Cloudflare配信」を分離した構成を採る。
@@ -47,8 +47,10 @@ public/data + src/data
 - `/employment-economy/` — 雇用・賃金
 - `/business-industry/` — 企業・産業
 - `/listed-companies/` — 上場企業
+- `/unlisted-companies/` — 未上場企業
 - `/economy-prices/` — 経済・物価
 - `/energy/` — エネルギー
+- `/topics/` — 話題のトピック（日本語版Wikipedia閲覧動向）
 - `/about-data/` — データ出典・定義
 - `/privacy/` — プライバシー・広告・Cookie
 - `/analytics/` — サイト統計
@@ -98,3 +100,6 @@ public/data + src/data
 - UbuntuをRawデータ・運用実行環境の正本とする。
 - 生成JSONだけの変更と、ソースコード変更を同一コミットに不用意に混在させない。
 - 仕様変更時は本ディレクトリの該当設計書を更新する。
+
+## 12. 話題のトピック配信
+`/topics/` は静的ページとし、`collector/collect_wikipedia_topics.py` がWikimedia Analytics APIから直近14日の日別閲覧上位を収集して `public/data/wikipedia-topics.json` を生成する。閲覧時の外部API依存は持たない。

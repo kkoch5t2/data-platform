@@ -20,7 +20,7 @@ function walk(dir, out=[]) {
   return out;
 }
 const builtRoutes=walk(dist).sort((a,b)=>a.localeCompare(b,'ja'));
-const staticRoutes=['/','/about-data/','/analytics/','/procurement/','/realestate/','/regional/','/employment-economy/','/business-industry/','/listed-companies/','/unlisted-companies/','/listed-companies/7203/','/listed-companies/compare/','/economy-prices/','/energy/'];
+const staticRoutes=['/','/about-data/','/analytics/','/topics/','/procurement/','/realestate/','/regional/','/employment-economy/','/business-industry/','/listed-companies/','/unlisted-companies/','/listed-companies/7203/','/listed-companies/compare/','/economy-prices/','/energy/'];
 const listedIndexFile=path.join(process.cwd(),'public','data','listed-companies','index.json');
 const listedIndex=fs.existsSync(listedIndexFile)?JSON.parse(fs.readFileSync(listedIndexFile,'utf8')).records||[]:[];
 const listedNoFinancial=listedIndex.find(x=>x?.securityCode&&!x?.hasFinancials);

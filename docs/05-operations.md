@@ -1,6 +1,6 @@
 # DATLUME 運用設計書
 
-最終更新: 2026-09-27
+最終更新: 2026-10-01
 
 ## 1. 運用環境
 - Ubuntu 正本: `$HOME/Sites/public-market-data`
@@ -36,9 +36,10 @@
 12. 上場企業public data再生成。
 13. 月初回のみ各統計領域更新。
 14. Cloudflare Web Analyticsスナップショット更新。
-15. 公開予定の全領域データ監査を実行。失敗時はbuild/deploy前に停止。
-16. build、Cloudflare deploy。
-17. 成功履歴とlast-success-date更新。
+15. Wikipedia話題トピックを更新。Wikimedia API一時障害時は最後の正常スナップショットを維持して継続。
+16. 公開予定の全領域データ監査を実行。失敗時はbuild/deploy前に停止。
+17. build、Cloudflare deploy。
+18. 成功履歴とlast-success-date更新。
 
 ## 4. 週次監査
 `scripts/weekly-audit.sh` は週1回、以下を実行する。
@@ -96,6 +97,8 @@ Cloudflare認証情報はホームディレクトリ配下の専用ファイル�
 - build: `npm run build`
 - 本番deploy: `bash deploy-datlume.sh`
 - 上場企業日次相当: `npm run refresh:listed-daily`
+- Wikipedia話題トピック収集: `npm run collect:wikipedia-topics`
+- Wikipedia話題トピック監査: `npm run audit:wikipedia-topics`
 - データ監査: `npm run audit:data`
 - HTML監査: `npm run audit:html`
 - E2E: `npm run e2e:deep`
