@@ -52,7 +52,9 @@
     "collect:company-registry-gbiz": "node scripts/run-python.cjs -m collector.company_registry.collect_gbiz_bulk --type all-activity",
     "collect:company-registry-gbiz-finance": "node scripts/run-python.cjs -m collector.company_registry.collect_gbiz_bulk --type finance",
     "bootstrap:company-registry-gbiz-finance": "node scripts/run-python.cjs -m collector.company_registry.bootstrap_gbiz_legacy",
-    "ingest:company-registry-gbiz-finance": "node scripts/run-python.cjs -m collector.company_registry.ingest_gbiz_finance"
+    "ingest:company-registry-gbiz-finance": "node scripts/run-python.cjs -m collector.company_registry.ingest_gbiz_finance",
+    "collect:company-registry-gbiz-statements": "node scripts/run-python.cjs -m collector.company_registry.collect_gbiz_bulk --type statements",
+    "ingest:company-registry-gbiz-statements": "node scripts/run-python.cjs -m collector.company_registry.ingest_gbiz_statements"
   },
   "dependencies": {
     "astro": "^7.3.4",

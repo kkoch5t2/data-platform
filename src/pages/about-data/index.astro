@@ -15,6 +15,11 @@ const gbizDate = gbizFinance.sourceDate || '—';
 const gbizLegacy = gbizFinance.snapshotStatus === 'legacy';
 const gbizLabel = gbizLegacy ? 'gBizINFO旧システム財務情報' : 'gBizINFO財務情報';
 const gbizStatusNote = gbizLegacy ? '旧スナップショットで最新データではありません' : '現行配布データ';
+const gbizStatements = companyRegistrySummary.sources?.gbizStatements || {};
+const gbizStatementDate = gbizStatements.sourceDate || '—';
+const financeCoverage = companyRegistrySummary.unlistedFinanceCompanies || 0;
+const financeCsvCoverage = companyRegistrySummary.unlistedFinanceCsvCompanies || 0;
+const statementCoverage = companyRegistrySummary.unlistedStatementCompanies || 0;
 ---
 <html lang="ja">
 <head><link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -101,7 +106,7 @@ const gbizStatusNote = gbizLegacy ? '旧スナップショットで最新デー�
 <h2>未上場企業</h2>
 <p>国税庁「法人番号公表サイト」の全国全件データを法人マスタとして使用し、DATLUMEの公共調達受注企業を法人番号へ照合しています。掲載対象は現存する株式会社・有限会社・合名会社・合資会社・合同会社です。</p>
 <p>未上場判定では、日本取引所グループ「東証上場銘柄一覧」に加え、金融庁「EDINETコードリスト」の上場区分も照合して除外します。法人番号を一意に確認できない企業は未上場企業一覧へ載せず、名称だけで推測して統合しません。</p>
-<p>企業別指標は公共調達の受注実績を中心に、{gbizLabel}（{gbizDate}時点）と法人番号で照合できた会社について、最大5回次の売上系指標・利益・純資産・総資産・従業員数等を追加しています。現在の収録状態は「{gbizStatusNote}」です。DATLUMEでは欠損値や過去回次の年度を推測で補完しません。</p>
+<p>企業別指標は公共調達の受注実績を中心に、{gbizLabel}（{gbizDate}時点）と、gBizINFO「決算情報」に収録された官報決算公告（{gbizStatementDate}時点）を法人番号で照合しています。公開財務を確認できる会社は現在 <strong>{fmt(financeCoverage)}社</strong>で、財務CSV {fmt(financeCsvCoverage)}社、決算公告 {fmt(statementCoverage)}社（重複あり）です。決算公告では主に貸借対照表の要旨を使い、売上・利益など公告に記載がない項目は推測で補完しません。</p>
 </section>
 
   <section id="employment-economy" class="card section">
@@ -158,7 +163,7 @@ const gbizStatusNote = gbizLegacy ? '旧スナップショットで最新デー�
     <p>雇用・賃金・地域経済：厚生労働省「賃金構造基本統計調査」 / 独立行政法人 統計センター「SSDSE-E-2026」「SSDSE-B-2026」。</p>
     <p>企業・産業：総務省統計局「令和6年経済センサス‐基礎調査 甲調査」確報 / 統計センターSSDSE-Eアーカイブ（2016年・2021年経済センサス由来値）。</p>
     <p>上場企業：日本取引所グループ「東証上場銘柄一覧」 / 金融庁「EDINETコードリスト」「EDINET API」「有価証券報告書 XBRL/CSV」。</p>
-    <p>未上場企業：国税庁「法人番号公表サイト」全国全件データ / 日本取引所グループ「東証上場銘柄一覧」 / 金融庁「EDINETコードリスト」 / {gbizLabel}（{gbizDate}時点）。各社ページでもデータ時点と収録状態を表示します。</p>
+    <p>未上場企業：国税庁「法人番号公表サイト」全国全件データ / 日本取引所グループ「東証上場銘柄一覧」 / 金融庁「EDINETコードリスト」 / {gbizLabel}（{gbizDate}時点） / gBizINFO「決算情報」・官報決算公告（{gbizStatementDate}時点）。各社ページでもデータ時点と収録状態を表示します。</p>
     <p>経済・物価：総務省統計局「小売物価統計調査（構造編）」消費者物価地域差指数（2013〜2025年履歴を含む）。</p>
     <p>エネルギー：総務省統計局「家計調査」「小売物価統計調査」 / 統計センター「SSDSE-B-2026」 / 資源エネルギー庁「電力調査統計」「都道府県別エネルギー消費統計」等。</p>
     <p>地価・施設：国土交通省「国土数値情報」。地価公示・都道府県地価調査の現行データは CC BY 4.0。個別データに別条件がある場合は、その条件を優先します。</p>
