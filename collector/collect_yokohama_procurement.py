@@ -167,54 +167,52 @@ def fill_missing_result_amounts(items,year,delay=.03):
     return filled
 
 def list_results(year,delay=.03,workers=4):
-    op=result_opener();first=post_result_page(op,year,1)
-    total_match=re.search(r'全\s*([0-9,]+)\s*件中',text_only(first));total=int(total_match.group(1).replace(',','')) if total_match else 0
-    pages=max(1,math.ceil(total/50)) if total else 1
-    first_cache=RAW/f'results-{year}-0001.html';first_cache.write_text(first,encoding='utf-8')
-    def cache_ok(path):
-        if not path.exists() or path.stat().st_size < 1000:
-            return False
-        try:
-            sample=path.read_text(encoding='utf-8')
-        except Exception:
-            return False
-        return 'NyusatsuKeiyakuKekkaBuppinList' in sample and '<html' in sample.lower()
-    missing=[page for page in range(2,pages+1) if not cache_ok(RAW/f'results-{year}-{page:04d}.html')]
-    tls=threading.local()
-    def fetch_page(page):
-        if not hasattr(tls,'op'):
-            tls.op=result_opener()
-            post_result_page(tls.op,year,1)
-        raw=post_result_page(tls.op,year,page)
-        if delay:time.sleep(delay)
-        return page,raw
-    if missing:
-        with ThreadPoolExecutor(max_workers=max(1,min(workers,4))) as pool:
-            for idx,(page,raw) in enumerate(pool.map(fetch_page,missing),1):
-                (RAW/f'results-{year}-{page:04d}.html').write_text(raw,encoding='utf-8')
-                if idx==1 or idx%10==0 or idx==len(missing):
-                    print(f'yokohama results {year}: fetched={idx}/{len(missing)} page={page}/{pages}',flush=True)
-    items=[];html_rows=0
-    for page in range(1,pages+1):
-        raw=(RAW/f'results-{year}-{page:04d}.html').read_text(encoding='utf-8')
-        trs=re.findall(r'<tr[^>]*>([\s\S]*?)</tr>',raw,re.I)
-        for tr in trs:
-            tds=re.findall(r'<td[^>]*>([\s\S]*?)</td>',tr,re.I)
-            if len(tds)<9:
-                continue
-            html_rows += 1
-            if not re.search(r"detail\(['\"]?\d+['\"]?,['\"]?\d+['\"]?\)",tds[0],re.I):
-                status=text_only(tds[2])
-                if status!='不調':
-                    raise RuntimeError(f'yokohama unexpected no-award status year={year} page={page}: {status}')
-        page_items=result_rows(raw,year)
-        for x in page_items:x['page']=page
-        items.extend(page_items)
-    fill_missing_result_amounts(items,year,delay)
-    print(f'yokohama results {year}: page={pages}/{pages} rows={len(items)}',flush=True)
-    if html_rows != total:
-        raise RuntimeError(f'yokohama result row mismatch year={year} official={total} htmlRows={html_rows}')
-    return items,total,pages,total-len(items)
+    max_attempts=3
+    last_mismatch=None
+    for attempt in range(1,max_attempts+1):
+        op=result_opener();first=post_result_page(op,year,1)
+        total_match=re.search(r'全\s*([0-9,]+)\s*件中',text_only(first))
+        if not total_match:
+            raise RuntimeError(f'yokohama result total missing year={year}')
+        total=int(total_match.group(1).replace(',',''))
+        pages=max(1,math.ceil(total/50)) if total else 1
+        page_raw={1:first}
+        (RAW/f'results-{year}-0001.html').write_text(first,encoding='utf-8')
+        for page in range(2,pages+1):
+            raw=post_result_page(op,year,page)
+            page_raw[page]=raw
+            (RAW/f'results-{year}-{page:04d}.html').write_text(raw,encoding='utf-8')
+            if page==2 or page%10==0 or page==pages:
+                print(f'yokohama results {year}: fetched={page}/{pages} attempt={attempt}',flush=True)
+            if delay:time.sleep(delay)
+        items=[];html_rows=0
+        for page in range(1,pages+1):
+            raw=page_raw[page]
+            trs=re.findall(r'<tr[^>]*>([\s\S]*?)</tr>',raw,re.I)
+            for tr in trs:
+                tds=re.findall(r'<td[^>]*>([\s\S]*?)</td>',tr,re.I)
+                if len(tds)<9:
+                    continue
+                html_rows += 1
+                if not re.search(r"detail\(['\"]?\d+['\"]?,['\"]?\d+['\"]?\)",tds[0],re.I):
+                    status=text_only(tds[2])
+                    if status!='不調':
+                        raise RuntimeError(f'yokohama unexpected no-award status year={year} page={page}: {status}')
+            page_items=result_rows(raw,year)
+            for x in page_items:x['page']=page
+            items.extend(page_items)
+        final_first=post_result_page(op,year,1)
+        final_match=re.search(r'全\s*([0-9,]+)\s*件中',text_only(final_first))
+        final_total=int(final_match.group(1).replace(',','')) if final_match else -1
+        if html_rows==total and final_total==total:
+            fill_missing_result_amounts(items,year,delay)
+            print(f'yokohama results {year}: page={pages}/{pages} rows={len(items)}',flush=True)
+            return items,total,pages,total-len(items)
+        last_mismatch=(total,html_rows,final_total)
+        print(f'WARNING yokohama result snapshot changed year={year} attempt={attempt}/{max_attempts} initial={total} htmlRows={html_rows} final={final_total}; retrying',flush=True)
+        if attempt<max_attempts:time.sleep(max(1.0,delay))
+    total,html_rows,final_total=last_mismatch
+    raise RuntimeError(f'yokohama result row mismatch year={year} initial={total} htmlRows={html_rows} final={final_total} attempts={max_attempts}')
 
 def save_results(conn,items):
     now=datetime.now(timezone.utc).isoformat();updated=added=amounts=0
