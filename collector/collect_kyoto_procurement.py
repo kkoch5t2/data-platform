@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import argparse, hashlib, html, json, re, sqlite3, time, urllib.parse, urllib.request
+import argparse, hashlib, html, json, re, sqlite3, time, urllib.error, urllib.parse, urllib.request
 from datetime import datetime, timezone
 try:
     from core.source_run import SourceRun
@@ -123,16 +123,25 @@ def save(conn, items):
 def main(target_years=None, do_export=True):
     conn = sqlite3.connect(DB_PATH); init_db(conn)
     parsed = upserted = 0; dates = []; by_kind = {k: 0 for k in KINDS}
-    pages = discover_pages(target_years)
+    pages = discover_pages(target_years); unavailable = []
     for url in pages:
-        rows = parse_page(url, target_years)
+        try:
+            rows = parse_page(url, target_years)
+        except urllib.error.HTTPError as exc:
+            if exc.code != 404:
+                conn.close(); raise
+            unavailable.append(url)
+            print(f'WARNING kyoto: official discovered result page returned HTTP 404; skipping {url}', flush=True)
+            continue
         if not rows: continue
         n = save(conn, rows); parsed += len(rows); upserted += n
         for x in rows: by_kind[x['kind']] += 1; dates.append(x['award_date'])
+    if parsed == 0:
+        conn.close(); raise RuntimeError('Kyoto: no records collected from any available official result page')
     summary = export_json(conn) if do_export else {'records': conn.execute('SELECT COUNT(*) FROM procurements').fetchone()[0]}
     conn.close()
     print(f'kyoto: pages={len(pages)} parsed={parsed} upserted={upserted} total={summary["records"]} kinds={by_kind}', flush=True)
-    return {'records': parsed, 'upserted': upserted, 'pages': len(pages),
+    return {'records': parsed, 'upserted': upserted, 'pages': len(pages), 'unavailablePages': len(unavailable),
             'startDate': min(dates) if dates else None, 'endDate': max(dates) if dates else None}
 
 
