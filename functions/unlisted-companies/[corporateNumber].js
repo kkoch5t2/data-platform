@@ -69,7 +69,9 @@ function renderFinanceHistory(entity){
   });
   const latestCard=cards[0]||'';
   const olderCards=cards.slice(1);
-  const historyMore=olderCards.length?`<details class="finance-history-more"><summary><span>過去${olderCards.length}期を見る</span><span class="history-chevron" aria-hidden="true">⌄</span></summary><div class="finance-period-grid finance-period-grid-past">${olderCards.join('')}</div></details>`:'';
+  const historyLabel=statement?`過去${olderCards.length}期の決算公告を見る`:`過去${olderCards.length}期の推移を見る`;
+  const historyCloseLabel=`過去${olderCards.length}期を閉じる`;
+  const historyMore=olderCards.length?`<details class="finance-history-more"><summary><span class="history-label history-label-closed">${esc(historyLabel)}</span><span class="history-label history-label-open">${esc(historyCloseLabel)}</span><span class="history-chevron" aria-hidden="true">⌄</span></summary><div class="finance-period-grid finance-period-grid-past">${olderCards.join('')}</div></details>`:'';
   const source=f.sourceUrl?`<a href="${esc(safeUrl(f.sourceUrl))}" target="_blank" rel="noreferrer">gBizINFO公式配布元</a>`:'gBizINFO';
   const note=statement?'最新の決算公告を表示しています。過去分は必要なときだけ展開できます。公告にない項目は推測せず「—」とします。':'最新の公開財務を表示しています。過去回次は必要なときだけ展開でき、年度はDATLUME側で推測して付与しません。';
   return `<section class="section card panel finance-history-panel"><div class="section-head"><div><h2>${statement?'決算公告の推移':'財務データの推移'}</h2><p>${esc(note)}</p></div><p>${esc(f.sourceDate||'')}時点 · ${source}</p></div><div class="finance-period-grid finance-period-grid-latest">${latestCard}</div>${historyMore}</section>`;
