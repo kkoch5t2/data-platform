@@ -135,8 +135,24 @@ async function checkUnlistedCompanyDetail(page,label,failures) {
   const sample=m?unlistedIndex.find(x=>String(x?.corporateNumber||'')===m[1]):null;
   if(sample?.hasFinance){
     const expected=Number(sample.financePeriods||0);
-    const history=await page.locator('.finance-period-grid .finance-period-card').count();
+    const history=await page.locator('.finance-period-card').count();
     if(history!==expected)failures.push(label+' finance period cards '+history+' expected '+expected);
+    const initialVisible=await page.locator('.finance-period-card:visible').count();
+    if(initialVisible!==1)failures.push(label+' initial visible finance periods '+initialVisible+' expected 1');
+    const disclosure=page.locator('.finance-history-more');
+    if(expected>1){
+      if(!(await disclosure.count()))failures.push(label+' finance history disclosure missing');
+      else {
+        const summary=(await disclosure.locator('summary').textContent()||'').replace(/\s+/g,'');
+        if(!summary.includes(`過去${expected-1}期を見る`))failures.push(label+' finance history summary '+summary+' expected 過去'+(expected-1)+'期を見る');
+        await disclosure.locator('summary').click(); await page.waitForTimeout(60);
+        const expandedVisible=await page.locator('.finance-period-card:visible').count();
+        if(expandedVisible!==expected)failures.push(label+' expanded visible finance periods '+expandedVisible+' expected '+expected);
+        await disclosure.locator('summary').click(); await page.waitForTimeout(60);
+        const collapsedVisible=await page.locator('.finance-period-card:visible').count();
+        if(collapsedVisible!==1)failures.push(label+' collapsed visible finance periods '+collapsedVisible+' expected 1');
+      }
+    } else if(await disclosure.count()) failures.push(label+' single-period finance unexpectedly has disclosure');
     if(!(await page.locator('.finance-source-line').count()))failures.push(label+' finance source line missing');
     if(await page.locator('.finance-empty').count())failures.push(label+' finance page shows empty state');
     const summaryCards=await page.locator('.finance-panel .finance-card-grid .finance-metric').count();
