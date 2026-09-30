@@ -31,6 +31,9 @@ const unlistedIndex=fs.existsSync(unlistedIndexFile)?JSON.parse(fs.readFileSync(
 const unlistedSample=unlistedIndex.find(x=>/^\d{13}$/.test(String(x?.corporateNumber||'')));
 const unlistedDetailRoute=unlistedSample?`/unlisted-companies/${unlistedSample.corporateNumber}/`:null;
 if(unlistedDetailRoute)staticRoutes.push(unlistedDetailRoute);
+const unlistedFinanceSample=unlistedIndex.find(x=>/^\d{13}$/.test(String(x?.corporateNumber||''))&&x?.hasFinance);
+const unlistedFinanceDetailRoute=unlistedFinanceSample?`/unlisted-companies/${unlistedFinanceSample.corporateNumber}/`:null;
+if(unlistedFinanceDetailRoute&&unlistedFinanceDetailRoute!==unlistedDetailRoute)staticRoutes.push(unlistedFinanceDetailRoute);
 const families=[
   ['proc-company', /^\/procurement\/companies\/co_[^/]+\/$/],
   ['proc-market', /^\/procurement\/markets\/(?!index)[^/]+\/$/],
@@ -78,6 +81,22 @@ const sleep = ms => new Promise(r=>setTimeout(r,ms));
 const unique = xs => [...new Set(xs)];
 const safeRoute = r => (r==='/'?'home':r.replace(/^\//,'').replace(/\/$/,'').replace(/[^a-zA-Z0-9_-]+/g,'_')).slice(0,120);
 
+async function checkUnlistedCompanies(page,label,failures) {
+  await page.waitForFunction(()=>!/読み込み中/.test(document.querySelector('#result-count')?.textContent||''),{timeout:10000}).catch(()=>{});
+  const financeFilter=page.locator('#finance-filter');
+  if(await financeFilter.count()){
+    await financeFilter.selectOption('yes'); await page.waitForTimeout(120);
+    const expected=unlistedIndex.filter(x=>x?.hasFinance).length;
+    const text=(await page.locator('#result-count').textContent()||'').replace(/,/g,'');
+    if(!text.includes(String(expected)))failures.push(label+' finance filter count '+text+' expected '+expected);
+    const cards=page.locator('.company-card:visible');
+    const n=await cards.count();
+    if(!n)failures.push(label+' finance filter returned no cards');
+    for(let i=0;i<Math.min(n,24);i++)if(!(await cards.nth(i).locator('.finance-tag').count()))failures.push(label+' finance-filter card missing finance badge');
+    await financeFilter.selectOption(''); await page.waitForTimeout(80);
+  }
+}
+
 async function checkUnlistedCompanyDetail(page,label,failures) {
   const rows=page.locator('tbody tr:visible');
   const more=page.locator('[data-show-more]');
@@ -90,6 +109,14 @@ async function checkUnlistedCompanyDetail(page,label,failures) {
     await more.click(); await page.waitForTimeout(80);
     const collapsed=await rows.count();
     if(collapsed!==20)failures.push(label+' collapsed procurement rows '+collapsed+' expected 20');
+  }
+  const route=new URL(page.url()).pathname;
+  if(unlistedFinanceDetailRoute&&route===unlistedFinanceDetailRoute){
+    const expected=Number(unlistedFinanceSample?.financePeriods||0);
+    const history=await page.locator('.finance-history .fin-row').count();
+    if(history!==expected)failures.push(label+' finance history '+history+' expected '+expected);
+    if(!(await page.locator('.finance-source').count()))failures.push(label+' finance source badge missing');
+    if(await page.locator('.finance-empty').count())failures.push(label+' finance page shows empty state');
   }
 }
 
@@ -409,6 +436,7 @@ async function checkListedCompanies(page,label,failures) {
         if(route==='/listed-companies/7203/')await checkListedCompanyDetail(page,initialLabel,failures);
         if(listedNoFinancialRoute&&route===listedNoFinancialRoute)await checkListedNoFinancial(page,initialLabel,failures);
         if(route==='/listed-companies/compare/')await checkListedCompare(page,initialLabel,failures);
+        if(route==='/unlisted-companies/')await checkUnlistedCompanies(page,initialLabel,failures);
         if(/^\/unlisted-companies\/\d{13}\/$/.test(route))await checkUnlistedCompanyDetail(page,initialLabel,failures);
 
         const filterToggle=page.locator('#filter-toggle:visible, #filters-toggle:visible');

@@ -49,7 +49,10 @@
     "backfill:company-registry-procurement": "node scripts/run-python.cjs -m collector.company_registry.backfill_procurement_links",
     "build:company-registry": "node scripts/run-python.cjs -m collector.company_registry.build_registry",
     "audit:company-registry": "node scripts/run-python.cjs scripts/audit-company-registry.py",
-    "collect:company-registry-gbiz": "node scripts/run-python.cjs -m collector.company_registry.collect_gbiz_bulk --type all-activity"
+    "collect:company-registry-gbiz": "node scripts/run-python.cjs -m collector.company_registry.collect_gbiz_bulk --type all-activity",
+    "collect:company-registry-gbiz-finance": "node scripts/run-python.cjs -m collector.company_registry.collect_gbiz_bulk --type finance",
+    "bootstrap:company-registry-gbiz-finance": "node scripts/run-python.cjs -m collector.company_registry.bootstrap_gbiz_legacy",
+    "ingest:company-registry-gbiz-finance": "node scripts/run-python.cjs -m collector.company_registry.ingest_gbiz_finance"
   },
   "dependencies": {
     "astro": "^7.3.4",

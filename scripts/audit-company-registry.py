@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT))
 
 from collector.collect_jetro import DB_PATH, prepare_canonical_procurements
 from collector.company_registry.common import NTA_DB, normalize_company_name
+from collector.company_registry.gbiz_finance import GBIZ_FINANCE_DB
 from collector.listed_companies.collect_master import load_edinet_rows
 
 PUBLIC = ROOT / "public" / "data" / "company-registry"
@@ -83,6 +84,25 @@ for key, entity in details.items():
     check(row.get("name") == entity.get("name"), f"{key}: index/detail name mismatch")
     check(row.get("awardCount") == procurement.get("awardCount"), f"{key}: awardCount mismatch")
     check(row.get("awardTotal") == procurement.get("awardTotal"), f"{key}: awardTotal mismatch")
+    finance = entity.get("finance")
+    check(bool(finance) == bool(row.get("hasFinance")), f"{key}: finance index/detail mismatch")
+    if finance:
+        periods = finance.get("periods") or []
+        check(len(periods) == int(row.get("financePeriods") or 0), f"{key}: finance period count mismatch")
+        check([period.get("periodOrder") for period in periods] == list(range(len(periods))), f"{key}: finance period order mismatch")
+        check(finance.get("source") == "gBizINFO", f"{key}: unexpected finance source")
+        check(finance.get("sourceDate") == (summary.get("sources") or {}).get("gbizFinance", {}).get("sourceDate"), f"{key}: finance source date mismatch")
+        latest = periods[0] if periods else {}
+        analysis = finance.get("analysis") or {}
+        check(analysis.get("primaryRevenue") == latest.get("primaryRevenue"), f"{key}: primary revenue analysis mismatch")
+        check(analysis.get("netIncomeLoss") == latest.get("netIncomeLoss"), f"{key}: net income analysis mismatch")
+        money_fields = ("netSales","operatingRevenue1","operatingRevenue2","grossOperatingRevenue","ordinaryRevenue","netPremiums","ordinaryIncomeLoss","netIncomeLoss","capitalStock","netAssets","totalAssets")
+        for period in periods:
+            for field in money_fields:
+                if period.get(field) is not None:
+                    check(period.get(field + "Unit") == "JPY", f"{key}: {field} unexpected unit")
+            if period.get("employees") is not None:
+                check(period.get("employeesUnit") == "pure", f"{key}: employees unexpected unit")
     source = nta.execute(
         "SELECT name,kind,close_date FROM corporations WHERE corporate_number=?", (corporate_number,)
     ).fetchone()
@@ -125,6 +145,16 @@ check(source_ids == len(published_company_ids), "published procurement companyId
 check(summary.get("procurementCompanies") == all_source_companies, "summary/source procurement company count mismatch")
 check(summary.get("unlistedCompanies") == len(details), "summary/detail unlisted count mismatch")
 check(summary.get("publicEntities") == len(details), "summary/detail public entity count mismatch")
+finance_index_count = sum(1 for row in index_rows if row.get("hasFinance"))
+check(summary.get("unlistedFinanceCompanies") == finance_index_count, "summary/index finance company count mismatch")
+if GBIZ_FINANCE_DB.exists():
+    gbiz = sqlite3.connect(GBIZ_FINANCE_DB)
+    source_finance_numbers = {row[0] for row in gbiz.execute("SELECT DISTINCT corporate_number FROM finance_records")}
+    gbiz_meta = dict(gbiz.execute("SELECT key,value FROM metadata"))
+    gbiz.close()
+    published_finance_numbers = {key for key, entity in details.items() if entity.get("finance")}
+    check(published_finance_numbers == (source_finance_numbers & set(details)), "gBizINFO source/public finance company set mismatch")
+    check(gbiz_meta.get("sourceDate") == (summary.get("sources") or {}).get("gbizFinance", {}).get("sourceDate"), "summary/gBizINFO source date mismatch")
 
 nta = sqlite3.connect(NTA_DB)
 nta_meta = dict(nta.execute("SELECT key,value FROM metadata"))
