@@ -384,6 +384,19 @@
         "endYear": 2026
       },
       "previousRecordCount": 1558
+    },
+    "wikipedia_topics": {
+      "label": "Wikimedia Analytics API 日本語版Wikipedia Pageviews",
+      "status": "ok",
+      "startedAt": "2026-09-30T19:23:37.850791+00:00",
+      "finishedAt": "2026-09-30T19:23:37.926744+00:00",
+      "durationSeconds": 0.08,
+      "metrics": {
+        "records": 100,
+        "sourceArticles": 994,
+        "windowDays": 14,
+        "latestDate": "2026-09-29"
+      }
     }
   }
 }

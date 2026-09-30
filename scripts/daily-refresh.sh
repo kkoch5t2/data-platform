@@ -261,6 +261,11 @@ if python3 scripts/cloudflare_web_analytics.py --days 7 --save public/data/site-
 else
   echo "WARNING: analytics refresh failed; continuing with the last saved snapshot"
 fi
+if python3 collector/collect_wikipedia_topics.py --days 14; then
+  echo "Wikipedia topics snapshot updated"
+else
+  echo "WARNING: Wikipedia topics refresh failed; continuing with the last saved snapshot"
+fi
 # Full published-data audits run on the Windows production-data mirror.
 CURRENT_STEP="pre-deploy-release-tree-safety"
 if [[ "$MODE" == "--scheduled" ]] && ! assert_release_tree_safe; then
