@@ -17,6 +17,7 @@ from .common import RAW, ensure_dirs, valid_corporate_number
 
 GBIZ_FINANCE_DB = RAW / "gbiz-finance.sqlite"
 LEGACY_SOURCE_URL = "https://content.info.gbiz.go.jp/download/legacy/standard/Zaimujoho_UTF-8_20251204.zip"
+CURRENT_DOWNLOAD_URL = "https://info.gbiz.go.jp/hojin/DownloadTop"
 
 METRICS = {
     "netSales": ("売上高", "売上高（単位)", "売上高（単位）"),
@@ -181,8 +182,11 @@ def main(input_path: str | None = None, source_url: str | None = None) -> dict:
     path = Path(input_path).expanduser().resolve() if input_path else default_input().resolve()
     if not path.exists():
         raise SystemExit(f'gBizINFO finance ZIP not found: {path}')
-    if source_url is None and '20251204' in path.name:
-        source_url = LEGACY_SOURCE_URL
+    if source_url is None:
+        if '20251204' in path.name:
+            source_url = LEGACY_SOURCE_URL
+        elif path.parent.name == 'gbiz':
+            source_url = CURRENT_DOWNLOAD_URL
     result = build_database(path, source_url)
     print(f'gbiz finance ingest {result}', flush=True)
     return result
