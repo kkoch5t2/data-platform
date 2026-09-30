@@ -143,9 +143,17 @@ async function checkUnlistedCompanyDetail(page,label,failures) {
     if(expected>1){
       if(!(await disclosure.count()))failures.push(label+' finance history disclosure missing');
       else {
-        const summary=(await disclosure.locator('summary').textContent()||'').replace(/\s+/g,'');
-        if(!summary.includes(`過去${expected-1}期を見る`))failures.push(label+' finance history summary '+summary+' expected 過去'+(expected-1)+'期を見る');
-        await disclosure.locator('summary').click(); await page.waitForTimeout(60);
+        const summaryEl=disclosure.locator('summary');
+        const summary=(await summaryEl.textContent()||'').replace(/\s+/g,'');
+        const expectedClosed=sample.financeSourceType==='statements'?`過去${expected-1}期の決算公告を見る`:`過去${expected-1}期の推移を見る`;
+        if(!summary.includes(expectedClosed))failures.push(label+' finance history summary '+summary+' expected '+expectedClosed);
+        const ctaStyle=await summaryEl.evaluate(el=>({background:getComputedStyle(el).backgroundColor,color:getComputedStyle(el).color,width:el.getBoundingClientRect().width,parent:el.parentElement?.getBoundingClientRect().width||0}));
+        if(ctaStyle.background!=='rgb(9, 24, 39)')failures.push(label+' finance history CTA background '+ctaStyle.background+' expected rgb(9, 24, 39)');
+        if(ctaStyle.color!=='rgb(255, 255, 255)')failures.push(label+' finance history CTA color '+ctaStyle.color+' expected white');
+        if(Math.abs(ctaStyle.width-ctaStyle.parent)>2)failures.push(label+' finance history CTA width '+ctaStyle.width+' parent '+ctaStyle.parent);
+        await summaryEl.click(); await page.waitForTimeout(60);
+        const openSummary=(await summaryEl.textContent()||'').replace(/\s+/g,'');
+        if(!openSummary.includes(`過去${expected-1}期を閉じる`))failures.push(label+' finance history open summary '+openSummary+' expected close label');
         const expandedVisible=await page.locator('.finance-period-card:visible').count();
         if(expandedVisible!==expected)failures.push(label+' expanded visible finance periods '+expandedVisible+' expected '+expected);
         await disclosure.locator('summary').click(); await page.waitForTimeout(60);
