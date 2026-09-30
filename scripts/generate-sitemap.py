@@ -21,6 +21,12 @@ if listed_index_path.exists():
         code=company.get('securityCode')
         if code and company.get('hasFinancials') is True:
             urls.append(f"{BASE}/listed-companies/{quote(str(code),safe='')}/")
+unlisted_index_path=ROOT/'public/data/company-registry/unlisted-index.json'
+if unlisted_index_path.exists():
+    unlisted_index=json.loads(unlisted_index_path.read_text(encoding='utf-8'))
+    for company in unlisted_index.get('records',[]):
+        corporate_number=str(company.get('corporateNumber') or '')
+        if corporate_number: urls.append(BASE+'/unlisted-companies/'+quote(corporate_number,safe='')+'/')
 company_path=ROOT/'src'/'data'/'companies.json'
 if company_path.exists():
     for company in json.loads(company_path.read_text(encoding='utf-8')):
