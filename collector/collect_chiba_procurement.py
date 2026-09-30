@@ -161,6 +161,11 @@ def save(conn, items):
         xid = int(digest[:12], 16); winner = usable_winner(x['winner']); company_id = stable_id('co', winner) if winner else None
         if company_id:
             conn.execute('INSERT OR IGNORE INTO companies VALUES (?,?,?)', (company_id, winner, norm(winner)))
+            corporate_number = re.sub(r'\D', '', unicodedata.normalize('NFKC', x['corporate_number'] or ''))
+            if re.fullmatch(r'\d{13}', corporate_number):
+                conn.execute('''INSERT OR REPLACE INTO company_corporate_numbers
+                  (company_id,corporate_number,method,source_id,updated_at) VALUES (?,?,?,?,?)''',
+                  (company_id, corporate_number, 'officialSource', sid, now))
         notice_type = f"千葉市入札結果（{CATEGORIES[x['category']]}）"
         detail = clean(' / '.join(v for v in [f"千葉市 {CATEGORIES[x['category']]}", x['department'],
             f"法人番号:{x['corporate_number']}" if x['corporate_number'] else '', '契約金額は公式ページの税込表示'] if v))[:1000]
@@ -198,6 +203,7 @@ def main(target_years=None, do_export=True):
         unique.setdefault(key, x)
     rows = list(unique.values())
     if target_years is None:
+        conn.execute("DELETE FROM company_corporate_numbers WHERE source_id LIKE 'chiba:%'")
         conn.execute("DELETE FROM procurements WHERE source_id LIKE 'chiba:%'")
         conn.commit()
     upserted = save(conn, rows)

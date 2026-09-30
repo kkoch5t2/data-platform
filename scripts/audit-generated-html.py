@@ -18,6 +18,8 @@ if master_path.exists():
         listed_codes=set()
 company_path=ROOT/'src'/'data'/'companies.json'
 company_ids={x.get('id') for x in json.loads(company_path.read_text(encoding='utf-8'))} if company_path.exists() else set()
+unlisted_path=ROOT/'public/data/company-registry/unlisted-index.json'
+unlisted_corporate_numbers={str(x.get('corporateNumber')) for x in json.loads(unlisted_path.read_text(encoding='utf-8')).get('records',[]) if x.get('corporateNumber')} if unlisted_path.exists() else set()
 
 def check(cond,msg):
     global checks
@@ -85,6 +87,9 @@ def target_exists(route,ref):
     m=re.fullmatch(r'/procurement/companies/(co_[0-9a-f]{12})/?',path)
     if m:
         exists=m.group(1) in company_ids; target_cache[key]=exists; return exists
+    m=re.fullmatch(r'/unlisted-companies/(\d{13})/?',path)
+    if m:
+        exists=m.group(1) in unlisted_corporate_numbers; target_cache[key]=exists; return exists
     rel=path.lstrip('/')
     cand=DIST/rel
     if path.endswith('/'): cand=cand/'index.html'
@@ -154,6 +159,12 @@ if listed_index_path.exists() and sitemap_path.exists():
     sitemap='\n'.join(sitemap_docs)
     actual=set(re.findall(r'<loc>https://datlume\.com/listed-companies/([0-9A-Z]{4})/</loc>',sitemap))
     check(actual==expected,f'listed sitemap indexability mismatch: sitemap={len(actual)} expected={len(expected)}')
+    unlisted_path=ROOT/'public/data/company-registry/unlisted-index.json'
+    if unlisted_path.exists():
+        unlisted_records=json.loads(unlisted_path.read_text(encoding='utf-8')).get('records',[])
+        expected_unlisted={str(x.get('corporateNumber')) for x in unlisted_records if x.get('corporateNumber')}
+        actual_unlisted=set(re.findall(r'<loc>https://datlume\.com/unlisted-companies/(\d{13})/</loc>',sitemap))
+        check(actual_unlisted==expected_unlisted,f'unlisted sitemap mismatch: sitemap={len(actual_unlisted)} expected={len(expected_unlisted)}')
     for child in DIST.glob('sitemap-*.xml'):
         url_count=child.read_text(encoding='utf-8').count('<url>')
         check(url_count<=50000,f'{child.name}: sitemap URL limit exceeded: {url_count}')

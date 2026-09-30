@@ -994,6 +994,13 @@ def init_db(conn):
     CREATE TABLE IF NOT EXISTS companies (
       company_id TEXT PRIMARY KEY, company_name TEXT NOT NULL, normalized_name TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS company_corporate_numbers (
+      company_id TEXT NOT NULL, corporate_number TEXT NOT NULL, method TEXT NOT NULL,
+      source_id TEXT, updated_at TEXT NOT NULL,
+      PRIMARY KEY (company_id, corporate_number)
+    );
+    CREATE INDEX IF NOT EXISTS idx_company_corporate_number
+      ON company_corporate_numbers(corporate_number);
     CREATE TABLE IF NOT EXISTS organizations (
       organization_id TEXT PRIMARY KEY, organization_name TEXT NOT NULL
     );

@@ -20,7 +20,7 @@
     "e2e": "node scripts/e2e-smoke.cjs && node scripts/e2e-deep.cjs",
     "e2e:smoke": "node scripts/e2e-smoke.cjs",
     "e2e:deep": "node scripts/e2e-deep.cjs",
-    "audit:data": "node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && npm run audit:housing-land-2023 && npm run audit:reinfolib-transactions && npm run audit:retail-prices-city && npm run audit:procurement-awards && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py",
+    "audit:data": "node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && npm run audit:housing-land-2023 && npm run audit:reinfolib-transactions && npm run audit:retail-prices-city && npm run audit:procurement-awards && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py && npm run audit:company-registry",
     "audit:html": "node scripts/run-python.cjs scripts/audit-generated-html.py",
     "collect:listed-master": "node scripts/run-python.cjs -m collector.listed_companies.collect_master",
     "collect:listed-documents": "node scripts/run-python.cjs -m collector.listed_companies.collect_documents",
@@ -44,7 +44,12 @@
     "audit:retail-prices-city": "node scripts/run-python.cjs scripts/audit-retail-prices-city.py",
     "audit:housing-land-2023": "node scripts/run-python.cjs scripts/audit-housing-land-2023.py",
     "audit:reinfolib-transactions": "node scripts/run-python.cjs scripts/audit-reinfolib-transactions.py",
-    "audit:procurement-awards": "node scripts/run-python.cjs scripts/audit-procurement-awards.py"
+    "audit:procurement-awards": "node scripts/run-python.cjs scripts/audit-procurement-awards.py",
+    "collect:company-registry-nta": "node scripts/run-python.cjs -m collector.company_registry.collect_nta --region 全国",
+    "backfill:company-registry-procurement": "node scripts/run-python.cjs -m collector.company_registry.backfill_procurement_links",
+    "build:company-registry": "node scripts/run-python.cjs -m collector.company_registry.build_registry",
+    "audit:company-registry": "node scripts/run-python.cjs scripts/audit-company-registry.py",
+    "collect:company-registry-gbiz": "node scripts/run-python.cjs -m collector.company_registry.collect_gbiz_bulk --type all-activity"
   },
   "dependencies": {
     "astro": "^7.3.4",

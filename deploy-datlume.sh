@@ -62,6 +62,26 @@ if [ "$LISTED_DETAIL_SHARDS" -ne 64 ] || [ "$LISTED_COMPANIES" -lt 3000 ] || [ "
   echo "Refusing incomplete deploy: listed shards=$LISTED_DETAIL_SHARDS companies=$LISTED_COMPANIES financialRecords=$LISTED_FINANCIAL_RECORDS"
   exit 3
 fi
+if [ ! -f "functions/unlisted-companies/[corporateNumber].js" ] || [ ! -s "dist/data/company-registry/summary.json" ] || [ ! -s "dist/data/company-registry/unlisted-index.json" ]; then
+  echo 'Refusing incomplete deploy: unlisted-company Pages Function or registry data missing.'
+  exit 3
+fi
+UNLISTED_DETAIL_SHARDS=$(find dist/data/company-registry/details -maxdepth 1 -type f -name '*.json' 2>/dev/null | wc -l)
+read -r UNLISTED_COMPANIES NTA_CORPORATIONS <<EOF
+$(python3 - <<'PY3'
+import json
+try:
+    d=json.load(open('dist/data/company-registry/summary.json',encoding='utf-8'))
+    print(int(d.get('unlistedCompanies',0)), int((d.get('sources') or {}).get('nta',{}).get('corporations',0)))
+except Exception:
+    print(0,0)
+PY3
+)
+EOF
+if [ "$UNLISTED_DETAIL_SHARDS" -ne 64 ] || [ "$UNLISTED_COMPANIES" -lt 10000 ] || [ "$NTA_CORPORATIONS" -lt 5000000 ]; then
+  echo "Refusing incomplete deploy: unlisted shards=$UNLISTED_DETAIL_SHARDS companies=$UNLISTED_COMPANIES ntaCorporations=$NTA_CORPORATIONS"
+  exit 3
+fi
 npx wrangler pages functions build functions --outfile /tmp/datlume-pages-functions.js --output-routes-path /tmp/datlume-pages-routes.json --minify >/dev/null
 FILE_COUNT=$(find dist -type f | wc -l)
 MAX_SIZE=$(find dist -type f -printf '%s\n' | awk 'BEGIN{m=0} {if ($1>m) m=$1} END{print m}')

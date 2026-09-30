@@ -20,12 +20,17 @@ function walk(dir, out=[]) {
   return out;
 }
 const builtRoutes=walk(dist).sort((a,b)=>a.localeCompare(b,'ja'));
-const staticRoutes=['/','/about-data/','/analytics/','/procurement/','/realestate/','/regional/','/employment-economy/','/business-industry/','/listed-companies/','/listed-companies/7203/','/listed-companies/compare/','/economy-prices/','/energy/'];
+const staticRoutes=['/','/about-data/','/analytics/','/procurement/','/realestate/','/regional/','/employment-economy/','/business-industry/','/listed-companies/','/unlisted-companies/','/listed-companies/7203/','/listed-companies/compare/','/economy-prices/','/energy/'];
 const listedIndexFile=path.join(process.cwd(),'public','data','listed-companies','index.json');
 const listedIndex=fs.existsSync(listedIndexFile)?JSON.parse(fs.readFileSync(listedIndexFile,'utf8')).records||[]:[];
 const listedNoFinancial=listedIndex.find(x=>x?.securityCode&&!x?.hasFinancials);
 const listedNoFinancialRoute=listedNoFinancial?`/listed-companies/${listedNoFinancial.securityCode}/`:null;
 if(listedNoFinancialRoute)staticRoutes.push(listedNoFinancialRoute);
+const unlistedIndexFile=path.join(process.cwd(),'public','data','company-registry','unlisted-index.json');
+const unlistedIndex=fs.existsSync(unlistedIndexFile)?JSON.parse(fs.readFileSync(unlistedIndexFile,'utf8')).records||[]:[];
+const unlistedSample=unlistedIndex.find(x=>/^\d{13}$/.test(String(x?.corporateNumber||'')));
+const unlistedDetailRoute=unlistedSample?`/unlisted-companies/${unlistedSample.corporateNumber}/`:null;
+if(unlistedDetailRoute)staticRoutes.push(unlistedDetailRoute);
 const families=[
   ['proc-company', /^\/procurement\/companies\/co_[^/]+\/$/],
   ['proc-market', /^\/procurement\/markets\/(?!index)[^/]+\/$/],
@@ -52,7 +57,9 @@ let activeRoutes;
 if (onlyRoutes.length) {
   activeRoutes=[...new Set(onlyRoutes)];
 } else {
-  const routes=[...staticRoutes].filter(r=>!(localWithoutFunctions&&/^\/listed-companies\/[0-9A-Z]{4}\/$/.test(r)));
+  const routes=[...staticRoutes].filter(r=>!(localWithoutFunctions&&(
+    /^\/listed-companies\/[0-9A-Z]{4}\/$/.test(r)||/^\/unlisted-companies\/\d{13}\/$/.test(r)
+  )));
   for (const [name,re] of families) {
     if(localWithoutFunctions&&name==='proc-company')continue;
     let hit=builtRoutes.find(r=>re.test(r));
@@ -70,6 +77,21 @@ if (onlyRoutes.length) {
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
 const unique = xs => [...new Set(xs)];
 const safeRoute = r => (r==='/'?'home':r.replace(/^\//,'').replace(/\/$/,'').replace(/[^a-zA-Z0-9_-]+/g,'_')).slice(0,120);
+
+async function checkUnlistedCompanyDetail(page,label,failures) {
+  const rows=page.locator('tbody tr:visible');
+  const more=page.locator('[data-show-more]');
+  const before=await rows.count();
+  if(before!==20)failures.push(label+' initial procurement rows '+before+' expected 20');
+  if(await more.count()){
+    await more.click(); await page.waitForTimeout(80);
+    const expanded=await rows.count();
+    if(expanded!==60)failures.push(label+' expanded procurement rows '+expanded+' expected 60');
+    await more.click(); await page.waitForTimeout(80);
+    const collapsed=await rows.count();
+    if(collapsed!==20)failures.push(label+' collapsed procurement rows '+collapsed+' expected 20');
+  }
+}
 
 async function exerciseVisibleSelects(page) {
   const selects=page.locator('select:visible');
@@ -387,6 +409,7 @@ async function checkListedCompanies(page,label,failures) {
         if(route==='/listed-companies/7203/')await checkListedCompanyDetail(page,initialLabel,failures);
         if(listedNoFinancialRoute&&route===listedNoFinancialRoute)await checkListedNoFinancial(page,initialLabel,failures);
         if(route==='/listed-companies/compare/')await checkListedCompare(page,initialLabel,failures);
+        if(/^\/unlisted-companies\/\d{13}\/$/.test(route))await checkUnlistedCompanyDetail(page,initialLabel,failures);
 
         const filterToggle=page.locator('#filter-toggle:visible, #filters-toggle:visible');
         if(await filterToggle.count() && await filterToggle.first().getAttribute('aria-expanded')!=='true') await filterToggle.first().click();
