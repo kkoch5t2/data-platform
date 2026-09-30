@@ -35,7 +35,9 @@ const unlistedFinanceCsvSample=unlistedIndex.find(x=>/^\d{13}$/.test(String(x?.c
 const unlistedStatementSample=unlistedIndex.find(x=>/^\d{13}$/.test(String(x?.corporateNumber||''))&&x?.financeSourceType==='statements');
 const unlistedFinanceCsvRoute=unlistedFinanceCsvSample?`/unlisted-companies/${unlistedFinanceCsvSample.corporateNumber}/`:null;
 const unlistedStatementRoute=unlistedStatementSample?`/unlisted-companies/${unlistedStatementSample.corporateNumber}/`:null;
-for(const route of [unlistedFinanceCsvRoute,unlistedStatementRoute])if(route&&route!==unlistedDetailRoute)staticRoutes.push(route);
+const unlistedNegativeSample=unlistedIndex.find(x=>/^\d{13}$/.test(String(x?.corporateNumber||''))&&x?.hasFinance&&Number(x?.latestNetIncome)<0);
+const unlistedNegativeRoute=unlistedNegativeSample?`/unlisted-companies/${unlistedNegativeSample.corporateNumber}/`:null;
+for(const route of [unlistedFinanceCsvRoute,unlistedStatementRoute,unlistedNegativeRoute])if(route&&route!==unlistedDetailRoute)staticRoutes.push(route);
 const families=[
   ['proc-company', /^\/procurement\/companies\/co_[^/]+\/$/],
   ['proc-market', /^\/procurement\/markets\/(?!index)[^/]+\/$/],
@@ -82,9 +84,17 @@ if (onlyRoutes.length) {
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
 const unique = xs => [...new Set(xs)];
 const safeRoute = r => (r==='/'?'home':r.replace(/^\//,'').replace(/\/$/,'').replace(/[^a-zA-Z0-9_-]+/g,'_')).slice(0,120);
+const PREFECTURE_ORDER=['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
 
 async function checkUnlistedCompanies(page,label,failures) {
   await page.waitForFunction(()=>!/読み込み中/.test(document.querySelector('#result-count')?.textContent||''),{timeout:10000}).catch(()=>{});
+  const prefFilter=page.locator('#pref-filter');
+  if(await prefFilter.count()){
+    const actual=(await prefFilter.locator('option').evaluateAll(os=>os.map(o=>o.value).filter(Boolean)));
+    const present=new Set(unlistedIndex.map(x=>x?.prefecture).filter(Boolean));
+    const expected=PREFECTURE_ORDER.filter(p=>present.has(p));
+    if(JSON.stringify(actual)!==JSON.stringify(expected))failures.push(label+' prefecture order mismatch '+actual.slice(0,5).join(',')+' ... '+actual.slice(-3).join(','));
+  }
   const financeFilter=page.locator('#finance-filter');
   if(await financeFilter.count()){
     for(const [value,predicate,name] of [
@@ -125,13 +135,25 @@ async function checkUnlistedCompanyDetail(page,label,failures) {
   const sample=m?unlistedIndex.find(x=>String(x?.corporateNumber||'')===m[1]):null;
   if(sample?.hasFinance){
     const expected=Number(sample.financePeriods||0);
-    const history=await page.locator('.finance-history .fin-row').count();
-    if(history!==expected)failures.push(label+' finance history '+history+' expected '+expected);
-    if(!(await page.locator('.finance-source').count()))failures.push(label+' finance source badge missing');
+    const history=await page.locator('.finance-period-grid .finance-period-card').count();
+    if(history!==expected)failures.push(label+' finance period cards '+history+' expected '+expected);
+    if(!(await page.locator('.finance-source-line').count()))failures.push(label+' finance source line missing');
     if(await page.locator('.finance-empty').count())failures.push(label+' finance page shows empty state');
+    const summaryCards=await page.locator('.finance-panel .finance-card-grid .finance-metric').count();
+    if(summaryCards<4)failures.push(label+' finance summary cards '+summaryCards+' expected at least 4');
     if(sample.financeSourceType==='statements'){
-      const source=(await page.locator('.finance-source').textContent()||'');
+      const source=(await page.locator('.finance-source-line').textContent()||'');
       if(!/決算情報|官報/.test(source))failures.push(label+' statement source label missing');
+      const title=(await page.locator('.finance-history-panel h2').textContent()||'');
+      if(!title.includes('決算公告の推移'))failures.push(label+' statement history title missing');
+    }
+    if(Number(sample.latestNetIncome)<0){
+      const negatives=page.locator('.finance-metric b.negative');
+      if(!(await negatives.count()))failures.push(label+' negative finance value lacks negative class');
+      else {
+        const color=await negatives.first().evaluate(el=>getComputedStyle(el).color);
+        if(color!=='rgb(201, 42, 42)')failures.push(label+' negative finance color '+color+' expected rgb(201, 42, 42)');
+      }
     }
   }
 }
