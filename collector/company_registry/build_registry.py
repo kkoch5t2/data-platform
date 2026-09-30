@@ -11,6 +11,7 @@ from collector.collect_jetro import DB_PATH, init_db, prepare_canonical_procurem
 from collector.listed_companies.collect_master import load_edinet_rows
 from .common import NTA_DB, PUBLIC, ROOT, normalize_company_name, write_json
 from .gbiz_finance import load_finance_map
+from .gbiz_statements import load_statements_map
 
 LISTED_MASTER = ROOT / "public" / "data" / "listed-companies" / "master.json"
 EDINET_CODE_ZIP = ROOT / "data" / "raw" / "listed-companies" / "edinet" / "Edinetcode.zip"
@@ -152,6 +153,8 @@ def compact_row(entity: dict) -> dict:
         "awardCount": procurement["awardCount"],
         "awardTotal": procurement["awardTotal"],
         "hasFinance": bool(entity.get("finance")),
+        "financeSourceType": entity.get("financeSourceType"),
+        "hasFinancialStatements": bool(entity.get("financialStatements")),
         "financePeriods": len((entity.get("finance") or {}).get("periods", [])),
         "latestRevenue": ((entity.get("finance") or {}).get("analysis") or {}).get("primaryRevenue"),
         "latestRevenueLabel": ((entity.get("finance") or {}).get("analysis") or {}).get("primaryRevenueLabel"),
@@ -178,6 +181,7 @@ def main() -> dict:
     nta_conn = sqlite3.connect(NTA_DB)
     meta = nta_metadata(nta_conn)
     finance_map, finance_meta = load_finance_map()
+    statements_map, statements_meta = load_statements_map()
 
     entities: dict[str, dict] = {}
     counters = defaultdict(int)
@@ -252,7 +256,11 @@ def main() -> dict:
             corporate_number and entity["listingStatus"] == "notListedInJpxMaster"
             and entity["legalStatus"] == "active" and str(nta.get("kind") or "") in COMPANY_KINDS
         )
-        entity["finance"] = finance_map.get(corporate_number) if entity["unlistedEligible"] else None
+        csv_finance = finance_map.get(corporate_number) if entity["unlistedEligible"] else None
+        statement_finance = statements_map.get(corporate_number) if entity["unlistedEligible"] else None
+        entity["financialStatements"] = statement_finance
+        entity["finance"] = csv_finance or statement_finance
+        entity["financeSourceType"] = "finance" if csv_finance else ("statements" if statement_finance else None)
         entity["procurement"]["companyIds"].sort()
         entity["procurement"]["aliases"].sort()
         listing_counts[entity["listingStatus"]] += 1
@@ -282,6 +290,9 @@ def main() -> dict:
     })
     matched_procurement = counters["directSourceMatches"] + counters["exactNameMatches"]
     finance_public_count = sum(1 for entity in public_entities.values() if entity.get("finance"))
+    finance_csv_public_count = sum(1 for entity in public_entities.values() if entity.get("financeSourceType") == "finance")
+    statements_public_count = sum(1 for entity in public_entities.values() if entity.get("financialStatements"))
+    statements_only_count = sum(1 for entity in public_entities.values() if entity.get("financeSourceType") == "statements")
     summary = {
         "dataset": "company-registry-summary", "generatedAt": generated_at,
         "entities": len(entities), "corporateNumberEntities": corporate_entities,
@@ -296,6 +307,9 @@ def main() -> dict:
         "edinetListedCorporateNumbers": len(edinet_listed),
         "unlistedCompanies": len(unlisted_rows),
         "unlistedFinanceCompanies": finance_public_count,
+        "unlistedFinanceCsvCompanies": finance_csv_public_count,
+        "unlistedStatementCompanies": statements_public_count,
+        "unlistedStatementOnlyCompanies": statements_only_count,
         "publicEntities": len(public_entities),
         "listingStatus": dict(sorted(listing_counts.items())),
         "detailShards": DETAIL_SHARDS,
@@ -308,6 +322,11 @@ def main() -> dict:
                             "sourceUrl": finance_meta.get("sourceUrl") or None,
                             "snapshotStatus": "legacy" if "20251204" in (finance_meta.get("sourceFile") or "") else ("current" if finance_meta else None),
                             "companies": int(finance_meta.get("companies", 0) or 0)},
+            "gbizStatements": {"sourceDate": statements_meta.get("sourceDate") or None,
+                               "sourceUrl": statements_meta.get("sourceUrl") or None,
+                               "snapshotStatus": "current" if statements_meta else None,
+                               "companies": int(statements_meta.get("companies", 0) or 0),
+                               "rows": int(statements_meta.get("rows", 0) or 0)},
         },
     }
     write_json(PUBLIC / "summary.json", summary)
