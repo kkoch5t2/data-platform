@@ -218,6 +218,20 @@ async function checkEnergyCo2History(page,label,failures) {
   if(!(await page.locator('#consumption-history-chart canvas').count()))failures.push(label+' energy history chart canvas missing');
 }
 
+async function checkAboutDataAwardCoverage(page,label,failures) {
+  const card=page.locator('.stats .card',{hasText:'総額を確認できる結果案件'}).first();
+  if(!(await card.count())){failures.push(label+' award coverage card missing');return}
+  const value=(await card.locator('.value').textContent().catch(()=>''))?.trim()||'';
+  const meta=(await card.locator('.label').nth(1).textContent().catch(()=>''))?.trim()||'';
+  const award=Number(value.replace(/[^0-9]/g,''));
+  const m=meta.match(/判定対象\s*([0-9,]+)件の約\s*([0-9.]+)%/);
+  if(!m){failures.push(label+' award coverage denominator label invalid: '+meta);return}
+  const eligible=Number(m[1].replace(/,/g,'')); const shown=Number(m[2]);
+  const expected=eligible?Number((award/eligible*100).toFixed(1)):0;
+  if(shown!==expected)failures.push(label+` award coverage mismatch: ${shown}% != ${expected}% (${award}/${eligible})`);
+  if(meta.includes('全収録レコード'))failures.push(label+' award coverage still uses all-record denominator');
+}
+
 async function checkProcurementOverview(page,label,failures) {
   await page.waitForFunction(()=>/^\d+(?:\.\d+)?%$/.test((document.querySelector('#yoy-amount')?.textContent||'').trim()),{timeout:15000}).catch(()=>{});
   const procurementMeta=await page.evaluate(async()=>{const r=await fetch('/data/dashboard-meta.json');return r.ok?await r.json():{};}).catch(()=>({}));
@@ -363,7 +377,8 @@ async function checkListedCompanies(page,label,failures) {
         const res=await page.goto(base+encodeURI(route),{waitUntil:'networkidle',timeout:60000});
         if(!res||res.status()>=400)failures.push(`${vp.name} ${route} navigation ${res?.status()}`);
         const initialLabel=`${vp.name} ${route}`;
-        if(route==='/procurement/')await checkProcurementOverview(page,initialLabel,failures);
+        if(route==='/about-data/')await checkAboutDataAwardCoverage(page,initialLabel,failures);
+    if(route==='/procurement/')await checkProcurementOverview(page,initialLabel,failures);
         if(route==='/realestate/')await checkRealestateMapPalette(page,initialLabel,failures);
         if(route==='/regional/')await checkRegionalMunicipal(page,initialLabel,failures);
         if(route==='/economy-prices/')await checkEconomyPriceHistory(page,initialLabel,failures);
