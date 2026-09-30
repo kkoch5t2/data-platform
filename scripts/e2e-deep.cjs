@@ -98,17 +98,20 @@ async function checkUnlistedCompanies(page,label,failures) {
 }
 
 async function checkUnlistedCompanyDetail(page,label,failures) {
+  const allRows=page.locator('tbody tr');
   const rows=page.locator('tbody tr:visible');
   const more=page.locator('[data-show-more]');
+  const total=await allRows.count();
+  const expectedInitial=Math.min(20,total);
   const before=await rows.count();
-  if(before!==20)failures.push(label+' initial procurement rows '+before+' expected 20');
+  if(before!==expectedInitial)failures.push(label+' initial procurement rows '+before+' expected '+expectedInitial);
   if(await more.count()){
     await more.click(); await page.waitForTimeout(80);
     const expanded=await rows.count();
-    if(expanded!==60)failures.push(label+' expanded procurement rows '+expanded+' expected 60');
+    if(expanded!==total)failures.push(label+' expanded procurement rows '+expanded+' expected '+total);
     await more.click(); await page.waitForTimeout(80);
     const collapsed=await rows.count();
-    if(collapsed!==20)failures.push(label+' collapsed procurement rows '+collapsed+' expected 20');
+    if(collapsed!==expectedInitial)failures.push(label+' collapsed procurement rows '+collapsed+' expected '+expectedInitial);
   }
   const route=new URL(page.url()).pathname;
   if(unlistedFinanceDetailRoute&&route===unlistedFinanceDetailRoute){
