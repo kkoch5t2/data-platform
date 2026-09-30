@@ -1,178 +1,203 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-09-25T21:28:32Z",
+  "generatedAt": "2026-09-30T02:36:55Z",
   "range": {
     "days": 7,
-    "start": "2026-09-18T21:28:32Z",
-    "end": "2026-09-25T21:28:32Z"
+    "start": "2026-09-23T02:36:55Z",
+    "end": "2026-09-30T02:36:55Z"
   },
-  "pageviews": 2723,
-  "visits": 572,
+  "pageviews": 7771,
+  "visits": 1439,
   "topPages": [
     {
       "path": "/employment-economy/",
-      "pageviews": 673,
-      "visits": 65
-    },
-    {
-      "path": "/energy/",
-      "pageviews": 578,
-      "visits": 54
+      "pageviews": 1806,
+      "visits": 88
     },
     {
       "path": "/economy-prices/",
-      "pageviews": 487,
-      "visits": 13
+      "pageviews": 1586,
+      "visits": 73
+    },
+    {
+      "path": "/energy/",
+      "pageviews": 1523,
+      "visits": 80
     },
     {
       "path": "/procurement/",
-      "pageviews": 245,
-      "visits": 24
+      "pageviews": 840,
+      "visits": 134
     },
     {
       "path": "/regional/",
-      "pageviews": 179,
-      "visits": 31
+      "pageviews": 420,
+      "visits": 66
     },
     {
       "path": "/",
-      "pageviews": 154,
-      "visits": 85
+      "pageviews": 361,
+      "visits": 176
     },
     {
       "path": "/business-industry/",
-      "pageviews": 103,
-      "visits": 37
+      "pageviews": 330,
+      "visits": 103
     },
     {
       "path": "/realestate/",
-      "pageviews": 66,
-      "visits": 57
+      "pageviews": 110,
+      "visits": 98
     },
     {
-      "path": "/employment-economy/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
-      "pageviews": 21,
-      "visits": 20
+      "path": "/listed-companies/",
+      "pageviews": 69,
+      "visits": 19
     },
     {
-      "path": "/about-data/",
-      "pageviews": 18,
-      "visits": 15
-    },
-    {
-      "path": "/procurement/years/2026/technologies/cloud/",
-      "pageviews": 17,
-      "visits": 17
-    },
-    {
-      "path": "/procurement/organizations/org_0038e6ec0f7a/",
-      "pageviews": 17,
-      "visits": 17
+      "path": "/listed-companies/compare/",
+      "pageviews": 58,
+      "visits": 7
     },
     {
       "path": "/regional/indicators/elderly-rate/",
-      "pageviews": 16,
-      "visits": 16
+      "pageviews": 48,
+      "visits": 48
     },
     {
-      "path": "/energy/indicators/electricity/",
-      "pageviews": 16,
-      "visits": 13
+      "path": "/procurement/years/2026/technologies/cloud/",
+      "pageviews": 46,
+      "visits": 46
+    },
+    {
+      "path": "/about-data/",
+      "pageviews": 46,
+      "visits": 35
     },
     {
       "path": "/employment-economy/indicators/annual-pay/",
-      "pageviews": 16,
-      "visits": 14
+      "pageviews": 44,
+      "visits": 42
     },
     {
       "path": "/procurement/markets/admin-bpo/",
-      "pageviews": 15,
-      "visits": 15
+      "pageviews": 38,
+      "visits": 38
     },
     {
-      "path": "/procurement/technologies/cloud/",
-      "pageviews": 14,
-      "visits": 14
+      "path": "/energy/indicators/electricity/",
+      "pageviews": 38,
+      "visits": 35
+    },
+    {
+      "path": "/employment-economy/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 34,
+      "visits": 33
     },
     {
       "path": "/economy-prices/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
-      "pageviews": 11,
-      "visits": 11
-    },
-    {
-      "path": "/analytics/",
-      "pageviews": 11,
-      "visits": 8
+      "pageviews": 33,
+      "visits": 33
     },
     {
       "path": "/energy/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
-      "pageviews": 11,
-      "visits": 7
-    },
-    {
-      "path": "/business-industry/indicators/employees-per-establishment/",
-      "pageviews": 10,
-      "visits": 10
-    },
-    {
-      "path": "/procurement/years/2026/markets/admin-bpo/",
-      "pageviews": 8,
-      "visits": 8
-    },
-    {
-      "path": "/regional/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
-      "pageviews": 7,
-      "visits": 7
-    },
-    {
-      "path": "/procurement/companies/co_00106adf0800/",
-      "pageviews": 5,
-      "visits": 5
-    },
-    {
-      "path": "/energy/prefectures/%E5%8D%83%E8%91%89%E7%9C%8C/",
-      "pageviews": 3,
-      "visits": 0
-    },
-    {
-      "path": "/business-industry/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
-      "pageviews": 3,
-      "visits": 3
+      "pageviews": 31,
+      "visits": 26
     },
     {
       "path": "/economy-prices/indicators/clothing/",
-      "pageviews": 2,
-      "visits": 2
+      "pageviews": 31,
+      "visits": 31
     },
     {
-      "path": "/business-industry/indicators/employees/",
-      "pageviews": 2,
-      "visits": 0
+      "path": "/procurement/organizations/org_0038e6ec0f7a/",
+      "pageviews": 31,
+      "visits": 31
     },
     {
-      "path": "/regional/prefectures/%E9%9D%92%E6%A3%AE%E7%9C%8C/",
-      "pageviews": 2,
-      "visits": 0
+      "path": "/analytics/",
+      "pageviews": 30,
+      "visits": 26
     },
     {
-      "path": "/energy/prefectures/%E7%A6%8F%E5%B3%B6%E7%9C%8C/",
-      "pageviews": 2,
+      "path": "/business-industry/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 25,
+      "visits": 25
+    },
+    {
+      "path": "/procurement/years/2026/markets/admin-bpo/",
+      "pageviews": 24,
+      "visits": 24
+    },
+    {
+      "path": "/regional/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 23,
+      "visits": 23
+    },
+    {
+      "path": "/procurement/technologies/cloud/",
+      "pageviews": 22,
+      "visits": 22
+    },
+    {
+      "path": "/business-industry/indicators/employees-per-establishment/",
+      "pageviews": 17,
+      "visits": 17
+    },
+    {
+      "path": "/listed-companies/industries/%E8%BC%B8%E9%80%81%E7%94%A8%E6%A9%9F%E5%99%A8/",
+      "pageviews": 17,
+      "visits": 17
+    },
+    {
+      "path": "/procurement/years/2026/",
+      "pageviews": 13,
+      "visits": 13
+    },
+    {
+      "path": "/listed-companies/industries/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E6%A5%AD/",
+      "pageviews": 11,
       "visits": 0
     }
   ],
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 2151,
+      "pageviews": 6332,
       "visits": 0
     },
     {
       "host": "www.google.com",
-      "pageviews": 7,
-      "visits": 7
+      "pageviews": 19,
+      "visits": 19
     },
     {
       "host": "datlume.pages.dev",
+      "pageviews": 3,
+      "visits": 3
+    },
+    {
+      "host": "search.yahoo.co.jp",
+      "pageviews": 2,
+      "visits": 2
+    },
+    {
+      "host": "t.co",
+      "pageviews": 2,
+      "visits": 2
+    },
+    {
+      "host": "github.com",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "host": "www.bing.com",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "host": "bing.com",
       "pageviews": 1,
       "visits": 1
     }
@@ -185,8 +210,33 @@
     },
     {
       "date": "2026-09-25",
-      "pageviews": 2644,
-      "visits": 542
+      "pageviews": 2656,
+      "visits": 548
+    },
+    {
+      "date": "2026-09-26",
+      "pageviews": 2762,
+      "visits": 475
+    },
+    {
+      "date": "2026-09-27",
+      "pageviews": 468,
+      "visits": 107
+    },
+    {
+      "date": "2026-09-28",
+      "pageviews": 745,
+      "visits": 119
+    },
+    {
+      "date": "2026-09-29",
+      "pageviews": 599,
+      "visits": 95
+    },
+    {
+      "date": "2026-09-30",
+      "pageviews": 462,
+      "visits": 65
     }
   ],
   "history": [
@@ -197,8 +247,33 @@
     },
     {
       "date": "2026-09-25",
-      "pageviews": 2644,
-      "visits": 542
+      "pageviews": 2656,
+      "visits": 548
+    },
+    {
+      "date": "2026-09-26",
+      "pageviews": 2762,
+      "visits": 475
+    },
+    {
+      "date": "2026-09-27",
+      "pageviews": 468,
+      "visits": 107
+    },
+    {
+      "date": "2026-09-28",
+      "pageviews": 745,
+      "visits": 119
+    },
+    {
+      "date": "2026-09-29",
+      "pageviews": 599,
+      "visits": 95
+    },
+    {
+      "date": "2026-09-30",
+      "pageviews": 462,
+      "visits": 65
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
