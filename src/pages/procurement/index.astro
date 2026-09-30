@@ -122,7 +122,7 @@ const updatedAt = summary.generatedAt ? new Intl.DateTimeFormat('ja-JP',{timeZon
   </section>
   <section class="yoy-grid" aria-label="前年同期比較">
     <div class="card yoy-card"><div><div class="yoy-label">収録件数・前年同期比</div><div id="yoy-count" class="yoy-value">—</div></div><div id="yoy-count-meta" class="yoy-meta">—</div></div>
-    <div class="card yoy-card"><div><div class="yoy-label">落札額が分かる案件</div><div id="yoy-amount" class="yoy-value">—</div></div><div id="yoy-amount-meta" class="yoy-meta">—</div></div>
+    <div class="card yoy-card"><div><div class="yoy-label">総額を確認できる結果案件</div><div id="yoy-amount" class="yoy-value">—</div></div><div id="yoy-amount-meta" class="yoy-meta">—</div></div>
   </section>
   <div class="data-note">前年同期比は、選択中の条件を前年にも適用して比較します。最新年は最新収録日までの同期間比較です。国・独立行政法人の落札実績は調達ポータル公式オープンデータを正本とし、2021年4月以降も継続収録しています（現在の公式落札実績は {summary.gepsAwardCoverageEnd ?? '—'} まで）。JETROは入札公告・意見招請など落札実績以外の公開情報を補完します。自治体系は各自治体の公式入札・契約結果を直接収録。分野は自動分類、落札額は各公式ソースの公開値をそのまま集計しています。 <a href="/about-data/#procurement">データの範囲と注意 →</a></div>
   <section class="quality-grid" aria-label="データ品質">
@@ -306,7 +306,8 @@ function baseFiltered(){return all.filter(r=>matchesControls(r))}
 function comparisonBase(){return all.filter(r=>matchesControls(r,{ignoreYear:true}))}
 function selectionMatch(r,s){if(!s)return true;switch(s.kind){case'monthNotice':return(r.noticeDate||'').startsWith(s.value);case'monthAward':return(r.awardDate||r.noticeDate||'').startsWith(s.value);case'category':return(r.category||'その他')===s.value;case'categoryGroup':return categoryGroupOf(r.category)===s.value;case'company':return r.winnerName===s.value;case'agency':return r.agency===s.value;case'method':return r.contractMethod===s.value;case'awardMethod':return r.awardMethod===s.value;case'amount':return amountMatch(r,s.value);case'tag':return(r.tags||[]).includes(s.value);case'yearCategory':return(r.noticeDate||'').startsWith(s.year)&&(r.category||'その他')===s.category;case'yearCategoryGroup':return(r.noticeDate||'').startsWith(s.year)&&categoryGroupOf(r.category)===s.category;default:return true}}
 function filtered(){const rows=baseFiltered();return crossSelection?rows.filter(r=>selectionMatch(r,crossSelection)):rows}
-function setKpis(rows){const awards=rows.filter(r=>r.awardAmount);const total=awards.reduce((a,r)=>a+r.awardAmount,0),coverage=rows.length?awards.length/rows.length*100:0;$('kpi-count').textContent=fmtInt(rows.length);$('kpi-total').textContent=awards.length?fmtMoney(total):'—';$('kpi-awards').textContent='金額確認済み '+fmtInt(awards.length)+'件（'+coverage.toFixed(1)+'%）';$('kpi-avg').textContent=awards.length?fmtMoney(total/awards.length):'—';$('kpi-companies').textContent=fmtInt(new Set(rows.map(r=>r.winnerName).filter(Boolean)).size);$('kpi-agencies').textContent=fmtInt(new Set(rows.map(r=>r.agency).filter(Boolean)).size);$('result-count').textContent=fmtInt(rows.length)}
+function awardEligibleRows(rows){return rows.filter(r=>r.awardAmountStatus!=='notFetched')}
+function setKpis(rows){const awards=rows.filter(r=>r.awardAmount),eligible=awardEligibleRows(rows);const total=awards.reduce((a,r)=>a+r.awardAmount,0),coverage=eligible.length?awards.length/eligible.length*100:0;$('kpi-count').textContent=fmtInt(rows.length);$('kpi-total').textContent=awards.length?fmtMoney(total):'—';$('kpi-awards').textContent='金額確認済み '+fmtInt(awards.length)+'件（判定対象 '+fmtInt(eligible.length)+'件の'+coverage.toFixed(1)+'%）';$('kpi-avg').textContent=awards.length?fmtMoney(total/awards.length):'—';$('kpi-companies').textContent=fmtInt(new Set(rows.map(r=>r.winnerName).filter(Boolean)).size);$('kpi-agencies').textContent=fmtInt(new Set(rows.map(r=>r.agency).filter(Boolean)).size);$('result-count').textContent=fmtInt(rows.length)}
 function setDelta(el,value){el.classList.remove('up','down');if(value==null){el.textContent='—';return}el.textContent=(value>0?'+':'')+value.toFixed(1)+'%';if(value>0)el.classList.add('up');if(value<0)el.classList.add('down')}
 function setYoy(){
   if(controls.year.value&&!comparisonReady){setDelta($('yoy-count'),null);setDelta($('yoy-amount'),null);$('yoy-count-meta').textContent='前年データを読込中…';$('yoy-amount-meta').textContent='前年データを読込中…';return}
@@ -319,7 +320,8 @@ function setYoy(){
   const cur=targetRows.filter(r=>(r.noticeDate||'').slice(5,10)<=cutoff);
   const prv=base.filter(r=>(r.noticeDate||'').startsWith(prev)&&(r.noticeDate||'').slice(5,10)<=cutoff);
   const curAward=cur.filter(r=>r.awardAmount),prevAward=prv.filter(r=>r.awardAmount);
-  const curCoverage=cur.length?curAward.length/cur.length*100:0,prevCoverage=prv.length?prevAward.length/prv.length*100:0;
+  const curEligible=awardEligibleRows(cur),prevEligible=awardEligibleRows(prv);
+  const curCoverage=curEligible.length?curAward.length/curEligible.length*100:0,prevCoverage=prevEligible.length?prevAward.length/prevEligible.length*100:0;
   const pct=(a,b)=>b?((a-b)/b*100):null;
   setDelta($('yoy-count'),pct(cur.length,prv.length));
   const amountEl=$('yoy-amount');
@@ -330,7 +332,7 @@ function setYoy(){
   if(coverageDiff<0)amountEl.classList.add('down');
   const period=cutoff==='12-31'?'通年':'〜'+cutoff.replace('-','/');
   $('yoy-count-meta').textContent=target+'年 '+fmtInt(cur.length)+'件 / '+prev+'年 '+fmtInt(prv.length)+'件 / '+period;
-  $('yoy-amount-meta').textContent=fmtInt(curAward.length)+'件 / '+fmtInt(cur.length)+'件で金額確認済み（前年 '+prevCoverage.toFixed(1)+'%、'+(coverageDiff>=0?'+':'')+coverageDiff.toFixed(1)+'pt） / '+period;
+  $('yoy-amount-meta').textContent=fmtInt(curAward.length)+'件 / 判定対象 '+fmtInt(curEligible.length)+'件（前年 '+prevCoverage.toFixed(1)+'%、'+(coverageDiff>=0?'+':'')+coverageDiff.toFixed(1)+'pt） / '+period;
 }
 function setActiveChips(){const labels=[['年',controls.year],['対象区分',controls.scope],['データソース',controls.source],['細分類',controls.category],['発注機関',controls.agency],['IT技術',controls.tag],['契約方式',controls.method],['企業',controls.company],['金額',controls.amount],['検索',controls.query]];const box=$('active-filters');box.innerHTML='';if(crossSelection){const span=document.createElement('span');span.className='chip';span.textContent='グラフ選択: '+crossSelection.label;box.appendChild(span)}for(const [label,el] of labels){if(!el.value)continue;const span=document.createElement('span');span.className='chip';span.textContent=label+': '+(el.options?el.options[el.selectedIndex]?.textContent:el.value);box.appendChild(span)}}
 function monthRange(start,end){if(!start||!end)return[];const out=[];let [y,m]=start.split('-').map(Number);const [ey,em]=end.split('-').map(Number);while(y<ey||(y===ey&&m<=em)){out.push(String(y).padStart(4,'0')+'-'+String(m).padStart(2,'0'));m++;if(m===13){y++;m=1}}return out}
