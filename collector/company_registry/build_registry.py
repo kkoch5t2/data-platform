@@ -10,6 +10,7 @@ from pathlib import Path
 from collector.collect_jetro import DB_PATH, init_db, prepare_canonical_procurements
 from collector.listed_companies.collect_master import load_edinet_rows
 from .common import NTA_DB, PUBLIC, ROOT, normalize_company_name, write_json
+from .gbiz_finance import load_finance_map
 
 LISTED_MASTER = ROOT / "public" / "data" / "listed-companies" / "master.json"
 EDINET_CODE_ZIP = ROOT / "data" / "raw" / "listed-companies" / "edinet" / "Edinetcode.zip"
@@ -150,6 +151,11 @@ def compact_row(entity: dict) -> dict:
         "industry33": listed.get("industry33"),
         "awardCount": procurement["awardCount"],
         "awardTotal": procurement["awardTotal"],
+        "hasFinance": bool(entity.get("finance")),
+        "financePeriods": len((entity.get("finance") or {}).get("periods", [])),
+        "latestRevenue": ((entity.get("finance") or {}).get("analysis") or {}).get("primaryRevenue"),
+        "latestRevenueLabel": ((entity.get("finance") or {}).get("analysis") or {}).get("primaryRevenueLabel"),
+        "latestNetIncome": ((entity.get("finance") or {}).get("analysis") or {}).get("netIncomeLoss"),
         "detailBucket": detail_bucket(entity["entityKey"]),
     }
 
@@ -171,6 +177,7 @@ def main() -> dict:
     procurement = procurement_rows(procurement_conn)
     nta_conn = sqlite3.connect(NTA_DB)
     meta = nta_metadata(nta_conn)
+    finance_map, finance_meta = load_finance_map()
 
     entities: dict[str, dict] = {}
     counters = defaultdict(int)
@@ -245,6 +252,7 @@ def main() -> dict:
             corporate_number and entity["listingStatus"] == "notListedInJpxMaster"
             and entity["legalStatus"] == "active" and str(nta.get("kind") or "") in COMPANY_KINDS
         )
+        entity["finance"] = finance_map.get(corporate_number) if entity["unlistedEligible"] else None
         entity["procurement"]["companyIds"].sort()
         entity["procurement"]["aliases"].sort()
         listing_counts[entity["listingStatus"]] += 1
@@ -273,6 +281,7 @@ def main() -> dict:
         "ntaSourceDate": meta.get("sourceDate"), "records": unlisted_rows,
     })
     matched_procurement = counters["directSourceMatches"] + counters["exactNameMatches"]
+    finance_public_count = sum(1 for entity in public_entities.values() if entity.get("finance"))
     summary = {
         "dataset": "company-registry-summary", "generatedAt": generated_at,
         "entities": len(entities), "corporateNumberEntities": corporate_entities,
@@ -286,6 +295,7 @@ def main() -> dict:
         "listedCompanies": len(listed_rows),
         "edinetListedCorporateNumbers": len(edinet_listed),
         "unlistedCompanies": len(unlisted_rows),
+        "unlistedFinanceCompanies": finance_public_count,
         "publicEntities": len(public_entities),
         "listingStatus": dict(sorted(listing_counts.items())),
         "detailShards": DETAIL_SHARDS,
@@ -294,6 +304,10 @@ def main() -> dict:
                     "region": meta.get("region"), "corporations": int(meta.get("corporations", 0))},
             "listedMasterSourceDate": listed_payload.get("sourceDate"),
             "procurementDatabase": "DATLUME canonical procurements",
+            "gbizFinance": {"sourceDate": finance_meta.get("sourceDate") or None,
+                            "sourceUrl": finance_meta.get("sourceUrl") or None,
+                            "snapshotStatus": "legacy" if "20251204" in (finance_meta.get("sourceFile") or "") else ("current" if finance_meta else None),
+                            "companies": int(finance_meta.get("companies", 0) or 0)},
         },
     }
     write_json(PUBLIC / "summary.json", summary)
