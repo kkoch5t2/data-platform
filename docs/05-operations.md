@@ -41,9 +41,19 @@
 16. 公開予定の全領域データ監査を実行。失敗時はbuild/deploy前に停止。
 
 ### 3.1 Wikipedia話題トピック専用更新
-14:15 JSTに `scripts/refresh-wikipedia-topics.sh --scheduled` を実行する。Wikimedia Pageviewsの取得後、MediaWiki/Wikidataでカテゴリ分類し、Google News RSSで急上昇の背景候補を補完する。専用監査とbuildが成功した場合だけ生成JSONをGitへcommit/pushし、Cloudflare Pagesへdeployする。ニュース取得だけの失敗ではWikipediaランキング更新を止めない。
+14:15 JSTに `scripts/refresh-wikipedia-topics.sh --scheduled` を実行する。Wikimedia Pageviewsの取得後、MediaWiki/Wikidataでカテゴリ分類し、Google News RSSで急上昇の背景候補を補完する。YouTube APIキーが設定済みなら、急上昇上位10件を直近7日の日本向け・埋め込み可能動画と照合する。専用監査とbuildが成功した場合だけ生成JSONをGitへcommit/pushし、Cloudflare Pagesへdeployする。ニュースまたはYouTube取得だけの失敗ではWikipediaランキング更新を止めない。
 17. build、Cloudflare deploy。
 18. 成功履歴とlast-success-date更新。
+
+### 3.2 YouTube照合の秘密設定
+YouTube照合は任意機能。APIキーはGit管理せず、`YOUTUBE_API_KEY` 環境変数または `~/.config/datlume/youtube_api_key` から読む。キー未設定時はYouTube部分だけ安全にスキップする。
+
+推奨配置:
+```bash
+mkdir -p ~/.config/datlume && chmod 700 ~/.config/datlume
+printf '%s\n' 'YOUR_API_KEY' > ~/.config/datlume/youtube_api_key
+chmod 600 ~/.config/datlume/youtube_api_key
+```
 
 ## 4. 週次監査
 `scripts/weekly-audit.sh` は週1回、以下を実行する。

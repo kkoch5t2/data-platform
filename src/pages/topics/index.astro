@@ -9,6 +9,9 @@ const fmtPct = (v) => v == null ? '—' : `${v > 0 ? '+' : ''}${Number(v).toFixe
 const fmtDate = (v) => v ? new Date(`${v}T00:00:00Z`).toLocaleDateString('ja-JP', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' }) : '—';
 const fmtShortDate = (v) => v ? new Date(`${v}T00:00:00Z`).toLocaleDateString('ja-JP', { timeZone: 'UTC', month: 'numeric', day: 'numeric' }) : '—';
 const generated = data.generatedAt ? new Date(data.generatedAt).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }) : '—';
+const youtube = data.youtube || {};
+const youtubeItems = youtube.items || [];
+const youtubeUpdated = youtube.checkedAt ? new Date(youtube.checkedAt).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 const top = data.top || [];
 const rising = data.rising || [];
 const weekly = data.weekly || [];
@@ -50,8 +53,10 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
     .rising-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.rising-card{padding:15px 16px;display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:center}.rise-rank{width:38px;height:38px;border-radius:10px;background:var(--soft);color:var(--blue);display:grid;place-items:center;font-size:12px;font-weight:900}.rise-title a{font-size:13px;font-weight:850;text-decoration:none}.rise-title div{font-size:9.5px;color:var(--muted);margin-top:4px}.rise-value{text-align:right;font-size:16px;font-weight:900;color:var(--green)}
     .weekly-list{display:grid;gap:8px}.weekly-row{display:grid;grid-template-columns:38px minmax(0,1.3fr) minmax(120px,1fr) 92px 72px;gap:10px;align-items:center}.weekly-rank{font-size:12px;font-weight:900;text-align:center}.weekly-title a{font-size:12px;font-weight:800;text-decoration:none}.weekly-track{height:10px;background:#eef1f5;border-radius:99px;overflow:hidden}.weekly-bar{height:100%;background:linear-gradient(90deg,#1769e0,#75a8ee);border-radius:99px}.weekly-total,.weekly-best{font-size:10.5px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}.note{margin-top:14px;padding:17px 19px;font-size:11px;line-height:1.75;color:#475467}.note strong{color:var(--ink)}.source-link{color:var(--blue);font-weight:800;text-decoration:none}footer{border-top:1px solid var(--line);padding:28px 0 44px;color:var(--muted);font-size:11px;line-height:1.8}
     .category-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px}.category-card{border:1px solid #edf0f4;border-radius:13px;padding:13px 14px;background:#fbfcfe}.category-card-head{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:11px;font-weight:850}.category-card-head b{font-size:12px}.category-track{height:5px;background:#edf1f6;border-radius:99px;overflow:hidden;margin-top:10px}.category-bar{height:100%;background:linear-gradient(90deg,#1769e0,#79aaf0);border-radius:99px}.candidate-label{font-size:9px;color:#8a4b00;background:#fff4db;border:1px solid #f3d59a;border-radius:999px;padding:4px 7px;vertical-align:middle;white-space:nowrap}.reason-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.reason-card{border:1px solid #e7ebf0;border-radius:15px;padding:17px;background:linear-gradient(180deg,#fff,#fbfcfe)}.reason-meta{display:flex;justify-content:space-between;gap:8px;align-items:center}.category-pill,.mini-badge{display:inline-flex;align-items:center;border:1px solid #e4e9f0;background:#f7f9fc;border-radius:999px;padding:3px 7px;font-size:9px;font-weight:800;color:#475467}.reason-change{font-size:11px;font-weight:900}.reason-card h3{font-size:17px;margin:12px 0 7px;letter-spacing:-.02em}.reason-card>p{font-size:11px;line-height:1.7;color:#475467;margin:0 0 12px}.news-links{display:grid;gap:6px}.news-links a{display:block;border-top:1px solid #eef1f5;padding-top:7px;font-size:10.5px;line-height:1.5;text-decoration:none;color:#344054}.news-links a:hover{color:var(--blue)}.news-links a span{display:block;font-size:8.5px;color:var(--muted);font-weight:850;margin-bottom:2px}.wiki-link{display:inline-flex;margin-top:11px;font-size:9.5px;color:var(--blue);font-weight:850;text-decoration:none}.category-filters{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}.category-filter{border:1px solid var(--line);background:#f8fafc;color:#475467;border-radius:999px;padding:6px 9px;font:inherit;font-size:9.5px;font-weight:800;cursor:pointer}.category-filter span{margin-left:4px;color:#98a2b3}.category-filter.active{background:var(--soft);border-color:#b8d5fa;color:#1257b8}.trend-badge{background:#fff8e8;border-color:#f4dfb5}.rank-note{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.weekly-title small{display:block;color:var(--muted);font-size:8.5px;margin-top:2px}
-    @media(max-width:900px){.reason-grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.spotlight{grid-template-columns:1fr 1fr}.topic-card:first-child{grid-column:1/-1}.rank-row{grid-template-columns:44px minmax(0,1fr) 88px 74px}.rank-row .avg,.rank-row .spark{display:none}.pulse-grid{overflow-x:auto;grid-template-columns:repeat(14,44px);justify-content:start}.rising-grid{grid-template-columns:1fr}.weekly-row{grid-template-columns:34px minmax(0,1fr) 90px}.weekly-track,.weekly-best{display:none}}
-    @media(max-width:640px){.category-grid{grid-template-columns:1fr 1fr}.category-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}.category-filter{white-space:nowrap;flex:0 0 auto}.wrap{width:min(100% - 24px,1180px)}header{padding-bottom:48px}.nav{align-items:flex-start;flex-direction:column}.navlinks{width:100%;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0;padding-bottom:2px}.navlinks a{white-space:nowrap;flex:0 0 auto}.hero{padding-top:44px}.hero h1{font-size:43px}.kpis{grid-template-columns:1fr 1fr}.kpi{padding:15px}.value{font-size:22px}.spotlight{grid-template-columns:1fr}.topic-card:first-child{grid-column:auto}.topic-card{min-height:156px}.topic-card:first-child .topic-title{font-size:25px}.section{padding:16px}.section-head{align-items:flex-start;flex-direction:column;gap:5px}.tabs{align-items:stretch}.search{order:2;margin-left:0;width:100%}.rank-row{grid-template-columns:34px minmax(0,1fr) 76px;gap:7px;padding:12px 0}.rank-row .rank-delta{display:none}.rank-title a{font-size:12px}.weekly-row{grid-template-columns:30px minmax(0,1fr) 82px}.rising-card{grid-template-columns:40px 1fr auto;padding:13px}.rise-rank{width:34px;height:34px}.rise-value{font-size:14px}}
+
+    .youtube-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.youtube-card{display:grid;grid-template-columns:minmax(210px,.9fr) minmax(0,1.1fr);gap:14px;padding:13px;border:1px solid #e7ebf0;border-radius:15px;background:linear-gradient(180deg,#fff,#fbfcfe)}.youtube-thumb,.youtube-frame{width:100%;aspect-ratio:16/9;border:0;border-radius:11px;background:#101828;overflow:hidden}.youtube-thumb{position:relative;padding:0;cursor:pointer}.youtube-thumb img{width:100%;height:100%;display:block;object-fit:cover}.youtube-play{position:absolute;inset:0;display:grid;place-items:center}.youtube-play span{width:46px;height:32px;border-radius:9px;background:#000c;color:#fff;display:grid;place-items:center;font-size:15px;padding-left:2px}.youtube-copy{min-width:0;display:flex;flex-direction:column}.youtube-topic{font-size:9px;font-weight:900;color:var(--red);letter-spacing:.02em}.youtube-copy h3{font-size:13px;line-height:1.45;margin:6px 0 7px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.youtube-copy h3 a{text-decoration:none}.youtube-copy h3 a:hover{color:var(--blue)}.youtube-meta{font-size:9.5px;line-height:1.55;color:var(--muted);margin-top:auto}.youtube-meta b{color:#475467}.youtube-note{font-size:9px;color:var(--muted);line-height:1.55;margin-top:7px}
+    @media(max-width:900px){.youtube-grid{grid-template-columns:1fr}.reason-grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.spotlight{grid-template-columns:1fr 1fr}.topic-card:first-child{grid-column:1/-1}.rank-row{grid-template-columns:44px minmax(0,1fr) 88px 74px}.rank-row .avg,.rank-row .spark{display:none}.pulse-grid{overflow-x:auto;grid-template-columns:repeat(14,44px);justify-content:start}.rising-grid{grid-template-columns:1fr}.weekly-row{grid-template-columns:34px minmax(0,1fr) 90px}.weekly-track,.weekly-best{display:none}}
+    @media(max-width:640px){.youtube-card{grid-template-columns:1fr}.category-grid{grid-template-columns:1fr 1fr}.category-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}.category-filter{white-space:nowrap;flex:0 0 auto}.wrap{width:min(100% - 24px,1180px)}header{padding-bottom:48px}.nav{align-items:flex-start;flex-direction:column}.navlinks{width:100%;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0;padding-bottom:2px}.navlinks a{white-space:nowrap;flex:0 0 auto}.hero{padding-top:44px}.hero h1{font-size:43px}.kpis{grid-template-columns:1fr 1fr}.kpi{padding:15px}.value{font-size:22px}.spotlight{grid-template-columns:1fr}.topic-card:first-child{grid-column:auto}.topic-card{min-height:156px}.topic-card:first-child .topic-title{font-size:25px}.section{padding:16px}.section-head{align-items:flex-start;flex-direction:column;gap:5px}.tabs{align-items:stretch}.search{order:2;margin-left:0;width:100%}.rank-row{grid-template-columns:34px minmax(0,1fr) 76px;gap:7px;padding:12px 0}.rank-row .rank-delta{display:none}.rank-title a{font-size:12px}.weekly-row{grid-template-columns:30px minmax(0,1fr) 82px}.rising-card{grid-template-columns:40px 1fr auto;padding:13px}.rise-rank{width:34px;height:34px}.rise-value{font-size:14px}}
   </style>
 </head>
 <body>
@@ -62,7 +67,7 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
       <div class="eyebrow">Japanese Wikipedia / Pageview Trends</div>
       <h1><span aria-hidden="true">🔥</span> 話題のトピック</h1>
       <p>日本語版Wikipediaで「いま何が読まれているか」を、総合ランキング・急上昇・週間の強さから見るダッシュボードです。ニュースやSNSとは違う、百科事典を読みに行く人の関心の動きを可視化します。</p>
-      <div class="hero-meta"><span class="hero-pill">最新データ {fmtDate(data.latestDate)}</span><span class="hero-pill">{fmt(data.summary?.categoryCount)}カテゴリに自動分類</span><span class="hero-pill">背景候補 {fmt(strongReasonTopics.length)}件</span><span class="hero-pill">Wikimedia公式Pageviews API</span></div>
+      <div class="hero-meta"><span class="hero-pill">最新データ {fmtDate(data.latestDate)}</span><span class="hero-pill">{fmt(data.summary?.categoryCount)}カテゴリに自動分類</span><span class="hero-pill">背景候補 {fmt(strongReasonTopics.length)}件</span>{youtubeItems.length > 0 && <span class="hero-pill">YouTube関連 {fmt(youtubeItems.length)}件</span>}<span class="hero-pill">Wikimedia公式Pageviews API</span></div>
     </section>
   </div>
 </header>
@@ -97,6 +102,24 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
         <p>{x.reason?.summary}</p>
         <div class="news-links">{x.reason?.items?.slice(0,2).map((n) => <a href={n.url} target="_blank" rel="noreferrer"><span>{n.source}</span>{n.title}</a>)}</div>
         <a class="wiki-link" href={x.url} target="_blank" rel="noreferrer">Wikipediaを見る ↗</a>
+      </article>)}
+    </div>
+  </section>}
+
+  {youtubeItems.length > 0 && <section class="section card youtube-section">
+    <div class="section-head"><div><h2>YouTubeでも注目</h2><p>Wikipedia急上昇上位10件をYouTube Data APIで照合。直近7日・日本向け・埋め込み可能で、動画タイトルにトピック名を含む候補から再生数上位を1本表示します。</p></div><span class="label">最終照合 {youtubeUpdated} JST</span></div>
+    <div class="youtube-grid">
+      {youtubeItems.map((x) => <article class="youtube-card">
+        <button class="youtube-thumb" type="button" data-youtube-play data-video-id={x.videoId} aria-label={`${x.title} を再生`}>
+          <img src={x.thumbnail} alt="" loading="lazy" decoding="async">
+          <span class="youtube-play" aria-hidden="true"><span>▶</span></span>
+        </button>
+        <div class="youtube-copy">
+          <div class="youtube-topic">Wikipedia急上昇 #{x.topicRank} · {x.topic}</div>
+          <h3><a href={x.url} target="_blank" rel="noreferrer">{x.title}</a></h3>
+          <div class="youtube-meta"><b>{x.channelTitle}</b><br>{fmt(x.views)} 回視聴 · {x.publishedAt ? new Date(x.publishedAt).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric' }) : '公開日不明'}</div>
+          <div class="youtube-note">関連動画候補であり、Wikipedia閲覧増加の原因やDATLUMEによる推奨を示すものではありません。</div>
+        </div>
       </article>)}
     </div>
   </section>}
@@ -152,7 +175,7 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
   </section>
 
   <aside class="card note">
-    <strong>このページの読み方：</strong> 「話題」は日本語版Wikipediaの閲覧動向を指し、日本全体の検索トレンド・SNS投稿量・世論を直接示すものではありません。メインページ、検索などの特殊ページはランキングから除外しています。急上昇は前日に3,000PV以上あった記事の前日比から算出し、週間は直近7日の日別上位データを合算しています。カテゴリはWikipedia/Wikidataの公開メタデータから自動分類します。「なぜ急上昇？」は急上昇日の前後に見つかった関連報道を背景候補として示すもので、ニュースが閲覧増加の原因だと断定するものではありません。データ更新にはWikimedia側の集計遅延があるため、取得できた最新日を自動採用します。<br>出典：<a class="source-link" href="https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html" target="_blank" rel="noreferrer">Wikimedia Analytics API - Pageviews ↗</a> / 最終生成 {generated} JST
+    <strong>このページの読み方：</strong> 「話題」は日本語版Wikipediaの閲覧動向を指し、日本全体の検索トレンド・SNS投稿量・世論を直接示すものではありません。メインページ、検索などの特殊ページはランキングから除外しています。急上昇は前日に3,000PV以上あった記事の前日比から算出し、週間は直近7日の日別上位データを合算しています。カテゴリはWikipedia/Wikidataの公開メタデータから自動分類します。「なぜ急上昇？」は急上昇日の前後に見つかった関連報道を背景候補として示すもので、ニュースが閲覧増加の原因だと断定するものではありません。「YouTubeでも注目」は急上昇上位10件と直近の埋め込み可能動画を機械的に照合した関連候補で、閲覧増加の原因や内容の正確性、DATLUMEによる推奨を示しません。動画はクリックするまでYouTubeプレーヤーを読み込みません。データ更新にはWikimedia側の集計遅延があるため、取得できた最新日を自動採用します。<br>出典：<a class="source-link" href="https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html" target="_blank" rel="noreferrer">Wikimedia Analytics API - Pageviews ↗</a> / 最終生成 {generated} JST
   </aside>
 </main>
 <footer><div class="wrap">DATLUME · <a href="/">トップへ</a> · <a href="/about-data/">データについて</a> · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px"><img src="/brand/github.svg" alt="" width="14" height="14" style="display:block;width:14px;height:14px">GitHub ↗</a> · <a href="/privacy/">プライバシーポリシー</a></div></footer>
@@ -184,6 +207,19 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
     applyOverallFilter();
   }));
   search?.addEventListener('input', applyOverallFilter);
+  document.querySelectorAll('[data-youtube-play]').forEach((button) => button.addEventListener('click', () => {
+    const videoId = button.dataset.videoId || '';
+    if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return;
+    const frame = document.createElement('iframe');
+    frame.className = 'youtube-frame';
+    frame.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+    frame.title = button.getAttribute('aria-label') || 'YouTube video player';
+    frame.loading = 'lazy';
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    frame.allowFullscreen = true;
+    button.replaceWith(frame);
+  }));
 </script>
 </body>
 </html>

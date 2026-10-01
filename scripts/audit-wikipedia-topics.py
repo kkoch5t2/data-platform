@@ -17,8 +17,8 @@ def main() -> int:
     if not PATH.exists():
         fail(f"missing {PATH}")
     data = json.loads(PATH.read_text(encoding="utf-8"))
-    if data.get("schemaVersion") != 2:
-        fail("schemaVersion must be 2")
+    if data.get("schemaVersion") != 3:
+        fail("schemaVersion must be 3")
     if data.get("project") != "ja.wikipedia":
         fail("project must be ja.wikipedia")
     latest = data.get("latestDate")
@@ -121,6 +121,40 @@ def main() -> int:
             if not item.get("title") or not item.get("source") or not str(item.get("url") or "").startswith("https://"):
                 fail("invalid news item")
 
+    youtube = data.get("youtube") or {}
+    if youtube.get("source") != "YouTube Data API v3":
+        fail("youtube source missing")
+    yt_enabled = youtube.get("enabled") is True
+    yt_items = youtube.get("items") or []
+    yt_checked = int(youtube.get("checkedCount") or 0)
+    if yt_checked < 0 or yt_checked > 10:
+        fail(f"youtube checkedCount invalid: {yt_checked}")
+    if len(yt_items) > yt_checked:
+        fail("youtube matched items exceed checked topics")
+    allowed_topics = {str(x.get("article") or "") for x in rising[:10]}
+    video_ids = []
+    for item in yt_items:
+        video_id = str(item.get("videoId") or "")
+        if len(video_id) != 11 or any(ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-" for ch in video_id):
+            fail(f"invalid YouTube video id: {video_id}")
+        video_ids.append(video_id)
+        if item.get("topic") not in allowed_topics:
+            fail(f"YouTube topic outside rising top 10: {item.get('topic')}")
+        if item.get("embeddable") is not True:
+            fail(f"non-embeddable YouTube item: {video_id}")
+        if not str(item.get("url") or "").startswith("https://www.youtube.com/watch?v="):
+            fail(f"invalid YouTube URL: {video_id}")
+        if not str(item.get("thumbnail") or "").startswith("https://"):
+            fail(f"invalid YouTube thumbnail: {video_id}")
+        if not item.get("title") or not item.get("channelTitle"):
+            fail(f"missing YouTube metadata: {video_id}")
+        if not isinstance(item.get("views"), int) or item.get("views") < 0:
+            fail(f"invalid YouTube views: {video_id}")
+    if len(video_ids) != len(set(video_ids)):
+        fail("duplicate YouTube video id")
+    if not yt_enabled and (yt_checked or yt_items):
+        fail("disabled YouTube context must not contain checks/items")
+
     summary = data.get("summary") or {}
     expected_total = sum(x["views"] for x in top)
     if summary.get("latestTop100Views") != expected_total:
@@ -130,8 +164,12 @@ def main() -> int:
     linked = sum(1 for reason in checked_reasons if reason.get("status") == "candidate")
     if summary.get("newsLinkedCount") != linked:
         fail(f"summary newsLinkedCount mismatch: {summary.get('newsLinkedCount')} != {linked}")
+    if summary.get("youtubeCheckedCount") != yt_checked:
+        fail("summary youtubeCheckedCount mismatch")
+    if summary.get("youtubeMatchedCount") != len(yt_items):
+        fail("summary youtubeMatchedCount mismatch")
 
-    print(f"Wikipedia topics audit: top={len(top)} rising={len(rising)} weekly={len(weekly)} daily={len(daily)} categories={len(categories)} news={linked} latest={latest} OK")
+    print(f"Wikipedia topics audit: top={len(top)} rising={len(rising)} weekly={len(weekly)} daily={len(daily)} categories={len(categories)} news={linked} youtube={len(yt_items)}/{yt_checked} latest={latest} OK")
     return 0
 
 
