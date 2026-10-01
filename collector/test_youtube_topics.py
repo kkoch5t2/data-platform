@@ -53,6 +53,12 @@ class YouTubeTopicsTest(unittest.TestCase):
         self.assertEqual(result["matchedCount"], 10)
         self.assertTrue(all(item["embeddable"] for item in result["items"]))
 
+    def test_quality_score_penalizes_clickbait(self):
+        trusted = {"title": "田中希実 1500m決勝", "channelTitle": "【公式】TBS スポーツ"}
+        noisy = {"title": "田中希実 衝撃の知られざる真相", "channelTitle": "芸能反応集"}
+        self.assertGreater(yt._quality_score(trusted), 0)
+        self.assertLess(yt._quality_score(noisy), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
