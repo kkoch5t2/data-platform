@@ -463,6 +463,27 @@ async function checkListedCompanies(page,label,failures) {
   if(!/^[\d,]+社$/.test(prime||'')||prime==='0社')failures.push(label+' market filter failed: '+prime);
 }
 
+async function checkTopics(page,label,failures) {
+  const file=path.join(process.cwd(),'public','data','wikipedia-topics.json');
+  const data=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):{};
+  const items=data?.youtube?.items||[];
+  const section=page.locator('.youtube-section');
+  if(!items.length){
+    if(await section.count())failures.push(label+' YouTube section visible without matched videos');
+    return;
+  }
+  if(await section.count()!==1)failures.push(label+' YouTube section missing');
+  const cards=page.locator('.youtube-card');
+  if(await cards.count()!==items.length)failures.push(label+' YouTube card count mismatch');
+  const first=page.locator('[data-youtube-play]').first();
+  if(await first.count()){
+    await first.click();
+    const frame=page.locator('.youtube-frame').first();
+    const src=await frame.getAttribute('src').catch(()=>null);
+    if(!src?.startsWith('https://www.youtube-nocookie.com/embed/'))failures.push(label+' YouTube privacy embed failed');
+  }
+}
+
 (async()=>{
   fs.rmSync(shotRoot,{recursive:true,force:true});
   fs.mkdirSync(shotRoot,{recursive:true});
@@ -489,6 +510,7 @@ async function checkListedCompanies(page,label,failures) {
         if(!res||res.status()>=400)failures.push(`${vp.name} ${route} navigation ${res?.status()}`);
         const initialLabel=`${vp.name} ${route}`;
         if(route==='/about-data/')await checkAboutDataAwardCoverage(page,initialLabel,failures);
+        if(route==='/topics/')await checkTopics(page,initialLabel,failures);
     if(route==='/procurement/')await checkProcurementOverview(page,initialLabel,failures);
         if(route==='/realestate/')await checkRealestateMapPalette(page,initialLabel,failures);
         if(route==='/regional/')await checkRegionalMunicipal(page,initialLabel,failures);

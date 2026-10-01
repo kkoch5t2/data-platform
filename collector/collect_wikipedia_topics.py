@@ -13,6 +13,7 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from topic_enrichment import CATEGORY_INFO, classify_trend, enrich_topics
+from youtube_topics import collect_youtube_context
 try:
     from core.source_run import SourceRun
 except ModuleNotFoundError:
@@ -231,9 +232,24 @@ def collect(window_days: int, *, refresh: bool, news_limit: int = 12) -> dict:
     for key, count in sorted(category_counts.items(), key=lambda kv: (-kv[1], kv[0])):
         categories.append({**CATEGORY_INFO.get(key, CATEGORY_INFO["other"]), "count": count})
     linked_count = sum(1 for title in news_titles if (topic_info.get(title) or {}).get("reason", {}).get("status") == "candidate")
+    try:
+        youtube = collect_youtube_context(rising, latest_day, RAW_DIR, refresh=refresh, limit=10)
+    except Exception as exc:
+        youtube = {
+            "source": "YouTube Data API v3",
+            "enabled": False,
+            "status": "unavailable",
+            "checkedAt": None,
+            "checkedCount": 0,
+            "matchedCount": 0,
+            "items": [],
+            "failures": [{"article": "*collector*", "error": type(exc).__name__}],
+        }
+    source_enrichment = dict(enrichment.get("sources") or {})
+    source_enrichment["youtubeContext"] = "YouTube Data API v3 (optional; rising top 10)"
 
     return {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "project": "ja.wikipedia",
         "latestDate": latest_key,
@@ -243,7 +259,7 @@ def collect(window_days: int, *, refresh: bool, news_limit: int = 12) -> dict:
             "access": "all-access",
             "endpoint": "metrics/pageviews/top/ja.wikipedia/all-access/{year}/{month}/{day}",
             "note": "Japanese Wikipedia pageview rankings; not a measure of all web searches or public opinion in Japan.",
-            "enrichment": enrichment.get("sources") or {},
+            "enrichment": source_enrichment,
             "newsContextNote": "News results are shown only as time-correlated background candidates and do not prove why pageviews increased.",
         },
         "filters": {"excludedExact": sorted(EXCLUDED_EXACT), "excludedPrefixes": list(EXCLUDED_PREFIXES)},
@@ -256,12 +272,16 @@ def collect(window_days: int, *, refresh: bool, news_limit: int = 12) -> dict:
             "newsCheckedCount": len(news_titles),
             "newsLinkedCount": linked_count,
             "newsFailureCount": len(enrichment.get("newsFailures") or []),
+            "youtubeCheckedCount": int(youtube.get("checkedCount") or 0),
+            "youtubeMatchedCount": int(youtube.get("matchedCount") or 0),
+            "youtubeFailureCount": len(youtube.get("failures") or []),
         },
         "categories": categories,
         "top": top,
         "rising": rising,
         "weekly": weekly,
         "daily": daily,
+        "youtube": youtube,
     }
 
 
@@ -277,7 +297,7 @@ def main() -> int:
         output = Path(args.output)
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-        run.set_metrics(records=len(payload["top"]), sourceArticles=payload["summary"]["latestArticles"], windowDays=payload["window"]["days"], latestDate=payload["latestDate"], categories=payload["summary"]["categoryCount"], newsLinked=payload["summary"]["newsLinkedCount"])
+        run.set_metrics(records=len(payload["top"]), sourceArticles=payload["summary"]["latestArticles"], windowDays=payload["window"]["days"], latestDate=payload["latestDate"], categories=payload["summary"]["categoryCount"], newsLinked=payload["summary"]["newsLinkedCount"], youtubeMatched=payload["summary"]["youtubeMatchedCount"])
         print(f"Wikipedia topics: latest={payload['latestDate']} top={len(payload['top'])} rising={len(payload['rising'])} weekly={len(payload['weekly'])}")
         print(f"Wrote {output}")
     return 0
