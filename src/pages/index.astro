@@ -31,7 +31,7 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
 <body>
 <header>
   <div class="wrap">
-    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="#datasets">データを見る</a><a href="/procurement/">国・自治体の案件</a><a href="/realestate/">不動産・暮らし</a><a href="/regional/">都道府県別推移</a><a href="/employment-economy/">雇用・賃金</a><a href="/business-industry/">企業・産業</a><a href="/listed-companies/">上場企業</a><a href="/unlisted-companies/">未上場企業</a><a href="/economy-prices/">経済・物価</a><a href="/energy/">エネルギー</a><a href="/topics/">話題のトピック</a><a href="/analytics/">サイト統計</a><a href="/about-data/">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></nav>
+    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="#datasets">データを見る</a><a href="/procurement/"><span aria-hidden="true">🏛️</span> 国・自治体の案件</a><a href="/realestate/"><span aria-hidden="true">🏠</span> 不動産・暮らし</a><a href="/regional/"><span aria-hidden="true">🗾</span> 都道府県別推移</a><a href="/employment-economy/"><span aria-hidden="true">💼</span> 雇用・賃金</a><a href="/business-industry/"><span aria-hidden="true">🏭</span> 企業・産業</a><a href="/listed-companies/"><span aria-hidden="true">📈</span> 上場企業</a><a href="/unlisted-companies/"><span aria-hidden="true">🏢</span> 未上場企業</a><a href="/economy-prices/"><span aria-hidden="true">💴</span> 経済・物価</a><a href="/energy/"><span aria-hidden="true">⚡</span> エネルギー</a><a href="/topics/"><span aria-hidden="true">🔥</span> 話題のトピック</a><a href="/analytics/"><span aria-hidden="true">📊</span> サイト統計</a><a href="/about-data/">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></nav>
     <section class="hero">
       <div class="eyebrow">Data Explorer / Japan</div>
       <h1>データから、日本を見る。</h1>
@@ -42,7 +42,7 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
 </header>
 <main class="wrap">
   <section class="intro-card" aria-label="収録状況">
-    <div class="metric"><div class="metric-label">国・自治体の案件</div><div class="metric-value">{fmt(summary.records)}件</div><div class="metric-sub">収録レコード</div></div>
+    <div class="metric"><div class="metric-label"><span aria-hidden="true">🏛️</span> 国・自治体の案件</div><div class="metric-value">{fmt(summary.records)}件</div><div class="metric-sub">収録レコード</div></div>
     <div class="metric"><div class="metric-label">収録開始</div><div class="metric-value">{startYear}年</div><div class="metric-sub">国・自治体の案件データ</div></div>
     <div class="metric"><div class="metric-label">現在のデータ領域</div><div class="metric-value">10領域</div><div class="metric-sub">国・自治体の案件 / 不動産・暮らし / 都道府県別推移 / 雇用・賃金 / 企業・産業 / 上場企業 / 未上場企業 / 経済・物価 / エネルギー / 話題のトピック</div></div>
   </section>
@@ -52,61 +52,61 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
     <div class="data-grid">
       <a class="data-card" href="/procurement/">
         <span class="card-tag">PUBLIC PROCUREMENT</span>
-        <h3>国・自治体の案件</h3>
+        <h3><span aria-hidden="true">🏛️</span> 国・自治体の案件</h3>
         <p>国・独立行政法人、地方政府系の公開調達を、分野・企業・発注機関・年度・落札額から横断的に見る。</p>
         <div class="card-meta"><span>{fmt(summary.records)}件を収録</span><span class="open">開く →</span></div>
       </a>
       <a class="data-card" href="/realestate/">
         <span class="card-tag">REAL ESTATE / LIVING</span>
-        <h3>不動産・暮らし</h3>
+        <h3><span aria-hidden="true">🏠</span> 不動産・暮らし</h3>
         <p>地価に、防災、人口、高齢化率、治安、交通事故、病院、学校、駅などを重ね、街を複数の角度から見る。</p>
         <div class="card-meta"><span>全国の地図データ</span><span class="open">開く →</span></div>
       </a>
       <a class="data-card" href="/regional/">
         <span class="card-tag">PREFECTURE TRENDS</span>
-        <h3>都道府県別推移</h3>
+        <h3><span aria-hidden="true">🗾</span> 都道府県別推移</h3>
         <p>人口、高齢化、人口移動、求人、住宅着工、宿泊、地価などを、47都道府県×12年で比較する。</p>
         <div class="card-meta"><span>47都道府県 / 2012〜2023年</span><span class="open">開く →</span></div>
       </a>
       <a class="data-card" href="/employment-economy/">
         <span class="card-tag">EMPLOYMENT / ECONOMY</span>
-        <h3>雇用・賃金</h3>
+        <h3><span aria-hidden="true">💼</span> 雇用・賃金</h3>
         <p>平均賃金、推計年収、求人倍率、県民所得、GDP、事業所・従業者から、47都道府県の「働く」を比べる。</p>
         <div class="card-meta"><span>47都道府県 / 賃金2025年</span><span class="open">開く →</span></div>
       </a>
       <a class="data-card" href="/business-industry/">
         <span class="card-tag">BUSINESS / INDUSTRY</span>
-        <h3>企業・産業</h3>
+        <h3><span aria-hidden="true">🏭</span> 企業・産業</h3>
         <p>民営事業所、従業者、主要産業の構成比から、地域ごとの企業活動と産業構造を比較する。</p>
         <div class="card-meta"><span>47都道府県 / 2021年</span><span class="open">開く →</span></div>
       </a>
       <a class="data-card" href="/listed-companies/">
         <span class="card-tag">LISTED COMPANIES / FINANCIALS</span>
-        <h3>上場企業</h3>
+        <h3><span aria-hidden="true">📈</span> 上場企業</h3>
         <p>日本の上場企業を、売上・利益・資産・キャッシュフロー・給与などの公開データから1社ずつ分かりやすく見る。</p>
         <div class="card-meta"><span>JPX × EDINET</span><span class="open">開く →</span></div>
       </a>
       <a class="data-card" href="/unlisted-companies/">
         <span class="card-tag">UNLISTED COMPANIES / PROCUREMENT</span>
-        <h3>未上場企業</h3>
+        <h3><span aria-hidden="true">🏢</span> 未上場企業</h3>
         <p>国税庁の法人基本情報と公共調達の受注実績を法人番号でつなぎ、公開データから未上場会社を探す。</p>
         <div class="card-meta"><span>国税庁 × EDINET × 公共調達</span><span class="open">開く →</span></div>
       </a>
       <a class="data-card" href="/economy-prices/">
         <span class="card-tag">ECONOMY / PRICES</span>
-        <h3>経済・物価</h3>
+        <h3><span aria-hidden="true">💴</span> 経済・物価</h3>
         <p>食料、住居、光熱水道などの地域物価を比較し、生活費換算や物価調整後の賃金まで生活者目線で見る。</p>
         <div class="card-meta"><span>47都道府県 / 2025年</span><span class="open">開く →</span></div>
       </a>
       <a class="data-card" href="/energy/">
         <span class="card-tag">ENERGY / HOUSEHOLD</span>
-        <h3>エネルギー</h3>
+        <h3><span aria-hidden="true">⚡</span> エネルギー</h3>
         <p>電気代、ガス代、灯油などの家計負担を地域比較し、価格水準や日本の電力需給・電源構成まで見る。</p>
         <div class="card-meta"><span>47都道府県庁所在市 / 家計2025年</span><span class="open">開く →</span></div>
       </a>
       <a class="data-card" href="/topics/">
         <span class="card-tag">WIKIPEDIA / TRENDING</span>
-        <h3>話題のトピック</h3>
+        <h3><span aria-hidden="true">🔥</span> 話題のトピック</h3>
         <p>日本語版Wikipediaの閲覧数から、いま読まれている話題、急上昇、週間トピックを追う。</p>
         <div class="card-meta"><span>Wikimedia Pageviews / 日次更新</span><span class="open">開く →</span></div>
       </a>
