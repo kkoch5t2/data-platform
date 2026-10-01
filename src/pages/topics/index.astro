@@ -13,10 +13,14 @@ const top = data.top || [];
 const rising = data.rising || [];
 const weekly = data.weekly || [];
 const daily = data.daily || [];
+const categories = data.categories || [];
+const strongReasonTopics = rising.filter((x) => x.reason?.status === 'candidate' && (x.reason?.items?.length || 0) > 0 && ((x.reason?.directMentionCount || 0) > 0 || (x.reason?.relatedCount || 0) >= 3));
+const reasonTopics = strongReasonTopics.slice(0, 6);
 const leader = top[0];
 const biggestRiser = rising[0];
 const maxDaily = Math.max(1, ...daily.map((x) => Number(x.top100Views) || 0));
 const maxWeekly = Math.max(1, ...weekly.map((x) => Number(x.totalViews) || 0));
+const maxCategory = Math.max(1, ...categories.map((x) => Number(x.count) || 0));
 const trendClass = (v) => v == null ? 'flat' : v > 0 ? 'up' : v < 0 ? 'down' : 'flat';
 const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rankChange > 0 ? `↑ ${x.rankChange}` : x.rankChange < 0 ? `↓ ${Math.abs(x.rankChange)}` : '→';
 ---
@@ -26,11 +30,11 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <meta name="description" content="日本語版Wikipediaの閲覧数から、いま読まれている話題・急上昇・週間トピックを可視化するDATLUMEの話題ダッシュボード。">
+  <meta name="description" content="日本語版Wikipediaの閲覧数から、いま読まれている話題・急上昇・カテゴリ別トレンドと同時期ニュースの背景候補を可視化するDATLUMEの話題ダッシュボード。">
   <link rel="canonical" href="https://datlume.com/topics/">
   <meta property="og:url" content="https://datlume.com/topics/">
   <meta property="og:title" content="話題のトピック | DATLUME">
-  <meta property="og:description" content="日本語版Wikipediaの閲覧動向から、いま注目されている話題をランキングと推移で見る。">
+  <meta property="og:description" content="日本語版Wikipediaの閲覧動向から、いま注目されている話題をランキング・カテゴリ・急上昇の背景候補で見る。">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary">
   <title>話題のトピック | 日本語版Wikipedia閲覧トレンド | DATLUME</title>
@@ -45,8 +49,9 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
     .rank-list{display:grid;gap:0}.rank-row{display:grid;grid-template-columns:52px minmax(0,1.7fr) 110px 90px 96px 112px;gap:10px;align-items:center;padding:13px 4px;border-bottom:1px solid #eef1f5}.rank-row:last-child{border-bottom:0}.rank-no{font-size:15px;font-weight:900;color:#344054;text-align:center;font-variant-numeric:tabular-nums}.rank-title{min-width:0}.rank-title a{font-size:13px;font-weight:800;text-decoration:none}.rank-title a:hover{color:var(--blue)}.rank-note{font-size:9.5px;color:var(--muted);margin-top:3px}.num{text-align:right;font-size:11px;font-weight:780;font-variant-numeric:tabular-nums}.rank-delta{text-align:center;font-size:10.5px;font-weight:900}.spark{display:flex;align-items:end;gap:2px;height:30px;justify-content:flex-end}.spark i{display:block;width:7px;min-height:2px;border-radius:2px 2px 0 0;background:#8db8ef}.spark i:last-child{background:var(--blue)}
     .rising-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.rising-card{padding:15px 16px;display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:center}.rise-rank{width:38px;height:38px;border-radius:10px;background:var(--soft);color:var(--blue);display:grid;place-items:center;font-size:12px;font-weight:900}.rise-title a{font-size:13px;font-weight:850;text-decoration:none}.rise-title div{font-size:9.5px;color:var(--muted);margin-top:4px}.rise-value{text-align:right;font-size:16px;font-weight:900;color:var(--green)}
     .weekly-list{display:grid;gap:8px}.weekly-row{display:grid;grid-template-columns:38px minmax(0,1.3fr) minmax(120px,1fr) 92px 72px;gap:10px;align-items:center}.weekly-rank{font-size:12px;font-weight:900;text-align:center}.weekly-title a{font-size:12px;font-weight:800;text-decoration:none}.weekly-track{height:10px;background:#eef1f5;border-radius:99px;overflow:hidden}.weekly-bar{height:100%;background:linear-gradient(90deg,#1769e0,#75a8ee);border-radius:99px}.weekly-total,.weekly-best{font-size:10.5px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}.note{margin-top:14px;padding:17px 19px;font-size:11px;line-height:1.75;color:#475467}.note strong{color:var(--ink)}.source-link{color:var(--blue);font-weight:800;text-decoration:none}footer{border-top:1px solid var(--line);padding:28px 0 44px;color:var(--muted);font-size:11px;line-height:1.8}
-    @media(max-width:900px){.kpis{grid-template-columns:1fr 1fr}.spotlight{grid-template-columns:1fr 1fr}.topic-card:first-child{grid-column:1/-1}.rank-row{grid-template-columns:44px minmax(0,1fr) 88px 74px}.rank-row .avg,.rank-row .spark{display:none}.pulse-grid{overflow-x:auto;grid-template-columns:repeat(14,44px);justify-content:start}.rising-grid{grid-template-columns:1fr}.weekly-row{grid-template-columns:34px minmax(0,1fr) 90px}.weekly-track,.weekly-best{display:none}}
-    @media(max-width:640px){.wrap{width:min(100% - 24px,1180px)}header{padding-bottom:48px}.nav{align-items:flex-start;flex-direction:column}.navlinks{width:100%;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0;padding-bottom:2px}.navlinks a{white-space:nowrap;flex:0 0 auto}.hero{padding-top:44px}.hero h1{font-size:43px}.kpis{grid-template-columns:1fr 1fr}.kpi{padding:15px}.value{font-size:22px}.spotlight{grid-template-columns:1fr}.topic-card:first-child{grid-column:auto}.topic-card{min-height:156px}.topic-card:first-child .topic-title{font-size:25px}.section{padding:16px}.section-head{align-items:flex-start;flex-direction:column;gap:5px}.tabs{align-items:stretch}.search{order:2;margin-left:0;width:100%}.rank-row{grid-template-columns:34px minmax(0,1fr) 76px;gap:7px;padding:12px 0}.rank-row .rank-delta{display:none}.rank-title a{font-size:12px}.weekly-row{grid-template-columns:30px minmax(0,1fr) 82px}.rising-card{grid-template-columns:40px 1fr auto;padding:13px}.rise-rank{width:34px;height:34px}.rise-value{font-size:14px}}
+    .category-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px}.category-card{border:1px solid #edf0f4;border-radius:13px;padding:13px 14px;background:#fbfcfe}.category-card-head{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:11px;font-weight:850}.category-card-head b{font-size:12px}.category-track{height:5px;background:#edf1f6;border-radius:99px;overflow:hidden;margin-top:10px}.category-bar{height:100%;background:linear-gradient(90deg,#1769e0,#79aaf0);border-radius:99px}.candidate-label{font-size:9px;color:#8a4b00;background:#fff4db;border:1px solid #f3d59a;border-radius:999px;padding:4px 7px;vertical-align:middle;white-space:nowrap}.reason-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.reason-card{border:1px solid #e7ebf0;border-radius:15px;padding:17px;background:linear-gradient(180deg,#fff,#fbfcfe)}.reason-meta{display:flex;justify-content:space-between;gap:8px;align-items:center}.category-pill,.mini-badge{display:inline-flex;align-items:center;border:1px solid #e4e9f0;background:#f7f9fc;border-radius:999px;padding:3px 7px;font-size:9px;font-weight:800;color:#475467}.reason-change{font-size:11px;font-weight:900}.reason-card h3{font-size:17px;margin:12px 0 7px;letter-spacing:-.02em}.reason-card>p{font-size:11px;line-height:1.7;color:#475467;margin:0 0 12px}.news-links{display:grid;gap:6px}.news-links a{display:block;border-top:1px solid #eef1f5;padding-top:7px;font-size:10.5px;line-height:1.5;text-decoration:none;color:#344054}.news-links a:hover{color:var(--blue)}.news-links a span{display:block;font-size:8.5px;color:var(--muted);font-weight:850;margin-bottom:2px}.wiki-link{display:inline-flex;margin-top:11px;font-size:9.5px;color:var(--blue);font-weight:850;text-decoration:none}.category-filters{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}.category-filter{border:1px solid var(--line);background:#f8fafc;color:#475467;border-radius:999px;padding:6px 9px;font:inherit;font-size:9.5px;font-weight:800;cursor:pointer}.category-filter span{margin-left:4px;color:#98a2b3}.category-filter.active{background:var(--soft);border-color:#b8d5fa;color:#1257b8}.trend-badge{background:#fff8e8;border-color:#f4dfb5}.rank-note{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.weekly-title small{display:block;color:var(--muted);font-size:8.5px;margin-top:2px}
+    @media(max-width:900px){.reason-grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.spotlight{grid-template-columns:1fr 1fr}.topic-card:first-child{grid-column:1/-1}.rank-row{grid-template-columns:44px minmax(0,1fr) 88px 74px}.rank-row .avg,.rank-row .spark{display:none}.pulse-grid{overflow-x:auto;grid-template-columns:repeat(14,44px);justify-content:start}.rising-grid{grid-template-columns:1fr}.weekly-row{grid-template-columns:34px minmax(0,1fr) 90px}.weekly-track,.weekly-best{display:none}}
+    @media(max-width:640px){.category-grid{grid-template-columns:1fr 1fr}.category-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}.category-filter{white-space:nowrap;flex:0 0 auto}.wrap{width:min(100% - 24px,1180px)}header{padding-bottom:48px}.nav{align-items:flex-start;flex-direction:column}.navlinks{width:100%;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0;padding-bottom:2px}.navlinks a{white-space:nowrap;flex:0 0 auto}.hero{padding-top:44px}.hero h1{font-size:43px}.kpis{grid-template-columns:1fr 1fr}.kpi{padding:15px}.value{font-size:22px}.spotlight{grid-template-columns:1fr}.topic-card:first-child{grid-column:auto}.topic-card{min-height:156px}.topic-card:first-child .topic-title{font-size:25px}.section{padding:16px}.section-head{align-items:flex-start;flex-direction:column;gap:5px}.tabs{align-items:stretch}.search{order:2;margin-left:0;width:100%}.rank-row{grid-template-columns:34px minmax(0,1fr) 76px;gap:7px;padding:12px 0}.rank-row .rank-delta{display:none}.rank-title a{font-size:12px}.weekly-row{grid-template-columns:30px minmax(0,1fr) 82px}.rising-card{grid-template-columns:40px 1fr auto;padding:13px}.rise-rank{width:34px;height:34px}.rise-value{font-size:14px}}
   </style>
 </head>
 <body>
@@ -57,7 +62,7 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
       <div class="eyebrow">Japanese Wikipedia / Pageview Trends</div>
       <h1><span aria-hidden="true">🔥</span> 話題のトピック</h1>
       <p>日本語版Wikipediaで「いま何が読まれているか」を、総合ランキング・急上昇・週間の強さから見るダッシュボードです。ニュースやSNSとは違う、百科事典を読みに行く人の関心の動きを可視化します。</p>
-      <div class="hero-meta"><span class="hero-pill">最新データ {fmtDate(data.latestDate)}</span><span class="hero-pill">14日間を比較</span><span class="hero-pill">Wikimedia公式Pageviews API</span></div>
+      <div class="hero-meta"><span class="hero-pill">最新データ {fmtDate(data.latestDate)}</span><span class="hero-pill">{fmt(data.summary?.categoryCount)}カテゴリに自動分類</span><span class="hero-pill">背景候補 {fmt(strongReasonTopics.length)}件</span><span class="hero-pill">Wikimedia公式Pageviews API</span></div>
     </section>
   </div>
 </header>
@@ -72,9 +77,29 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
   <section class="section card">
     <div class="section-head"><div><h2>いま読まれている話題</h2><p>最新日の上位3トピック。クリックすると日本語版Wikipediaを開きます。</p></div><span class="label">{fmtDate(data.latestDate)}</span></div>
     <div class="spotlight">
-      {top.slice(0,3).map((x) => <a class="card topic-card" href={x.url} target="_blank" rel="noreferrer" style="text-decoration:none"><div class="topic-rank">#{x.rank}</div><div class="topic-title">{x.article}</div><div class="topic-meta"><span>{fmt(x.views)} PV</span><span class:list={["delta", x.isNew ? "new" : trendClass(x.rankChange)]}>{rankLabel(x)}</span></div></a>)}
+      {top.slice(0,3).map((x) => <a class="card topic-card" href={x.url} target="_blank" rel="noreferrer" style="text-decoration:none"><div class="topic-rank">#{x.rank} · {x.category?.emoji} {x.category?.label}</div><div class="topic-title">{x.article}</div><div class="topic-meta"><span>{fmt(x.views)} PV · {x.trend?.emoji} {x.trend?.label}</span><span class:list={["delta", x.isNew ? "new" : trendClass(x.rankChange)]}>{rankLabel(x)}</span></div></a>)}
     </div>
   </section>
+
+  <section class="section card">
+    <div class="section-head"><div><h2>カテゴリ別の話題</h2><p>Wikipediaカテゴリ・概要とWikidataの構造化情報を組み合わせて自動分類。上位100記事の構成です。</p></div><span class="label">TOP 100</span></div>
+    <div class="category-grid">
+      {categories.map((c) => <div class="category-card"><div class="category-card-head"><span>{c.emoji} {c.label}</span><b>{c.count}件</b></div><div class="category-track"><div class="category-bar" style={`width:${Math.max(4,c.count/maxCategory*100)}%`}></div></div></div>)}
+    </div>
+  </section>
+
+  {reasonTopics.length > 0 && <section class="section card reason-section">
+    <div class="section-head"><div><h2>なぜ急上昇？ <span class="candidate-label">背景候補</span></h2><p>急上昇日と同時期の関連ニュースを照合。ニュースが原因だと断定せず、時期が重なる報道だけを手掛かりとして表示します。</p></div><span class="label">Google News RSS</span></div>
+    <div class="reason-grid">
+      {reasonTopics.map((x) => <article class="reason-card">
+        <div class="reason-meta"><span class="category-pill">{x.category?.emoji} {x.category?.label}</span><span class:list={["reason-change", trendClass(x.viewChangePct)]}>前日比 {fmtPct(x.viewChangePct)}</span></div>
+        <h3>{x.article}</h3>
+        <p>{x.reason?.summary}</p>
+        <div class="news-links">{x.reason?.items?.slice(0,2).map((n) => <a href={n.url} target="_blank" rel="noreferrer"><span>{n.source}</span>{n.title}</a>)}</div>
+        <a class="wiki-link" href={x.url} target="_blank" rel="noreferrer">Wikipediaを見る ↗</a>
+      </article>)}
+    </div>
+  </section>}
 
   <section class="section card">
     <div class="section-head"><div><h2>14日間の閲覧ボリューム</h2><p>各日の上位100記事のPV合計。全Wikipedia閲覧数ではありません。</p></div><span class="label">{fmtShortDate(data.window?.from)} → {fmtShortDate(data.window?.to)}</span></div>
@@ -91,15 +116,19 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
       <button class="tab" type="button" role="tab" aria-selected="false" data-tab="weekly">週間</button>
       <input class="search" id="topic-search" type="search" placeholder="総合ランキングを検索" aria-label="トピック検索">
     </div>
+    <div class="category-filters" id="category-filters" aria-label="カテゴリで絞り込み">
+      <button type="button" class="category-filter active" data-category-filter="" aria-pressed="true">すべて</button>
+      {categories.map((c) => <button type="button" class="category-filter" data-category-filter={c.key} aria-pressed="false">{c.emoji} {c.label}<span>{c.count}</span></button>)}
+    </div>
 
     <div class="panel" data-panel="overall" style="margin-top:14px">
       <div class="rank-list" id="overall-list">
         {top.map((x) => {
           const vals = x.history?.map((h) => Number(h.views) || 0) || [];
           const max = Math.max(1, ...vals);
-          return <div class="rank-row" data-title={x.article.toLowerCase()}>
+          return <div class="rank-row" data-title={x.article.toLowerCase()} data-category={x.category?.key || 'other'}>
             <div class="rank-no">{x.rank}</div>
-            <div class="rank-title"><a href={x.url} target="_blank" rel="noreferrer">{x.article}</a><div class="rank-note">7日TOP100入り {x.daysInTop100}日</div></div>
+            <div class="rank-title"><a href={x.url} target="_blank" rel="noreferrer">{x.article}</a><div class="rank-note"><span class="mini-badge">{x.category?.emoji} {x.category?.label}</span><span class="mini-badge trend-badge">{x.trend?.emoji} {x.trend?.label}</span><span>7日TOP100入り {x.daysInTop100}日</span></div></div>
             <div class="num">{fmt(x.views)} PV</div>
             <div class:list={["rank-delta", x.isNew ? "new" : trendClass(x.rankChange)]}>{rankLabel(x)}</div>
             <div class:list={["num","avg",trendClass(x.vsAverage7Pct)]}>{fmtPct(x.vsAverage7Pct)}</div>
@@ -111,19 +140,19 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
 
     <div class="panel" data-panel="rising" hidden style="margin-top:14px">
       <div class="rising-grid">
-        {rising.map((x, i) => <div class="card rising-card"><div class="rise-rank">{i+1}</div><div class="rise-title"><a href={x.url} target="_blank" rel="noreferrer">{x.article}</a><div>現在 #{x.rank} / {fmt(x.views)} PV / 前日 {x.previousRank ? `#${x.previousRank}` : '圏外'}</div></div><div class="rise-value">{fmtPct(x.viewChangePct)}</div></div>)}
+        {rising.map((x, i) => <div class="card rising-card"><div class="rise-rank">{i+1}</div><div class="rise-title"><a href={x.url} target="_blank" rel="noreferrer">{x.article}</a><div>{x.category?.emoji} {x.category?.label} · 現在 #{x.rank} / {fmt(x.views)} PV / 前日 {x.previousRank ? `#${x.previousRank}` : '圏外'}</div></div><div class="rise-value">{fmtPct(x.viewChangePct)}</div></div>)}
       </div>
     </div>
 
     <div class="panel" data-panel="weekly" hidden style="margin-top:14px">
       <div class="weekly-list">
-        {weekly.map((x, i) => <div class="weekly-row"><div class="weekly-rank">{i+1}</div><div class="weekly-title"><a href={x.url} target="_blank" rel="noreferrer">{x.article}</a></div><div class="weekly-track"><div class="weekly-bar" style={`width:${Math.max(2,x.totalViews/maxWeekly*100)}%`}></div></div><div class="weekly-total">{fmt(x.totalViews)} PV</div><div class="weekly-best">最高 #{x.bestRank}</div></div>)}
+        {weekly.map((x, i) => <div class="weekly-row"><div class="weekly-rank">{i+1}</div><div class="weekly-title"><a href={x.url} target="_blank" rel="noreferrer">{x.article}</a><small>{x.category?.emoji} {x.category?.label}</small></div><div class="weekly-track"><div class="weekly-bar" style={`width:${Math.max(2,x.totalViews/maxWeekly*100)}%`}></div></div><div class="weekly-total">{fmt(x.totalViews)} PV</div><div class="weekly-best">最高 #{x.bestRank}</div></div>)}
       </div>
     </div>
   </section>
 
   <aside class="card note">
-    <strong>このページの読み方：</strong> 「話題」は日本語版Wikipediaの閲覧動向を指し、日本全体の検索トレンド・SNS投稿量・世論を直接示すものではありません。メインページ、検索などの特殊ページはランキングから除外しています。急上昇は前日に3,000PV以上あった記事の前日比から算出し、週間は直近7日の日別上位データを合算しています。データ更新にはWikimedia側の集計遅延があるため、取得できた最新日を自動採用します。<br>出典：<a class="source-link" href="https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html" target="_blank" rel="noreferrer">Wikimedia Analytics API - Pageviews ↗</a> / 最終生成 {generated} JST
+    <strong>このページの読み方：</strong> 「話題」は日本語版Wikipediaの閲覧動向を指し、日本全体の検索トレンド・SNS投稿量・世論を直接示すものではありません。メインページ、検索などの特殊ページはランキングから除外しています。急上昇は前日に3,000PV以上あった記事の前日比から算出し、週間は直近7日の日別上位データを合算しています。カテゴリはWikipedia/Wikidataの公開メタデータから自動分類します。「なぜ急上昇？」は急上昇日の前後に見つかった関連報道を背景候補として示すもので、ニュースが閲覧増加の原因だと断定するものではありません。データ更新にはWikimedia側の集計遅延があるため、取得できた最新日を自動採用します。<br>出典：<a class="source-link" href="https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html" target="_blank" rel="noreferrer">Wikimedia Analytics API - Pageviews ↗</a> / 最終生成 {generated} JST
   </aside>
 </main>
 <footer><div class="wrap">DATLUME · <a href="/">トップへ</a> · <a href="/about-data/">データについて</a> · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px"><img src="/brand/github.svg" alt="" width="14" height="14" style="display:block;width:14px;height:14px">GitHub ↗</a> · <a href="/privacy/">プライバシーポリシー</a></div></footer>
@@ -131,18 +160,30 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
   const tabs = Array.from(document.querySelectorAll('[data-tab]'));
   const panels = Array.from(document.querySelectorAll('[data-panel]'));
   const search = document.getElementById('topic-search');
+  const categoryFilters = document.getElementById('category-filters');
+  const categoryButtons = Array.from(document.querySelectorAll('[data-category-filter]'));
+  let activeCategory = '';
+  const applyOverallFilter = () => {
+    const q = search?.value.trim().toLowerCase() || '';
+    document.querySelectorAll('#overall-list .rank-row').forEach((row) => {
+      const titleMatch = !q || (row.dataset.title || '').includes(q);
+      const categoryMatch = !activeCategory || row.dataset.category === activeCategory;
+      row.style.display = titleMatch && categoryMatch ? '' : 'none';
+    });
+  };
   tabs.forEach((tab) => tab.addEventListener('click', () => {
     const key = tab.dataset.tab;
     tabs.forEach((x) => { x.classList.toggle('active', x === tab); x.setAttribute('aria-selected', x === tab ? 'true' : 'false'); });
     panels.forEach((panel) => panel.hidden = panel.dataset.panel !== key);
     if (search) search.style.visibility = key === 'overall' ? 'visible' : 'hidden';
+    if (categoryFilters) categoryFilters.style.display = key === 'overall' ? 'flex' : 'none';
   }));
-  search?.addEventListener('input', () => {
-    const q = search.value.trim().toLowerCase();
-    document.querySelectorAll('#overall-list .rank-row').forEach((row) => {
-      row.style.display = !q || (row.dataset.title || '').includes(q) ? '' : 'none';
-    });
-  });
+  categoryButtons.forEach((button) => button.addEventListener('click', () => {
+    activeCategory = button.dataset.categoryFilter || '';
+    categoryButtons.forEach((x) => { const on = x === button; x.classList.toggle('active', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    applyOverallFilter();
+  }));
+  search?.addEventListener('input', applyOverallFilter);
 </script>
 </body>
 </html>

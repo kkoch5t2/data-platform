@@ -17,8 +17,8 @@ def main() -> int:
     if not PATH.exists():
         fail(f"missing {PATH}")
     data = json.loads(PATH.read_text(encoding="utf-8"))
-    if data.get("schemaVersion") != 1:
-        fail("schemaVersion must be 1")
+    if data.get("schemaVersion") != 2:
+        fail("schemaVersion must be 2")
     if data.get("project") != "ja.wikipedia":
         fail("project must be ja.wikipedia")
     latest = data.get("latestDate")
@@ -47,6 +47,17 @@ def main() -> int:
         history = row.get("history") or []
         if len(history) != 7:
             fail(f"history must have 7 points for {row.get('article')}")
+        category = row.get("category") or {}
+        if not category.get("key") or not category.get("label") or not category.get("emoji"):
+            fail(f"category missing for {row.get('article')}")
+        confidence = category.get("confidence")
+        if not isinstance(confidence, (int, float)) or confidence < 0 or confidence > 1:
+            fail(f"category confidence invalid for {row.get('article')}: {confidence}")
+        trend = row.get("trend") or {}
+        if trend.get("key") not in {"new", "spike", "rising", "gradual", "evergreen", "steady"}:
+            fail(f"trend type invalid for {row.get('article')}: {trend.get('key')}")
+        if not trend.get("label") or not trend.get("emoji"):
+            fail(f"trend label missing for {row.get('article')}")
     if any(top[i]["views"] < top[i + 1]["views"] for i in range(len(top) - 1)):
         fail("top ranking is not sorted by views descending")
 
@@ -87,12 +98,40 @@ def main() -> int:
     if any((x.get("top100Views") or 0) <= 0 for x in daily):
         fail("daily contains non-positive top100Views")
 
+    categories = data.get("categories") or []
+    if not categories:
+        fail("categories summary missing")
+    if sum(int(x.get("count") or 0) for x in categories) != 100:
+        fail("categories count must sum to 100")
+    category_keys = {x.get("key") for x in categories}
+    if any((row.get("category") or {}).get("key") not in category_keys for row in top):
+        fail("top contains category absent from categories summary")
+    for row in weekly:
+        category = row.get("category") or {}
+        if not category.get("key") or not category.get("label"):
+            fail(f"weekly category missing for {row.get('article')}")
+
+    checked_reasons = [row.get("reason") for row in rising if row.get("reason")]
+    for reason in checked_reasons:
+        if reason.get("status") not in {"candidate", "unconfirmed", "unavailable"}:
+            fail(f"invalid news reason status: {reason.get('status')}")
+        if not isinstance(reason.get("relatedCount"), int) or reason.get("relatedCount") < 0:
+            fail("invalid reason relatedCount")
+        for item in reason.get("items") or []:
+            if not item.get("title") or not item.get("source") or not str(item.get("url") or "").startswith("https://"):
+                fail("invalid news item")
+
     summary = data.get("summary") or {}
     expected_total = sum(x["views"] for x in top)
     if summary.get("latestTop100Views") != expected_total:
         fail("summary latestTop100Views mismatch")
+    if summary.get("categoryCount") != len(categories):
+        fail("summary categoryCount mismatch")
+    linked = sum(1 for reason in checked_reasons if reason.get("status") == "candidate")
+    if summary.get("newsLinkedCount") != linked:
+        fail(f"summary newsLinkedCount mismatch: {summary.get('newsLinkedCount')} != {linked}")
 
-    print(f"Wikipedia topics audit: top={len(top)} rising={len(rising)} weekly={len(weekly)} daily={len(daily)} latest={latest} OK")
+    print(f"Wikipedia topics audit: top={len(top)} rising={len(rising)} weekly={len(weekly)} daily={len(daily)} categories={len(categories)} news={linked} latest={latest} OK")
     return 0
 
 

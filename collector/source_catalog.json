@@ -387,7 +387,7 @@
       "frequency": "daily",
       "maxAgeHours": 120,
       "minRecords": 100,
-      "acquisition": "official-public-api-no-registration",
+      "acquisition": "official-public-api-plus-public-rss-no-registration",
       "command": [
         "python3",
         "collector/collect_wikipedia_topics.py",
@@ -396,7 +396,7 @@
       ],
       "country": "GLOBAL",
       "domain": "topics",
-      "note": "日本語版Wikipediaの日別閲覧上位を取得。日本全体の検索トレンドや世論を示す指標ではない。"
+      "note": "日本語版Wikipediaの日別閲覧上位を取得。MediaWiki/Wikidataでカテゴリを補助分類し、急上昇上位にはGoogle News RSSの同時期報道を背景候補として付与。日本全体の検索トレンドや世論、ニュースとの因果関係を示す指標ではない。"
     }
   }
 }

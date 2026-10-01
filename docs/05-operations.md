@@ -36,7 +36,7 @@
 12. 上場企業public data再生成。
 13. 月初回のみ各統計領域更新。
 14. Cloudflare Web Analyticsスナップショット更新。
-15. Wikipedia話題トピックを更新。Wikimedia API一時障害時は最後の正常スナップショットを維持して継続。
+15. Wikipedia話題トピックを更新。Wikimedia API一時障害時は最後の正常スナップショットを維持して継続。MediaWiki/Wikidataは分類用、Google News RSSは背景候補用の補助取得で、ニュース取得だけの失敗ではWikipediaランキング更新を止めない。
 16. 公開予定の全領域データ監査を実行。失敗時はbuild/deploy前に停止。
 17. build、Cloudflare deploy。
 18. 成功履歴とlast-success-date更新。

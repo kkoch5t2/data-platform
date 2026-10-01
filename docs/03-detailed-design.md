@@ -101,4 +101,4 @@ DB・外部APIへのリアルタイム問い合わせは行わない。
 ## 12. Wikipedia話題トピック
 対象: `collector/collect_wikipedia_topics.py` / `public/data/wikipedia-topics.json` / `/topics/`。
 Wikimedia Analytics APIの `metrics/pageviews/top/ja.wikipedia/all-access/{year}/{month}/{day}` を直近14日分取得する。最新日が未生成の場合は最大6日前まで遡って取得可能な最新日を採用する。Rawレスポンスは `data/raw/wikipedia-topics/YYYY-MM-DD.json` に保持する。
-公開JSONではメインページ・検索・名前空間ページを除外し、最新TOP100、前日比急上昇、直近7日合計、日別TOP100閲覧数を生成する。日次更新失敗時は最後の正常スナップショットを保持し、DATLUME全体の定期更新は継続する。
+公開JSONではメインページ・検索・名前空間ページを除外し、最新TOP100、前日比急上昇、直近7日合計、日別TOP100閲覧数を生成する。`collector/topic_enrichment.py` がMediaWiki Action APIのカテゴリ・概要とWikidataのラベル・説明・instance of・occupation・genre・sportを組み合わせ、芸能・スポーツ・事件事故・政治・ゲーム・アニメ漫画等へルールベース分類する。急上昇上位は記事名をGoogle News RSSの日本向け検索で急上昇日前後に照合し、見つかった報道を「背景候補」として最大3件保持する。ニュース取得失敗はランキング更新を失敗扱いにせず、因果関係も断定しない。日次更新失敗時は最後の正常スナップショットを保持し、DATLUME全体の定期更新は継続する。
