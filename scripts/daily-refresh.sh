@@ -15,21 +15,7 @@ RELEASE_LOCK="$STATE_DIR/release.lock"
 SCHEDULED_HOST_MARKER="$HOME/.config/datlume/allow-scheduled-refresh"
 EXPECTED_SCHEDULED_HOST="kota-Intel"
 
-assert_release_tree_safe() {
-  local bad
-  bad="$({ git diff --name-only; git diff --cached --name-only; git ls-files --others --exclude-standard; } | sort -u | while IFS= read -r path; do
-    [[ -z "$path" ]] && continue
-    case "$path" in
-      src/data/*.ts|src/data/sources.json|public/data/*.json|tmp/*) ;;
-      *) printf '%s\n' "$path" ;;
-    esac
-  done)"
-  if [[ -n "$bad" ]]; then
-    echo "ERROR: scheduled refresh found non-generated working-tree changes:"
-    printf '%s\n' "$bad"
-    return 1
-  fi
-}
+SCHEDULED_BASE_HEAD=""
 
 mkdir -p "$STATE_DIR" "$BACKUP_DIR" "$LOG_DIR"
 cd "$ROOT"
@@ -76,17 +62,20 @@ fi
 exec 9>"$LOCK"
 if ! flock -n 9; then exit 0; fi
 
-if [[ "$MODE" == "--scheduled" ]] && ! assert_release_tree_safe; then
-  CURRENT_STEP="pre-refresh-release-tree-safety"
-  record_stop 22 "non-generated working-tree changes detected before refresh"
-  exit 22
-fi
-
 if [[ "$MODE" == "--scheduled" && -f "$LAST_SUCCESS" ]] && grep -qx "$TODAY" "$LAST_SUCCESS"; then
   exit 0
 fi
 exec > >(tee -a "$LOG") 2>&1
 trap 'on_error "$?" "$LINENO" "$BASH_COMMAND"' ERR
+
+if [[ "$MODE" == "--scheduled" ]]; then
+  CURRENT_STEP="pre-refresh-git-safety"
+  if ! SCHEDULED_BASE_HEAD="$(python3 scripts/scheduled-refresh-git.py check-start)"; then
+    record_stop 22 "scheduled refresh requires clean synchronized main"
+    exit 22
+  fi
+  echo "Scheduled refresh base: $SCHEDULED_BASE_HEAD"
+fi
 find "$LOG_DIR" -type f -name '*.log' -mtime +30 -delete || true
 # EDINET annual-report Raw is the long-term source of truth and must not be aged out.
 find "$ROOT/data/raw" -path "$ROOT/data/raw/listed-companies" -prune -o -type f -mtime +45 -delete 2>/dev/null || true
@@ -227,8 +216,10 @@ run_step "listed-normalize" npm run normalize:listed-incremental
 run_step "listed-salary-validation" npm run validate:listed-salary
 run_step "listed-count-5x-validation" npm run validate:listed-counts
 run_step "listed-shareholder-validation" npm run validate:listed-shareholders
-# Heavy read-only audits run on the Windows production-data mirror, not on the production collector host.
+# Build the public listed-company snapshot before reconciling the company registry.
 run_step "listed-public-data-build" npm run build:listed-data
+# Procurement and listed-master updates both affect unlisted-company identity and award summaries.
+run_step "company-registry-build" npm run build:company-registry
 
 MONTH="$(date +%Y-%m)"
 MONTH_MARKER="$STATE_DIR/last-monthly-refresh"
@@ -266,19 +257,25 @@ if python3 collector/collect_wikipedia_topics.py --days 14; then
 else
   echo "WARNING: Wikipedia topics refresh failed; continuing with the last saved snapshot"
 fi
-# Full published-data audits run on the Windows production-data mirror.
-CURRENT_STEP="pre-deploy-release-tree-safety"
-if [[ "$MODE" == "--scheduled" ]] && ! assert_release_tree_safe; then
-  echo "ERROR: refusing scheduled deploy because source-code changes appeared during collection"
-  record_stop 23 "non-generated source-code changes appeared during collection"
-  exit 23
+if [[ "$MODE" == "--scheduled" ]]; then
+  run_step "prune-generated-json-noops" python3 scripts/scheduled-refresh-git.py prune-noops
+  run_step "pre-release-generated-change-safety" python3 scripts/scheduled-refresh-git.py check-generated
 fi
+
 exec 8>"$RELEASE_LOCK"
 echo "Waiting for DATLUME release lock: $RELEASE_LOCK"
 flock 8
 export DATLUME_RELEASE_LOCK_HELD=1
-run_step "astro-build" npm run build
-run_step "cloudflare-deploy" bash ./deploy-datlume.sh
+if [[ "$MODE" == "--scheduled" ]]; then
+  run_step "release-check" npm run release:check
+  run_step "post-release-generated-change-safety" python3 scripts/scheduled-refresh-git.py check-generated
+  run_step "scheduled-git-commit-push" python3 scripts/scheduled-refresh-git.py commit-push --base "$SCHEDULED_BASE_HEAD" --date "$TODAY"
+  run_step "cloudflare-deploy" bash ./deploy-datlume.sh
+  run_step "post-deploy-git-clean" python3 scripts/scheduled-refresh-git.py check-clean
+else
+  run_step "astro-build" npm run build
+  run_step "cloudflare-deploy" bash ./deploy-datlume.sh
+fi
 unset DATLUME_RELEASE_LOCK_HELD
 
 python3 - "$ROOT/src/data/summary.json" "$STATE_DIR/history.jsonl" "$before_records" "$after_records" <<'PY'
