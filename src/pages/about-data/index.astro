@@ -102,7 +102,7 @@ const statementCoverage = companyRegistrySummary.unlistedStatementCompanies || 0
     <p>会社別の年齢階級ごとの給与分布や、全社共通定義の採用数・退職数は、一次公開データから安定して取得できないため推計値を作って表示しません。公開資料で確認できる平均年間給与・平均年齢・平均勤続年数・従業員数などを優先します。</p>
   </section>
 
-<section class="section">
+<section id="unlisted-companies" class="card section">
 <h2><span aria-hidden="true">🏢</span> 未上場企業</h2>
 <p>国税庁「法人番号公表サイト」の全国全件データを法人マスタとして使用し、DATLUMEの公共調達受注企業を法人番号へ照合しています。掲載対象は現存する株式会社・有限会社・合名会社・合資会社・合同会社です。</p>
 <p>未上場判定では、日本取引所グループ「東証上場銘柄一覧」に加え、金融庁「EDINETコードリスト」の上場区分も照合して除外します。法人番号を一意に確認できない企業は未上場企業一覧へ載せず、名称だけで推測して統合しません。</p>
