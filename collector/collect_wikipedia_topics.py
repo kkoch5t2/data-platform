@@ -12,6 +12,7 @@ import urllib.request
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from topic_enrichment import CATEGORY_INFO, classify_trend, enrich_topics
 try:
     from core.source_run import SourceRun
 except ModuleNotFoundError:
@@ -106,7 +107,7 @@ def wikipedia_url(title: str) -> str:
     return "https://ja.wikipedia.org/wiki/" + encoded
 
 
-def collect(window_days: int, *, refresh: bool) -> dict:
+def collect(window_days: int, *, refresh: bool, news_limit: int = 12) -> dict:
     if window_days < 7:
         raise ValueError("window_days must be at least 7")
     utc_today = datetime.now(timezone.utc).date()
@@ -199,8 +200,40 @@ def collect(window_days: int, *, refresh: bool) -> dict:
             "leaderViews": rows[0]["views"] if rows else None,
         })
 
+    # Enrich the visible ranking with MediaWiki/Wikidata metadata and attach
+    # non-causal news context to the strongest rising/new topics.
+    news_titles = [x["article"] for x in rising[:max(0, news_limit)]]
+    if len(news_titles) < max(0, news_limit):
+        for row in top[:20]:
+            if row["isNew"] and row["article"] not in news_titles:
+                news_titles.append(row["article"])
+                if len(news_titles) >= news_limit:
+                    break
+    enrichment_titles = [x["article"] for x in top] + [x["article"] for x in weekly]
+    enrichment = enrich_topics(
+        enrichment_titles, news_titles, latest_day, RAW_DIR, refresh=refresh
+    )
+    topic_info = enrichment.get("topics") or {}
+    for row in top:
+        info = topic_info.get(row["article"]) or {}
+        row["category"] = info.get("category") or {**CATEGORY_INFO["other"], "confidence": 0.0, "evidence": []}
+        row["trend"] = classify_trend(row)
+        if info.get("reason"):
+            row["reason"] = info["reason"]
+    for row in weekly:
+        info = topic_info.get(row["article"]) or {}
+        row["category"] = info.get("category") or {**CATEGORY_INFO["other"], "confidence": 0.0, "evidence": []}
+
+    category_counts = defaultdict(int)
+    for row in top:
+        category_counts[row["category"]["key"]] += 1
+    categories = []
+    for key, count in sorted(category_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+        categories.append({**CATEGORY_INFO.get(key, CATEGORY_INFO["other"]), "count": count})
+    linked_count = sum(1 for title in news_titles if (topic_info.get(title) or {}).get("reason", {}).get("status") == "candidate")
+
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "project": "ja.wikipedia",
         "latestDate": latest_key,
@@ -210,6 +243,8 @@ def collect(window_days: int, *, refresh: bool) -> dict:
             "access": "all-access",
             "endpoint": "metrics/pageviews/top/ja.wikipedia/all-access/{year}/{month}/{day}",
             "note": "Japanese Wikipedia pageview rankings; not a measure of all web searches or public opinion in Japan.",
+            "enrichment": enrichment.get("sources") or {},
+            "newsContextNote": "News results are shown only as time-correlated background candidates and do not prove why pageviews increased.",
         },
         "filters": {"excludedExact": sorted(EXCLUDED_EXACT), "excludedPrefixes": list(EXCLUDED_PREFIXES)},
         "summary": {
@@ -217,7 +252,12 @@ def collect(window_days: int, *, refresh: bool) -> dict:
             "latestTop100Views": sum(x["views"] for x in latest_rows[:100]),
             "newEntriesTop20": sum(1 for x in top[:20] if x["isNew"]),
             "risingCount": len(rising),
+            "categoryCount": len(categories),
+            "newsCheckedCount": len(news_titles),
+            "newsLinkedCount": linked_count,
+            "newsFailureCount": len(enrichment.get("newsFailures") or []),
         },
+        "categories": categories,
         "top": top,
         "rising": rising,
         "weekly": weekly,
@@ -228,15 +268,16 @@ def collect(window_days: int, *, refresh: bool) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--days", type=int, default=14, help="Number of daily rankings to collect (min 7)")
-    parser.add_argument("--refresh", action="store_true", help="Refetch cached raw dates")
+    parser.add_argument("--refresh", action="store_true", help="Refetch cached raw dates and enrichment")
+    parser.add_argument("--news-limit", type=int, default=12, help="Maximum rising/new topics to check for related news")
     parser.add_argument("--output", default=str(PUBLIC_PATH))
     args = parser.parse_args()
     with SourceRun("wikipedia_topics", "Wikimedia Analytics API 日本語版Wikipedia Pageviews") as run:
-        payload = collect(args.days, refresh=args.refresh)
+        payload = collect(args.days, refresh=args.refresh, news_limit=max(0, args.news_limit))
         output = Path(args.output)
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-        run.set_metrics(records=len(payload["top"]), sourceArticles=payload["summary"]["latestArticles"], windowDays=payload["window"]["days"], latestDate=payload["latestDate"])
+        run.set_metrics(records=len(payload["top"]), sourceArticles=payload["summary"]["latestArticles"], windowDays=payload["window"]["days"], latestDate=payload["latestDate"], categories=payload["summary"]["categoryCount"], newsLinked=payload["summary"]["newsLinkedCount"])
         print(f"Wikipedia topics: latest={payload['latestDate']} top={len(payload['top'])} rising={len(payload['rising'])} weekly={len(payload['weekly'])}")
         print(f"Wrote {output}")
     return 0

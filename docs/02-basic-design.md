@@ -102,4 +102,4 @@ public/data + src/data
 - 仕様変更時は本ディレクトリの該当設計書を更新する。
 
 ## 12. 話題のトピック配信
-`/topics/` は静的ページとし、`collector/collect_wikipedia_topics.py` がWikimedia Analytics APIから直近14日の日別閲覧上位を収集して `public/data/wikipedia-topics.json` を生成する。閲覧時の外部API依存は持たない。
+`/topics/` は静的ページとし、`collector/collect_wikipedia_topics.py` がWikimedia Analytics APIから直近14日の日別閲覧上位を収集して `public/data/wikipedia-topics.json` を生成する。収集時にMediaWiki/Wikidataでカテゴリ分類し、急上昇上位だけGoogle News RSSの同時期報道を背景候補として補完する。閲覧時の外部API依存は持たない。

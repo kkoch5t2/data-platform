@@ -109,10 +109,11 @@ EDINET変換CSVのfactだけを無条件に信用しない。
 画面上および `/about-data/` で出典・範囲・注意点を明示する。
 
 ## 14. Wikipedia話題トピック
-- ソース: Wikimedia Analytics API / Japanese Wikipedia Pageviews。
+- 主ソース: Wikimedia Analytics API / Japanese Wikipedia Pageviews。補助メタデータ: MediaWiki Action API / Wikidata。ニュース背景候補: Google News RSS（日本向け検索）。
 - 粒度: 日別・記事別。access=`all-access`。
 - Raw: APIレスポンスを日別JSONで保持。
 - Public: 最新TOP100、前日比、7日ベースライン、急上昇、週間合計、14日日別集計。
 - 特殊ページやWikipedia内部運用ページは除外する。
 - 欠損日は0で補完せず、取得できた最新日を基準にする。
+- `schemaVersion=2` では各TOP100に `category`（key/label/emoji/confidence/evidence）と `trend`（new/spike/rising/gradual/evergreen/steady）を付与する。急上昇上位の `reason` は同時期ニュースの件数・見出し・媒体・URLを保持するが、原因推定ではなく時期一致の背景候補である。
 - 「日本語版Wikipediaでの閲覧関心」であり、日本居住者だけの行動、日本全体の検索量、ニュース重要度、世論とはみなさない。

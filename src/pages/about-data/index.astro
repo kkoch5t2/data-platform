@@ -136,6 +136,8 @@ const statementCoverage = companyRegistrySummary.unlistedStatementCompanies || 0
     <h2><span aria-hidden="true">🔥</span> 話題のトピック</h2>
     <p>Wikimedia Foundationの「Wikimedia Analytics API - Pageviews」から、日本語版Wikipedia（<code>ja.wikipedia</code>）の日別閲覧上位を取得しています。対象はdesktop・mobile web・appを合わせた<code>all-access</code>です。メインページ、検索、Wikipedia内部運用ページなどはランキングから除外します。</p>
     <p>総合ランキングは取得できた最新日の閲覧数、急上昇は前日に3,000PV以上あった記事の前日比、週間ランキングは直近7日の日別上位データの合算です。Wikimedia側で最新日がまだ集計されていない場合は、取得可能な直近日を自動採用します。</p>
+    <p>カテゴリ分類は、日本語版WikipediaのMediaWiki Action APIから取得するページカテゴリ・概要と、Wikidataのラベル・説明・instance of・occupation・genre・sport等の構造化情報を組み合わせたルールベース判定です。記事名だけで分類せず、分類根拠が弱い場合は「人物」「その他」に寄せます。自動分類のため誤分類は起こり得ます。</p>
+    <p>「なぜ急上昇？」は、急上昇上位の記事名についてGoogle News RSSの日本向け検索で急上昇日の前後に公開された関連報道を探し、その見出しを<strong>背景候補</strong>として表示します。報道と閲覧増加の時期が重なることを示す補助情報であり、ニュースが閲覧増加の原因だと断定しません。ニュース取得に失敗してもWikipediaランキング自体の更新は継続します。</p>
     <p><strong>このページは「日本語版Wikipediaで何が読まれたか」を示すもので、日本国内ユーザーだけを集計したデータではありません。</strong> 日本全体の検索トレンド、SNS投稿量、ニュース重要度、世論を直接示す指標としては扱いません。</p>
   </section>
 

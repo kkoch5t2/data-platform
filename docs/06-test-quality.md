@@ -7,7 +7,7 @@ DATLUMEは「画面が開く」だけでなく、数値・出典・リンク・�
 テストはローカルだけで完了扱いにせず、重要変更では本番URLも再確認する。
 
 ## 2. データ監査
-`npm run audit:data` で、公開データ間の整合性、件数、必須項目、異常値等を全件検査する。`npm run audit:wikipedia-topics` では話題ページのTOP100件数、順位・PV降順、重複、特殊ページ混入、直近鮮度、急上昇・週間集計の整合を検査する。
+`npm run audit:data` で、公開データ間の整合性、件数、必須項目、異常値等を全件検査する。`npm run audit:wikipedia-topics` では話題ページのTOP100件数、順位・PV降順、重複、特殊ページ混入、直近鮮度、急上昇・週間集計に加え、カテゴリ件数合計、分類confidence範囲、trend種別、ニュース背景候補の構造とsummary整合を検査する。
 構成は `audit-data-integrity.py`、生活・履歴系を深掘りする `audit-living-history.py`、上場企業正規化を検査する `audit-listed-normalized.py`、正規化値から公開64 shard/indexへの変換一致を検査する `audit-listed-public.py`。大量件数でも全件走査を前提とし、失敗時はリリースを止める。
 市区町村座標、犯罪・事故、病院/学校/駅POI、履歴年次グリッド、派生式、source-nativeな欠損許容範囲まで監査対象とする。
 
