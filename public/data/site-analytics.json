@@ -1,68 +1,68 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-09-30T21:56:01Z",
+  "generatedAt": "2026-10-01T21:53:31Z",
   "range": {
     "days": 7,
-    "start": "2026-09-23T21:56:01Z",
-    "end": "2026-09-30T21:56:01Z"
+    "start": "2026-09-24T21:53:31Z",
+    "end": "2026-10-01T21:53:31Z"
   },
-  "pageviews": 7904,
+  "pageviews": 7909,
   "visits": 1481,
   "topPages": [
     {
       "path": "/employment-economy/",
-      "pageviews": 1811,
+      "pageviews": 1805,
       "visits": 88
     },
     {
       "path": "/economy-prices/",
-      "pageviews": 1588,
-      "visits": 73
+      "pageviews": 1580,
+      "visits": 72
     },
     {
       "path": "/energy/",
-      "pageviews": 1528,
+      "pageviews": 1529,
       "visits": 80
     },
     {
       "path": "/procurement/",
-      "pageviews": 862,
-      "visits": 137
+      "pageviews": 868,
+      "visits": 140
     },
     {
       "path": "/regional/",
       "pageviews": 426,
-      "visits": 66
+      "visits": 65
     },
     {
       "path": "/",
-      "pageviews": 399,
-      "visits": 188
+      "pageviews": 392,
+      "visits": 175
     },
     {
       "path": "/business-industry/",
-      "pageviews": 332,
+      "pageviews": 329,
       "visits": 103
     },
     {
       "path": "/realestate/",
-      "pageviews": 111,
+      "pageviews": 110,
       "visits": 98
     },
     {
       "path": "/listed-companies/",
-      "pageviews": 74,
+      "pageviews": 76,
       "visits": 19
+    },
+    {
+      "path": "/about-data/",
+      "pageviews": 66,
+      "visits": 50
     },
     {
       "path": "/listed-companies/compare/",
       "pageviews": 58,
       "visits": 7
-    },
-    {
-      "path": "/about-data/",
-      "pageviews": 58,
-      "visits": 44
     },
     {
       "path": "/regional/indicators/elderly-rate/",
@@ -76,7 +76,7 @@
     },
     {
       "path": "/employment-economy/indicators/annual-pay/",
-      "pageviews": 46,
+      "pageviews": 45,
       "visits": 42
     },
     {
@@ -130,6 +130,11 @@
       "visits": 24
     },
     {
+      "path": "/unlisted-companies/",
+      "pageviews": 23,
+      "visits": 11
+    },
+    {
       "path": "/regional/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
       "pageviews": 23,
       "visits": 23
@@ -140,14 +145,9 @@
       "visits": 22
     },
     {
-      "path": "/unlisted-companies/",
-      "pageviews": 21,
-      "visits": 11
-    },
-    {
-      "path": "/listed-companies/industries/%E8%BC%B8%E9%80%81%E7%94%A8%E6%A9%9F%E5%99%A8/",
-      "pageviews": 17,
-      "visits": 17
+      "path": "/topics/",
+      "pageviews": 18,
+      "visits": 8
     },
     {
       "path": "/business-industry/indicators/employees-per-establishment/",
@@ -155,29 +155,29 @@
       "visits": 17
     },
     {
-      "path": "/listed-companies/industries/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E6%A5%AD/",
-      "pageviews": 13,
-      "visits": 0
+      "path": "/listed-companies/industries/%E8%BC%B8%E9%80%81%E7%94%A8%E6%A9%9F%E5%99%A8/",
+      "pageviews": 17,
+      "visits": 17
     }
   ],
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 6423,
+      "pageviews": 6428,
       "visits": 0
     },
     {
       "host": "www.google.com",
-      "pageviews": 24,
-      "visits": 24
+      "pageviews": 27,
+      "visits": 27
     },
     {
-      "host": "datlume.pages.dev",
+      "host": "github.com",
       "pageviews": 3,
       "visits": 3
     },
     {
-      "host": "github.com",
+      "host": "datlume.pages.dev",
       "pageviews": 2,
       "visits": 2
     },
@@ -192,6 +192,11 @@
       "visits": 2
     },
     {
+      "host": "chatgpt.com",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
       "host": "www.bing.com",
       "pageviews": 1,
       "visits": 1
@@ -203,11 +208,6 @@
     }
   ],
   "daily": [
-    {
-      "date": "2026-09-24",
-      "pageviews": 79,
-      "visits": 30
-    },
     {
       "date": "2026-09-25",
       "pageviews": 2656,
@@ -235,8 +235,13 @@
     },
     {
       "date": "2026-09-30",
-      "pageviews": 595,
-      "visits": 107
+      "pageviews": 599,
+      "visits": 109
+    },
+    {
+      "date": "2026-10-01",
+      "pageviews": 80,
+      "visits": 28
     }
   ],
   "history": [
@@ -272,8 +277,13 @@
     },
     {
       "date": "2026-09-30",
-      "pageviews": 595,
-      "visits": 107
+      "pageviews": 599,
+      "visits": 109
+    },
+    {
+      "date": "2026-10-01",
+      "pageviews": 80,
+      "visits": 28
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
