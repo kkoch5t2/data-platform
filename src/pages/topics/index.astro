@@ -52,10 +52,10 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
 <body>
 <header>
   <div class="wrap">
-    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/">トップ</a><a href="/topics/">話題のトピック</a><a href="/listed-companies/">上場企業</a><a href="/unlisted-companies/">未上場企業</a><a href="/economy-prices/">経済・物価</a><a href="/about-data/">データについて</a></div></nav>
+    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/">トップ</a><a href="/topics/"><span aria-hidden="true">🔥</span> 話題のトピック</a><a href="/listed-companies/"><span aria-hidden="true">📈</span> 上場企業</a><a href="/unlisted-companies/"><span aria-hidden="true">🏢</span> 未上場企業</a><a href="/economy-prices/"><span aria-hidden="true">💴</span> 経済・物価</a><a href="/about-data/">データについて</a></div></nav>
     <section class="hero">
       <div class="eyebrow">Japanese Wikipedia / Pageview Trends</div>
-      <h1>話題のトピック</h1>
+      <h1><span aria-hidden="true">🔥</span> 話題のトピック</h1>
       <p>日本語版Wikipediaで「いま何が読まれているか」を、総合ランキング・急上昇・週間の強さから見るダッシュボードです。ニュースやSNSとは違う、百科事典を読みに行く人の関心の動きを可視化します。</p>
       <div class="hero-meta"><span class="hero-pill">最新データ {fmtDate(data.latestDate)}</span><span class="hero-pill">14日間を比較</span><span class="hero-pill">Wikimedia公式Pageviews API</span></div>
     </section>
