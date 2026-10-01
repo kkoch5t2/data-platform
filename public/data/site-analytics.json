@@ -1,63 +1,68 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-09-30T02:36:55Z",
+  "generatedAt": "2026-09-30T21:56:01Z",
   "range": {
     "days": 7,
-    "start": "2026-09-23T02:36:55Z",
-    "end": "2026-09-30T02:36:55Z"
+    "start": "2026-09-23T21:56:01Z",
+    "end": "2026-09-30T21:56:01Z"
   },
-  "pageviews": 7771,
-  "visits": 1439,
+  "pageviews": 7904,
+  "visits": 1481,
   "topPages": [
     {
       "path": "/employment-economy/",
-      "pageviews": 1806,
+      "pageviews": 1811,
       "visits": 88
     },
     {
       "path": "/economy-prices/",
-      "pageviews": 1586,
+      "pageviews": 1588,
       "visits": 73
     },
     {
       "path": "/energy/",
-      "pageviews": 1523,
+      "pageviews": 1528,
       "visits": 80
     },
     {
       "path": "/procurement/",
-      "pageviews": 840,
-      "visits": 134
+      "pageviews": 862,
+      "visits": 137
     },
     {
       "path": "/regional/",
-      "pageviews": 420,
+      "pageviews": 426,
       "visits": 66
     },
     {
       "path": "/",
-      "pageviews": 361,
-      "visits": 176
+      "pageviews": 399,
+      "visits": 188
     },
     {
       "path": "/business-industry/",
-      "pageviews": 330,
+      "pageviews": 332,
       "visits": 103
     },
     {
       "path": "/realestate/",
-      "pageviews": 110,
+      "pageviews": 111,
       "visits": 98
     },
     {
       "path": "/listed-companies/",
-      "pageviews": 69,
+      "pageviews": 74,
       "visits": 19
     },
     {
       "path": "/listed-companies/compare/",
       "pageviews": 58,
       "visits": 7
+    },
+    {
+      "path": "/about-data/",
+      "pageviews": 58,
+      "visits": 44
     },
     {
       "path": "/regional/indicators/elderly-rate/",
@@ -70,13 +75,8 @@
       "visits": 46
     },
     {
-      "path": "/about-data/",
-      "pageviews": 46,
-      "visits": 35
-    },
-    {
       "path": "/employment-economy/indicators/annual-pay/",
-      "pageviews": 44,
+      "pageviews": 46,
       "visits": 42
     },
     {
@@ -100,9 +100,9 @@
       "visits": 33
     },
     {
-      "path": "/energy/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "path": "/procurement/organizations/org_0038e6ec0f7a/",
       "pageviews": 31,
-      "visits": 26
+      "visits": 31
     },
     {
       "path": "/economy-prices/indicators/clothing/",
@@ -110,13 +110,13 @@
       "visits": 31
     },
     {
-      "path": "/procurement/organizations/org_0038e6ec0f7a/",
+      "path": "/analytics/",
       "pageviews": 31,
-      "visits": 31
+      "visits": 26
     },
     {
-      "path": "/analytics/",
-      "pageviews": 30,
+      "path": "/energy/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 31,
       "visits": 26
     },
     {
@@ -140,9 +140,9 @@
       "visits": 22
     },
     {
-      "path": "/business-industry/indicators/employees-per-establishment/",
-      "pageviews": 17,
-      "visits": 17
+      "path": "/unlisted-companies/",
+      "pageviews": 21,
+      "visits": 11
     },
     {
       "path": "/listed-companies/industries/%E8%BC%B8%E9%80%81%E7%94%A8%E6%A9%9F%E5%99%A8/",
@@ -150,31 +150,36 @@
       "visits": 17
     },
     {
-      "path": "/procurement/years/2026/",
-      "pageviews": 13,
-      "visits": 13
+      "path": "/business-industry/indicators/employees-per-establishment/",
+      "pageviews": 17,
+      "visits": 17
     },
     {
       "path": "/listed-companies/industries/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E6%A5%AD/",
-      "pageviews": 11,
+      "pageviews": 13,
       "visits": 0
     }
   ],
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 6332,
+      "pageviews": 6423,
       "visits": 0
     },
     {
       "host": "www.google.com",
-      "pageviews": 19,
-      "visits": 19
+      "pageviews": 24,
+      "visits": 24
     },
     {
       "host": "datlume.pages.dev",
       "pageviews": 3,
       "visits": 3
+    },
+    {
+      "host": "github.com",
+      "pageviews": 2,
+      "visits": 2
     },
     {
       "host": "search.yahoo.co.jp",
@@ -185,11 +190,6 @@
       "host": "t.co",
       "pageviews": 2,
       "visits": 2
-    },
-    {
-      "host": "github.com",
-      "pageviews": 1,
-      "visits": 1
     },
     {
       "host": "www.bing.com",
@@ -235,8 +235,8 @@
     },
     {
       "date": "2026-09-30",
-      "pageviews": 462,
-      "visits": 65
+      "pageviews": 595,
+      "visits": 107
     }
   ],
   "history": [
@@ -272,8 +272,8 @@
     },
     {
       "date": "2026-09-30",
-      "pageviews": 462,
-      "visits": 65
+      "pageviews": 595,
+      "visits": 107
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
