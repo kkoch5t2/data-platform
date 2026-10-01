@@ -11,12 +11,13 @@
 - Raw/運用データ正本: Ubuntuローカル
 
 ## 2. 日次更新
-`scripts/daily-refresh.sh --scheduled` を06:15 JST以降に毎時起動し、その日の成功後はスキップする設計。
+`scripts/daily-refresh.sh --scheduled` を06:15 JST以降に毎時起動し、その日の成功後はスキップする設計。話題のトピックはWikimediaの日次集計公開時刻に合わせ、通常更新から分離して14:15 JSTに `scripts/refresh-wikipedia-topics.sh --scheduled` を実行する。
 ホスト側cronはリポジトリ外設定のため、変更時はサーバ上のcrontabも確認する。
 
 現行の想定cron:
 ```cron
-15 6-23 * * * /home/kota/Sites/public-market-data/scripts/daily-refresh.sh --scheduled >/dev/null 2>&1
+15 6-13,15-23 * * * /home/kota/Sites/public-market-data/scripts/daily-refresh.sh --scheduled >/dev/null 2>&1
+15 14 * * * /home/kota/Sites/public-market-data/scripts/refresh-wikipedia-topics.sh --scheduled >/dev/null 2>&1
 @reboot /bin/bash -lc 'sleep 120; /home/kota/Sites/public-market-data/scripts/daily-refresh.sh --scheduled' >/dev/null 2>&1
 30 3 * * 0 /home/kota/Sites/public-market-data/scripts/weekly-audit.sh >/dev/null 2>&1
 ```
@@ -36,8 +37,11 @@
 12. 上場企業public data再生成。
 13. 月初回のみ各統計領域更新。
 14. Cloudflare Web Analyticsスナップショット更新。
-15. Wikipedia話題トピックを更新。Wikimedia API一時障害時は最後の正常スナップショットを維持して継続。MediaWiki/Wikidataは分類用、Google News RSSは背景候補用の補助取得で、ニュース取得だけの失敗ではWikipediaランキング更新を止めない。
+15. scheduledの日次更新ではWikipedia話題トピックを更新せず、14:15 JSTの専用ジョブへ分離する。
 16. 公開予定の全領域データ監査を実行。失敗時はbuild/deploy前に停止。
+
+### 3.1 Wikipedia話題トピック専用更新
+14:15 JSTに `scripts/refresh-wikipedia-topics.sh --scheduled` を実行する。Wikimedia Pageviewsの取得後、MediaWiki/Wikidataでカテゴリ分類し、Google News RSSで急上昇の背景候補を補完する。専用監査とbuildが成功した場合だけ生成JSONをGitへcommit/pushし、Cloudflare Pagesへdeployする。ニュース取得だけの失敗ではWikipediaランキング更新を止めない。
 17. build、Cloudflare deploy。
 18. 成功履歴とlast-success-date更新。
 
@@ -97,6 +101,7 @@ Cloudflare認証情報はホームディレクトリ配下の専用ファイル�
 - build: `npm run build`
 - 本番deploy: `bash deploy-datlume.sh`
 - 上場企業日次相当: `npm run refresh:listed-daily`
+- Wikipedia話題トピック専用更新: `bash scripts/refresh-wikipedia-topics.sh --scheduled`
 - Wikipedia話題トピック収集: `npm run collect:wikipedia-topics`
 - Wikipedia話題トピック監査: `npm run audit:wikipedia-topics`
 - データ監査: `npm run audit:data`
