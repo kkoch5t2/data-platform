@@ -18,6 +18,8 @@ VIDEOS_URL = "https://www.googleapis.com/youtube/v3/videos"
 USER_AGENT = "DATLUME/1.0 (https://datlume.com/; public data dashboard)"
 KEY_FILE = Path.home() / ".config/datlume/youtube_api_key"
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{11}$")
+TRUSTED_CHANNEL_PATTERNS = ("公式", "official", "nhk", "tbs", "日テレ", "テレビ", "ann", "fnn", "jnn", "新聞", "スポーツ", "協会", "連盟", "リーグ", "クラブ")
+LOW_QUALITY_PATTERNS = ("反応集", "知られざる", "衝撃", "暴露", "末路", "まさかの", "とんでもない", "徹底解説", "正式発表")
 
 
 def _api_key() -> str | None:
@@ -53,6 +55,14 @@ def _normalize(value: str) -> str:
 def _query_title(article: str) -> str:
     core = re.sub(r"\s*[（(][^）)]*[）)]\s*$", "", article).strip()
     return core or article.strip()
+
+
+def _quality_score(snippet: dict) -> int:
+    title = unicodedata.normalize("NFKC", str(snippet.get("title") or "")).lower()
+    channel = unicodedata.normalize("NFKC", str(snippet.get("channelTitle") or "")).lower()
+    score = 3 if any(token in channel for token in TRUSTED_CHANNEL_PATTERNS) else 0
+    score -= 2 * sum(1 for token in LOW_QUALITY_PATTERNS if token in title or token in channel)
+    return score
 
 
 def _thumbnail(snippet: dict, video_id: str) -> str:
@@ -166,12 +176,15 @@ def collect_youtube_context(
                 views = int(stats.get("viewCount") or 0)
             except (TypeError, ValueError):
                 views = 0
-            eligible.append((views, candidate["videoId"], snippet))
+            quality = _quality_score(snippet)
+            if quality < 0:
+                continue
+            eligible.append((quality, views, candidate["videoId"], snippet))
 
         if not eligible:
             continue
-        eligible.sort(key=lambda x: (-x[0], x[1]))
-        views, video_id, snippet = eligible[0]
+        eligible.sort(key=lambda x: (-x[0], -x[1], x[2]))
+        quality, views, video_id, snippet = eligible[0]
         used_video_ids.add(video_id)
         published_at = str(snippet.get("publishedAt") or "") or None
         items.append({
