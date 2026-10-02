@@ -572,6 +572,13 @@ def classify(title):
     # cross-category manual review. These intentionally beat generic context words
     # such as 委託, 製造, 研修, 法務 and subject-area names.
     semantic_overrides = [
+        # Explicit residual procurement objects and services; avoid inferring from agency names.
+        ('広報・広告・制作', r'テレビパブリシティ'),
+        ('出版・情報資料', r'(?:science\s*direct|サイエンス・ダイレクト|cas\s*scifinder)'),
+        ('エネルギー・環境', r'庁舎電力'),
+        ('一般物品・備品', r'(?:純金製品|シュレッダー|金地金)'),
+        ('医療・福祉', r'(?:診療材料単価契約|オナセムノゲン|総合臨床検査システム|ウォッシャーディスインフェクター)'),
+        ('機械・設備', r'led照明器具'),
         # Final residual audit: narrow object/action fixes only.
         ('公告・手続', r'^(?:入札公告(?:（建設工事）)?|落札者等の公示|随意契約に関する公示|意見招請に関する公示).{0,40}(?:変更|訂正|取消|取り消し)'),
         ('広報・広告・制作', r'(?:デジタル庁.{0,50}取組.{0,30}動画制作|メディアアーツ都市札幌.{0,30}連携事業.{0,20}企画運営)'),
