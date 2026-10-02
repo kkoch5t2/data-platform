@@ -37,6 +37,20 @@ def median(values, digits=0):
 
 def period_key(year, quarter): return f"{int(year)}Q{int(quarter)}"
 
+def reinfolib_api_key():
+    import stat
+    key=os.environ.get('REINFOLIB_API_KEY','').strip()
+    if key: return key
+    configured=os.environ.get('DATLUME_REINFOLIB_KEY_FILE','').strip()
+    secret_path=Path(configured).expanduser() if configured else Path.home()/'.config'/'datlume'/'reinfolib_api_key'
+    if secret_path.exists():
+        mode=stat.S_IMODE(secret_path.stat().st_mode)
+        if mode & 0o077:
+            raise SystemExit(f'ReinfOLib secret file permissions are too open ({oct(mode)}); require 0600 or stricter.')
+        key=secret_path.read_text(encoding='utf-8').strip()
+        if key: return key
+    return ''
+
 def normalize_period(v):
     s=str(v or '')
     import re
@@ -133,13 +147,13 @@ def summarize(rows):
 
 def main(bootstrap_dir=None):
     periods=[period_key(*p) for p in DEFAULT_PERIODS]
-    key=os.getenv('REINFOLIB_API_KEY','').strip()
     if bootstrap_dir:
         rows=load_bootstrap(bootstrap_dir,set(periods)); acquisition='official-web-csv-bootstrap'
-    elif key:
-        rows=load_api(key,DEFAULT_PERIODS); acquisition='official-api-XIT001'
     else:
-        raise SystemExit('REINFOLIB_API_KEY is required (or pass --bootstrap-dir with 47 official ZIP files)')
+        key=reinfolib_api_key()
+        if not key:
+            raise SystemExit('REINFOLIB API key is required: set REINFOLIB_API_KEY or create ~/.config/datlume/reinfolib_api_key with mode 0600 (or pass --bootstrap-dir)')
+        rows=load_api(key,DEFAULT_PERIODS); acquisition='official-api-XIT001'
     resolve=municipality_mapper(); mapped=[]; unmapped=0; ignored=0
     for row in rows:
         seg=segment_for(row.get('type'))
