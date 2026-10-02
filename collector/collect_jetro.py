@@ -946,6 +946,49 @@ def canonical_company_name(value):
     s = s.replace('(有)', '有限会社').replace('（有）', '有限会社')
     return re.sub(r'\s+', '', s).strip(' 、,')
 
+def normalize_existing_company_names(conn):
+    """Align legacy winner spellings to one display name per name-based company ID."""
+    company_updates = []
+    company_names = {}
+    for company_id, name in conn.execute('SELECT company_id,company_name FROM companies'):
+        canonical = canonical_company_name(name)
+        if not canonical or stable_id('co', canonical) != company_id:
+            raise ValueError(f'inconsistent company identity: {company_id}')
+        company_names[company_id] = canonical
+        if canonical != name:
+            company_updates.append((canonical, norm(canonical), company_id))
+
+    winner_updates = []
+    for name, company_id in conn.execute(
+        "SELECT DISTINCT winner_name,company_id FROM procurements WHERE winner_name IS NOT NULL AND winner_name<>''"
+    ):
+        canonical = canonical_company_name(name)
+        preferred = company_names.get(company_id)
+        if not canonical or not preferred or stable_id('co', canonical) != company_id:
+            raise ValueError(f'inconsistent procurement company identity: {company_id}')
+        if preferred != name:
+            winner_updates.append((preferred, name, company_id))
+
+    with conn:
+        conn.executemany(
+            'UPDATE companies SET company_name=?,normalized_name=? WHERE company_id=?',
+            company_updates,
+        )
+        if winner_updates:
+            conn.execute('CREATE TEMP TABLE winner_name_fixes (canonical TEXT, old_name TEXT, company_id TEXT, PRIMARY KEY (old_name,company_id))')
+            try:
+                conn.executemany('INSERT INTO winner_name_fixes VALUES (?,?,?)', winner_updates)
+                conn.execute('''UPDATE procurements SET winner_name=(
+                    SELECT canonical FROM winner_name_fixes f
+                    WHERE f.old_name=procurements.winner_name AND f.company_id=procurements.company_id
+                ) WHERE EXISTS (
+                    SELECT 1 FROM winner_name_fixes f
+                    WHERE f.old_name=procurements.winner_name AND f.company_id=procurements.company_id
+                )''')
+            finally:
+                conn.execute('DROP TABLE winner_name_fixes')
+    return len(company_updates), len(winner_updates)
+
 def extract_company_name(value):
     s = clean(unicodedata.normalize('NFKC', value or '')).strip(' 、,')
     s = s.replace('(株)', '株式会社').replace('(有)', '有限会社')
@@ -1200,6 +1243,9 @@ def prepare_canonical_procurements(conn):
 
 def export_json(conn):
     DATA_DIR.mkdir(parents=True,exist_ok=True)
+    normalized_companies, normalized_winners = normalize_existing_company_names(conn)
+    if normalized_companies or normalized_winners:
+        print(f'normalized_company_names companies={normalized_companies} winner_variants={normalized_winners}', flush=True)
     geps_award_coverage_end=prepare_canonical_procurements(conn)
     cols = ['source_id','title','notice_date','agency','organization_id','notice_type','source_url','is_it','category','category_tags_json','tags_json',
       'detail_fetched','award_date','contract_method','award_method','winner_name','company_id','award_amount','estimated_amount','detail_text',

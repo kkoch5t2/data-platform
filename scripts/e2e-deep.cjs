@@ -559,6 +559,7 @@ async function checkTopics(page,label,failures) {
           const statValues=[...document.querySelectorAll('.stats .value,.kpi-value')].filter(visible).map(e=>(e.textContent||'').trim());
           return {
             scrollWidth:document.documentElement.scrollWidth, clientWidth:document.documentElement.clientWidth,
+            scrollHeight:document.documentElement.scrollHeight,
             title:document.title.trim(), h1:(document.querySelector('h1')?.textContent||'').trim(),
             favicon:!!document.querySelector('link[rel="icon"][href="/favicon.svg"]'),
             canonical:!!document.querySelector('link[rel="canonical"][href]'),
@@ -589,8 +590,9 @@ async function checkTopics(page,label,failures) {
         if(badFirstParty.length)failures.push(label+' HTTP: '+unique(badFirstParty).slice(0,2).join(' | '));
         if(badExternal.length)warnings.push(label+' external HTTP: '+unique(badExternal).slice(0,3).join(' | '));
 
-        await page.screenshot({path:path.join(shotRoot,vp.name,safeRoute(route)+'.jpg'),fullPage:true,type:'jpeg',quality:62});
-        console.log('CHECK',label,'status',res?.status(),'brand',state.brandSeen?Number(state.brandIcon):'-','tables',state.tables,'canvas',state.canvases,'overflow',state.scrollWidth-state.clientWidth,'stuck',state.stuck.length,'js',jsErrors.length,'ownHTTP',badFirstParty.length,'externalHTTP',badExternal.length);
+        const fullPageShot=state.scrollHeight<=30000;
+        await page.screenshot({path:path.join(shotRoot,vp.name,safeRoute(route)+'.jpg'),fullPage:fullPageShot,type:'jpeg',quality:62});
+        console.log('CHECK',label,'status',res?.status(),'brand',state.brandSeen?Number(state.brandIcon):'-','tables',state.tables,'canvas',state.canvases,'overflow',state.scrollWidth-state.clientWidth,'stuck',state.stuck.length,'js',jsErrors.length,'ownHTTP',badFirstParty.length,'externalHTTP',badExternal.length,'shot',fullPageShot?'full':'viewport');
       } catch(e) {
         failures.push(`${vp.name} ${route} FATAL: ${e.message}`);
       }
