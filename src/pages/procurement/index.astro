@@ -355,8 +355,21 @@ function showDrill(kicker,title,meta,rows){const detailed=rows.filter(r=>r.award
 function syncSelectionClearButtons(){document.querySelectorAll('[data-clear-selection]').forEach(btn=>{btn.hidden=!crossSelection})}
 function clearCrossSelection(){crossSelection=null;$('drill-card').hidden=true;render()}
 function selectSegment(selection,kicker,title,meta){crossSelection=selection;const rows=filtered();render();const card=$('drill-card');const host=document.querySelector('[data-view]:not([hidden])');if(host)host.appendChild(card);showDrill(kicker,title,meta,rows);requestAnimationFrame(()=>card.scrollIntoView({behavior:'smooth',block:'nearest'}))}
+function monthPointFromClick(chart,p){
+  const months=chart.getOption().xAxis?.[0]?.data||[];
+  let index=months.indexOf(p.name);
+  if(index<0){
+    const x=Number(p.event?.offsetX??p.event?.event?.offsetX);
+    if(Number.isFinite(x)&&months.length){
+      let distance=Infinity;
+      months.forEach((_,i)=>{const position=chart.convertToPixel({xAxisIndex:0},i);const delta=Math.abs(position-x);if(delta<distance){distance=delta;index=i}});
+    }
+  }
+  if(index<0||!months[index])return null;
+  return {month:months[index],count:Number(chart.getOption().series?.[0]?.data?.[index]||0)};
+}
 function bindChartClicks(){
-  charts['chart-month-count'].on('click',p=>selectSegment({kind:'monthNotice',value:p.name,label:p.name},'月別収録件数',p.name,fmtInt(p.value)+'件'));
+  charts['chart-month-count'].on('click',p=>{const point=monthPointFromClick(charts['chart-month-count'],p);if(!point||!point.count)return;selectSegment({kind:'monthNotice',value:point.month,label:point.month},'月別収録件数',point.month,fmtInt(point.count)+'件')});
   charts['chart-month-amount'].on('click',p=>selectSegment({kind:'monthAward',value:p.name,label:p.name},'月別確認済み落札額',p.name,fmtMoney(p.value)));
   charts['chart-category'].on('click',p=>selectSegment({kind:'categoryGroup',value:p.name,label:p.name},'大分類',p.name,fmtInt(p.value)+'件'));
   charts['chart-companies'].on('click',p=>selectSegment({kind:'company',value:p.name,label:p.name},'受注企業',p.name,'確認済み落札額 '+fmtMoney(p.value)));
