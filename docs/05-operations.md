@@ -1,6 +1,6 @@
 # DATLUME 運用設計書
 
-最終更新: 2026-10-01
+最終更新: 2026-10-02
 
 ## 1. 運用環境
 - Ubuntu 正本: `$HOME/Sites/public-market-data`
@@ -54,6 +54,22 @@ mkdir -p ~/.config/datlume && chmod 700 ~/.config/datlume
 printf '%s\n' 'YOUR_API_KEY' > ~/.config/datlume/youtube_api_key
 chmod 600 ~/.config/datlume/youtube_api_key
 ```
+
+### 3.3 Search Console監視の秘密設定
+Google Search Console監視は公式Search Console APIを使う。OAuthクライアントJSONと取得済みtokenはGit管理せず、`~/.config/datlume/gsc/` に権限600で保存する。
+
+配置:
+```bash
+mkdir -p ~/.config/datlume/gsc && chmod 700 ~/.config/datlume/gsc
+chmod 600 ~/.config/datlume/gsc/credentials.json ~/.config/datlume/gsc/token.json
+```
+
+通常確認:
+```bash
+python3 scripts/check-gsc-sitemap.py
+```
+
+GUIブラウザが使える端末での初回認証は `--authorize`。ヘッドレス端末では `--headless-start` で認証URLを発行し、Google同意後のlocalhost callback URLを `--complete-stdin` へ標準入力してtokenを保存する。
 
 ## 4. 週次監査
 `scripts/weekly-audit.sh` は週1回、以下を実行する。
