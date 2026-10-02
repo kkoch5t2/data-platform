@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse, calendar, html, json, math, re, sqlite3, time, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 try:
     from core.source_run import SourceRun
@@ -78,8 +78,12 @@ def parse_amount(value):
 
 def parse_date(value):
     m = re.search(r'((?:19|20)\d{2})/(\d{1,2})/(\d{1,2})', value or '')
-    return f'{int(m.group(1)):04d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}' if m else ''
-
+    if not m:
+        return ''
+    try:
+        return date(int(m.group(1)), int(m.group(2)), int(m.group(3))).isoformat()
+    except ValueError:
+        return ''
 
 def parse_total(raw):
     m = re.search(r'/\s*([\d,]+)件中', raw)
@@ -99,8 +103,8 @@ def parse_rows(raw, division):
             'division': division, 'contract': m.group(1), 'title': text_only(cells[0]),
             'industry': text_only(cells[1]), 'winner': text_only(cells[2]),
             'estimated': parse_amount(text_only(cells[3])), 'amount': parse_amount(text_only(cells[4])),
-            'notice_date': parse_date(text_only(cells[5])), 'award_date': parse_date(text_only(cells[6])),
-            'method': text_only(cells[7]),
+            'bid_date': parse_date(text_only(cells[5])), 'contract_date': parse_date(text_only(cells[6])),
+            'contract_date_raw': text_only(cells[6]), 'method': text_only(cells[7]),
         })
     return out
 
@@ -129,7 +133,7 @@ def collect_division_year(year, division, workers):
                     raise RuntimeError(f'Fukuoka {year} {DIVISIONS[division]} page {p} parsed {len(parsed)} != expected {expected}')
                 rows.extend(parsed)
     uniq = {f"{x['division']}:{x['contract']}": x for x in rows}
-    bad = [x for x in uniq.values() if not x.get('title') or not x.get('notice_date')]
+    bad = [x for x in uniq.values() if not x.get('title') or not x.get('bid_date')]
     if bad:
         raise RuntimeError(f'Fukuoka {year} {DIVISIONS[division]} has {len(bad)} rows missing title/date')
     if total and len(uniq) != total:
@@ -148,7 +152,7 @@ def save(conn, items):
     now = datetime.now(timezone.utc).isoformat(); org = '福岡市'; org_id = stable_id('org', org)
     conn.execute('INSERT OR IGNORE INTO organizations VALUES (?,?)', (org_id, org)); upserted = 0
     for x in items:
-        if not x['title'] or not x['notice_date']:
+        if not x['title'] or not x['bid_date']:
             continue
         winner = usable_winner(x['winner']); company_id = stable_id('co', winner) if winner else None
         if company_id:
@@ -167,10 +171,19 @@ def save(conn, items):
           award_date=excluded.award_date,contract_method=excluded.contract_method,award_method=excluded.award_method,
           winner_name=excluded.winner_name,company_id=excluded.company_id,award_amount=excluded.award_amount,
           estimated_amount=excluded.estimated_amount,detail_text=excluded.detail_text,collected_at=excluded.collected_at''', (
-            sid, int(x['contract']) if x['contract'].isdigit() else None, x['contract'], x['title'], x['notice_date'], org, org_id,
+            sid, int(x['contract']) if x['contract'].isdigit() else None, x['contract'], x['title'], x['bid_date'], org, org_id,
             notice_type, SEARCH_PAGE, int(is_it), category,
-            json.dumps(category_tags, ensure_ascii=False), json.dumps(tags, ensure_ascii=False), 1, x['award_date'] or None,
+            json.dumps(category_tags, ensure_ascii=False), json.dumps(tags, ensure_ascii=False), 1, x['contract_date'] or None,
             x['method'] or None, x['method'] or None, winner or None, company_id, x['amount'], x['estimated'], detail, now))
+        conn.execute('''UPDATE procurements SET notice_date=NULL, award_date=NULL,
+          bid_date=?, contract_date=?, process_status=?
+          WHERE source_id=?''', (x['bid_date'], x['contract_date'] or None,
+            x['method'] if x['method'] in {'中止', '不調', '取止め'} else '結果', sid))
+        raw_date = x.get('contract_date_raw') or ''
+        if raw_date and raw_date != '0000/00/00' and not x['contract_date']:
+            conn.execute('''INSERT OR REPLACE INTO source_quality_issues
+              (source_id,field,raw_value,reason,detected_at) VALUES (?,?,?,?,?)''',
+              (sid,'contract_date',raw_date,'invalid calendar date',now))
         upserted += 1
     conn.commit(); return upserted
 

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 import argparse, hashlib, html, io, json, re, sqlite3, urllib.parse, urllib.request, zipfile
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 try:
     from core.source_run import SourceRun
-    from collect_jetro import DB_PATH, init_db, classify, export_json, stable_id, norm, clean, canonical_company_name
+    from collect_jetro import DB_PATH, init_db, classify, export_json, stable_id, norm, clean, canonical_company_name, sapporo_contract_key
 except ModuleNotFoundError:
     from collector.core.source_run import SourceRun
-    from collector.collect_jetro import DB_PATH, init_db, classify, export_json, stable_id, norm, clean, canonical_company_name
+    from collector.collect_jetro import DB_PATH, init_db, classify, export_json, stable_id, norm, clean, canonical_company_name, sapporo_contract_key
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / 'data/raw/sapporo-procurement'
@@ -96,11 +96,16 @@ def jp_date(value):
     m = re.fullmatch(r'([RrHh])(\d+)\.(\d+)\.(\d+)', s)
     if m:
         base = 2018 if m.group(1).upper() == 'R' else 1988
-        return f'{base + int(m.group(2)):04d}-{int(m.group(3)):02d}-{int(m.group(4)):02d}'
-    m = re.fullmatch(r'(20\d{2})[./-](\d{1,2})[./-](\d{1,2})', s)
-    if m:
-        return f'{int(m.group(1)):04d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}'
-    return ''
+        parts = (base + int(m.group(2)), int(m.group(3)), int(m.group(4)))
+    else:
+        m = re.fullmatch(r'(20\d{2})[./-](\d{1,2})[./-](\d{1,2})', s)
+        if not m:
+            return ''
+        parts = tuple(map(int, m.groups()))
+    try:
+        return date(*parts).isoformat()
+    except ValueError:
+        return ''
 
 def parse_amount(value):
     s = re.sub(r'[^0-9.-]', '', str(value or ''))
@@ -151,15 +156,19 @@ def save(conn, items):
             str(x['year']), x['kind'], x['title'], x['notice_date'], x['award_date'],
             winner, str(x['amount'] or ''), x.get('id_url') or x['url']
         ]).encode()).hexdigest()[:20]
-        sid = f"sapporo:{x['year']}:{digest}"
+        raw_sid = f"sapporo:{x['year']}:{digest}"
         is_it, tags, category, category_tags = classify(x['title'])
         detail = clean(' / '.join(v for v in [x['dept'], x['reason']] if v))[:1000]
         notice_type = '札幌市競争入札結果' if x['kind'] == 'k' else '札幌市随意契約結果'
+        contract_key=sapporo_contract_key(x['year'],notice_type,x['title'],x['award_date'],
+          winner,x['amount'],x['url'],detail,x['method'])
+        prior=conn.execute('SELECT source_id FROM procurements WHERE contract_key=?',(contract_key,)).fetchone()
+        sid=prior[0] if prior else raw_sid
         conn.execute('''INSERT INTO procurements
           (source_id,xid,aid,title,notice_date,agency,organization_id,notice_type,source_url,is_it,category,category_tags_json,tags_json,
            detail_fetched,award_date,contract_method,award_method,winner_name,company_id,award_amount,estimated_amount,detail_text,collected_at)
           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-          ON CONFLICT(source_id) DO UPDATE SET title=excluded.title,notice_date=excluded.notice_date,source_url=excluded.source_url,
+          ON CONFLICT(source_id) DO UPDATE SET title=excluded.title,notice_date=CASE WHEN procurements.notice_date<excluded.notice_date THEN procurements.notice_date ELSE excluded.notice_date END,source_url=excluded.source_url,
           is_it=excluded.is_it,category=excluded.category,category_tags_json=excluded.category_tags_json,tags_json=excluded.tags_json,
           award_date=excluded.award_date,contract_method=excluded.contract_method,award_method=excluded.award_method,
           winner_name=excluded.winner_name,company_id=excluded.company_id,award_amount=excluded.award_amount,
@@ -167,6 +176,11 @@ def save(conn, items):
           (sid, x['year'], digest, x['title'], x['notice_date'], org, org_id, notice_type, x['url'], int(is_it), category,
            json.dumps(category_tags, ensure_ascii=False), json.dumps(tags, ensure_ascii=False), 1, x['award_date'], x['method'],
            x['method'], winner or None, company_id, x['amount'], None, detail, now))
+        conn.execute('''UPDATE procurements SET contract_key=?,
+          notice_date=CASE WHEN notice_date<? THEN notice_date ELSE ? END
+          WHERE source_id=?''',(contract_key,x['notice_date'],x['notice_date'],sid))
+        conn.execute('INSERT OR IGNORE INTO procurement_publications VALUES (?,?,?,?)',
+          (sid,x['notice_date'] or '',raw_sid,now))
         added += 1
     conn.commit()
     return added

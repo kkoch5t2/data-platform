@@ -2,7 +2,8 @@
 import glob, json, math, os, re, sys
 from collections import Counter, defaultdict
 from pathlib import Path
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/'public'/'data'
@@ -48,6 +49,14 @@ ok([x.get('date') for x in daily]==sorted({x.get('date') for x in daily}),'site-
 ok(all(x.get('pageviews',-1)>=0 and x.get('visits',-1)>=0 for x in daily),'site-analytics: negative daily counts')
 ok(all(x.get('pageviews',-1)>=0 and x.get('visits',-1)>=0 for x in analytics.get('topPages',[])),'site-analytics: invalid top-page counts')
 ok(all(x.get('pageviews',-1)>=0 and x.get('visits',-1)>=0 for x in analytics.get('topReferrers',[])),'site-analytics: invalid referrer counts')
+
+# A fixed historical snapshot must not masquerade as the latest electricity table.
+energy_snapshot=load(DATA/'energy.json').get('nationalSnapshot') or {}
+ok(energy_snapshot.get('snapshotKind')=='fixedHistorical' and
+   energy_snapshot.get('period')=='2025年11月' and
+   not energy_snapshot.get('latestTablePeriod') and
+   energy_snapshot.get('sourceUrl')=='https://www.enecho.meti.go.jp/statistics/electric_power/ep002/',
+   'energy: historical snapshot provenance/freshness label invalid')
 
 # Energy: official household-survey arithmetic and subset semantics.
 d=load(DATA/'energy.json'); rows=d['records']; unique47(rows,'energy')
@@ -399,10 +408,12 @@ for p in shards:
     for r in rs:
         rid=r.get('id'); ok(bool(rid),f'procurement {year}: missing id')
         if rid: ok(rid not in ids,f'procurement: duplicate id {rid}'); ids.add(rid)
-        nd=r.get('noticeDate')
+        nd=r.get('eventDate')
         if nd:
-            ok(nd.startswith(str(year)),f'procurement {rid}: notice year mismatch {nd}')
-            first=nd if first is None or nd<first else first; last=nd if last is None or nd>last else last
+            ok(nd.startswith(str(year)),f'procurement {rid}: event year mismatch {nd}')
+            first=nd if first is None or nd<first else first
+            if nd<=date.today().isoformat():
+                last=nd if last is None or nd>last else last
         ok(bool(r.get('title')) and bool(r.get('agency')) and bool(r.get('sourceUrl')),f'procurement {rid}: missing core fields')
         ok(valid_agency_name(r.get('agency')),f'procurement {rid}: invalid agency {r.get("agency")!r}')
         ok(r.get('source') in {'jetro','jetro-local','geps','yokohama','sapporo','kobe','fukuoka','chiba','kyoto','kawasaki','sendai'},f'procurement {rid}: unknown source {r.get("source")!r}')
@@ -411,7 +422,19 @@ for p in shards:
         ok(isinstance(r.get('detailFetched'),bool),f'procurement {rid}: detailFetched must be boolean')
         ok(isinstance(r.get('tags'),list) and all(isinstance(x,str) and x.strip() for x in r.get('tags',[])),f'procurement {rid}: invalid tags')
         ok(str(r.get('sourceUrl') or '').startswith(('https://','http://')),f'procurement {rid}: invalid source URL')
-        ok((not r.get('awardDate')) or bool(re.fullmatch(r'\d{4}-\d{2}-\d{2}',r['awardDate'])),f'procurement {rid}: invalid awardDate {r.get("awardDate")!r}')
+        for field in ('eventDate','noticeDate','awardDate','bidDate','contractDate'):
+            value=r.get(field)
+            try:
+                valid=value is None or value=='' or (date.fromisoformat(value).isoformat()==value)
+            except (ValueError, TypeError):
+                valid=False
+            ok(valid,f'procurement {rid}: invalid {field} {value!r}')
+        if r.get('source')=='fukuoka':
+            ok(bool(r.get('bidDate')) and not r.get('noticeDate') and not r.get('awardDate') and
+               r.get('eventDate')==r.get('bidDate'),
+               f'procurement {rid}: Fukuoka bid/contract dates mislabeled')
+            ok(r.get('processStatus') in ('中止','不調','取止め','結果'),
+               f'procurement {rid}: missing process status')
         ok(bool(r.get('winnerName'))==bool(r.get('companyId')),f'procurement {rid}: winner/companyId pairing mismatch')
         if r.get('companyId'):
             ok(bool(re.fullmatch(r'co_[0-9a-f]{12}',r['companyId'])),f'procurement {rid}: invalid companyId {r.get("companyId")!r}')
@@ -466,7 +489,7 @@ ok(summary.get('organizations')==len(orgs),f'procurement organizations mismatch 
 ok(summary.get('categoryCounts')==dict(category_counts),f'procurement categoryCounts mismatch summary={summary.get("categoryCounts")} actual={dict(category_counts)}')
 other_count=category_counts.get('その他',0)
 other_ratio=(other_count/total) if total else 0
-ok(other_ratio<=0.08,f'procurement その他 ratio too high: {other_count}/{total} = {other_ratio:.2%} > 8%')
+ok(other_ratio<=0.085,f'procurement その他 ratio too high: {other_count}/{total} = {other_ratio:.2%} > 8.5% (JETRO excluded records now included)')
 company_master=load(SRC/'companies.json')
 company_by_id={x['id']:x for x in company_master}
 detail_files=sorted((DATA/'company-details').glob('*.json'))
@@ -507,8 +530,10 @@ ok(published_org_names==orgs,f'procurement organizations master mismatch: master
 
 # Procurement notices are normally sparse on weekends. Require freshness against
 # the most recent weekday rather than a strict one-calendar-day window.
-today=date.today()
-expected=today-timedelta(days=1)
+now_jst=datetime.now(ZoneInfo('Asia/Tokyo'))
+# Before the daytime refresh can finish, accept the latest completed weekday.
+# Health status and source-specific freshness still run independently.
+expected=now_jst.date()-timedelta(days=2 if now_jst.hour<12 else 1)
 while expected.weekday()>=5:
     expected-=timedelta(days=1)
 ok(last is not None and date.fromisoformat(last)>=expected,f'procurement not fresh: lastDate={last} expected>={expected}')

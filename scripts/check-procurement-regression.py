@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+from datetime import date
 import sys
 from pathlib import Path
 
@@ -39,7 +40,7 @@ def main():
         p, c = int(prev.get(field) or 0), int(cur.get(field) or 0)
         if regressed(p, c, 0.02, 50):
             failures.append(f"{field}: {p} -> {c}")
-    if prev.get("lastDate") and cur.get("lastDate") and cur["lastDate"] < prev["lastDate"]:
+    if prev.get("lastDate") and prev["lastDate"]<=date.today().isoformat() and cur.get("lastDate") and cur["lastDate"] < prev["lastDate"]:
         failures.append(f"lastDate: {prev['lastDate']} -> {cur['lastDate']}")
     if failures:
         print("procurement regression detected:")

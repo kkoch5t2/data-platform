@@ -93,7 +93,7 @@ const unitMoney=(v)=>v==null?'—':new Intl.NumberFormat('ja-JP',{maximumFractio
       </div></div>
       <div class="group"><span id="current-price-label" class="label">表示中の地価公示</span><div class="kpis"><div class="kpi"><small>地点数</small><b id="kpi-count">—</b></div><div class="kpi"><small>中央値</small><b id="kpi-median">—</b></div></div></div>
       <div class="group"><span class="label">地価の推移</span><button id="price-history-load" class="history-btn" type="button">2020〜2026を見る</button><div id="price-history-mini" class="history-mini" hidden><svg id="price-history-svg" viewBox="0 0 280 110" preserveAspectRatio="none" aria-label="地価推移"></svg><div id="price-history-caption" class="history-caption"></div></div></div>
-      <p class="note">各レイヤーは出典年度が異なります。実取引価格は不動産情報ライブラリの{transactions.periodLabel}を自治体別に集計し、地図では各種類5件以上の地域だけ表示します。住宅指標は令和5年住宅・土地統計調査（2023年10月、1,059自治体）。人口・世帯は2020年、出生・死亡は2023年、転入・転出は2024年。犯罪率は2025年の刑法犯認知件数を2024年人口で割った都道府県単位の参考値。交通事故は2024年の警察庁事故データを約1kmグリッドに集約しています。</p>
+      <p class="note">洪水・津波・土砂災害は外部配信のタイルです。色が表示されない場所は安全を意味しません。未整備・対象外・通信エラーを画面上で区別できないため、住所ごとの判定には自治体のハザードマップを確認してください。各レイヤーは出典年度が異なります。実取引価格は不動産情報ライブラリの{transactions.periodLabel}を自治体別に集計し、地図では各種類5件以上の地域だけ表示します。住宅指標は令和5年住宅・土地統計調査（2023年10月、1,059自治体）。人口・世帯は2020年、出生・死亡は2023年、転入・転出は2024年。犯罪率は2025年の刑法犯認知件数を2024年人口で割った都道府県単位の参考値。交通事故は2024年の警察庁事故データを約1kmグリッドに集約しています。</p>
     </aside>
     <div class="map-card">
       <div class="map-toolbar"><strong>全国 不動産・防災・暮らしデータマップ</strong><span id="map-status">データを読み込み中</span></div>

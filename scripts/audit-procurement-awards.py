@@ -42,8 +42,15 @@ def main():
         check((unit or 0)==expected_unit,f'{path.name}: unit prices DB={unit} expected={expected_unit}')
         geps_total+=len(rows)
     cutoff=jetro.prepare_canonical_procurements(conn)
-    duplicate_jetro=conn.execute("SELECT COUNT(*) FROM canonical_procurements WHERE source_id LIKE 'jetro:%' AND notice_type LIKE '%落札者等の公示%' AND notice_date BETWEEN '2021-04-01' AND ?",(cutoff,)).fetchone()[0] if cutoff else 0
-    check(duplicate_jetro==0,f'canonical view contains {duplicate_jetro} duplicate JETRO award notices through {cutoff}')
+    jetro_published=conn.execute("SELECT COUNT(*) FROM canonical_procurements WHERE source_id LIKE 'jetro:%' AND notice_type LIKE '%落札者等の公示%' AND notice_date BETWEEN '2021-04-01' AND ?",(cutoff,)).fetchone()[0] if cutoff else 0
+    jetro_saved=conn.execute("SELECT COUNT(*) FROM procurements WHERE source_id LIKE 'jetro:%' AND notice_type LIKE '%落札者等の公示%' AND notice_date BETWEEN '2021-04-01' AND ?",(cutoff,)).fetchone()[0] if cutoff else 0
+    check(jetro_published==jetro_saved,f'JETRO coverage lost {jetro_saved-jetro_published} records without event-level proof')
+    duplicated=conn.execute("SELECT COUNT(*) FROM (SELECT contract_key FROM procurements WHERE contract_key IS NOT NULL GROUP BY contract_key HAVING COUNT(*)>1)").fetchone()[0]
+    check(duplicated==0,f'Sapporo contract key duplicates: {duplicated}')
+    orphan=conn.execute("SELECT COUNT(*) FROM procurement_publications p LEFT JOIN procurements c ON c.source_id=p.source_id WHERE c.source_id IS NULL").fetchone()[0]
+    check(orphan==0,f'Sapporo publication orphan rows: {orphan}')
+    incorrect_dates=conn.execute("SELECT COUNT(*) FROM procurements WHERE source_id LIKE 'fukuoka:%' AND (notice_date IS NOT NULL OR award_date IS NOT NULL OR bid_date IS NULL)").fetchone()[0]
+    check(incorrect_dates==0,f'Fukuoka mislabeled or missing bid dates: {incorrect_dates}')
     real_amounts=conn.execute("SELECT COUNT(*) FROM procurements WHERE source_id LIKE 'geps:%' AND typeof(award_amount)='real'").fetchone()[0]
     check(real_amounts==0,f'GEPS contains {real_amounts} fractional total amounts')
     explicit_unit_totals=conn.execute("SELECT COUNT(*) FROM procurements WHERE source_id LIKE 'geps:%' AND title LIKE '%単価%' AND award_amount IS NOT NULL").fetchone()[0]

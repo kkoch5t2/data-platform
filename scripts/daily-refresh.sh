@@ -77,9 +77,7 @@ if [[ "$MODE" == "--scheduled" ]]; then
   echo "Scheduled refresh base: $SCHEDULED_BASE_HEAD"
 fi
 find "$LOG_DIR" -type f -name '*.log' -mtime +30 -delete || true
-# EDINET annual-report Raw is the long-term source of truth and must not be aged out.
-find "$ROOT/data/raw" -path "$ROOT/data/raw/listed-companies" -prune -o -type f -mtime +45 -delete 2>/dev/null || true
-find "$ROOT/data/raw" -path "$ROOT/data/raw/listed-companies" -prune -o -type d -empty -delete 2>/dev/null || true
+# Preserve all Raw evidence referenced by current public data. Do not age it out by mtime.
 
 echo "=== DATLUME refresh start $(date -Is) mode=$MODE ==="
 FREE_KB="$(df -Pk "$ROOT" | awk 'NR==2 {print $4}')"
@@ -241,6 +239,17 @@ if [[ ! -f "$MONTH_MARKER" ]] || ! grep -qx "$MONTH" "$MONTH_MARKER"; then
   printf '%s\n' "$MONTH" > "$MONTH_MARKER"
 fi
 
+# This marker is separate so a month already refreshed before this source list changed
+# still runs the newly covered collectors once on the next scheduled attempt.
+SECONDARY_MONTH_MARKER="$STATE_DIR/last-monthly-secondary-refresh"
+if [[ ! -f "$SECONDARY_MONTH_MARKER" ]] || ! grep -qx "$MONTH" "$SECONDARY_MONTH_MARKER"; then
+  run_step "monthly-housing-land" python3 collector/collect_housing_land_2023.py
+  run_step "monthly-social-population" python3 collector/collect_social_population.py
+  run_step "monthly-retail-prices-city" python3 collector/collect_retail_prices_city.py
+  run_step "monthly-secondary-health" python3 collector/check_health.py --source housing_land_2023 --source social_population --source retail_prices_city
+  printf '%s\n' "$MONTH" > "$SECONDARY_MONTH_MARKER"
+fi
+
 REINFOLIB_WEEK="$(date +%G-W%V)"
 REINFOLIB_MARKER="$STATE_DIR/last-reinfolib-check"
 if [[ ! -f "$REINFOLIB_MARKER" ]] || ! grep -qx "$REINFOLIB_WEEK" "$REINFOLIB_MARKER"; then
@@ -286,7 +295,7 @@ if [[ "$MODE" == "--scheduled" ]]; then
   run_step "cloudflare-deploy" bash ./deploy-datlume.sh
   run_step "post-deploy-git-clean" python3 scripts/scheduled-refresh-git.py check-clean
 else
-  run_step "astro-build" npm run build
+  run_step "release-check" npm run release:check
   run_step "cloudflare-deploy" bash ./deploy-datlume.sh
 fi
 unset DATLUME_RELEASE_LOCK_HELD
