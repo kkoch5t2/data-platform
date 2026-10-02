@@ -259,8 +259,8 @@ async function checkRealestateMapPalette(page,label,failures) {
     if(state.visible==='none')failures.push(label+' '+kind+' housing layer did not become visible');
     if(!String(state.legend||'').includes(legendText))failures.push(label+' '+kind+' housing legend missing');
   }
-  const tradeMeta=await page.evaluate(async()=>{const r=await fetch('/data/realestate-transactions.json');if(!r.ok)return{};const d=await r.json();return{municipalities:d.municipalities?.length,prefectures:d.prefectures?.length,records:d.publishedResidentialRecords,latest:d.latestPeriod,minSample:d.minSampleForMap,segments:d.national?.segments}}).catch(()=>({}));
-  if((tradeMeta.municipalities||0)<1600||tradeMeta.prefectures!==47||(tradeMeta.records||0)<200000||tradeMeta.latest!=='2026Q1'||tradeMeta.minSample!==5)failures.push(label+' transaction dataset coverage invalid: '+JSON.stringify(tradeMeta));
+  const tradeMeta=await page.evaluate(async()=>{const r=await fetch('/data/realestate-transactions.json');if(!r.ok)return{};const d=await r.json();return{municipalities:d.municipalities?.length,prefectures:d.prefectures?.length,records:d.publishedResidentialRecords,latest:d.latestPeriod,periodLabel:d.periodLabel,acquisition:d.acquisition,unmapped:d.unmappedRecords,minSample:d.minSampleForMap,segments:d.national?.segments}}).catch(()=>({}));
+  if((tradeMeta.municipalities||0)<1600||tradeMeta.prefectures!==47||(tradeMeta.records||0)<200000||!/^20\d{2}Q[1-4]$/.test(tradeMeta.latest||'')||tradeMeta.acquisition!=='official-api-XIT001'||tradeMeta.unmapped!==0||tradeMeta.minSample!==5)failures.push(label+' transaction dataset coverage invalid: '+JSON.stringify(tradeMeta));
   for(const key of ['land','house','condo'])if(!(tradeMeta.segments?.[key]?.count>10000))failures.push(label+' transaction segment missing: '+key);
   for(const [kind,colors,legendText,countField] of [['tradeLand',['#eef2ff','#4338ca'],'土地の実取引㎡単価','landCount'],['tradeHouse',['#fff1f2','#be123c'],'土地+建物の実取引価格','houseCount'],['tradeCondo',['#ecfeff','#0e7490'],'中古マンション等の実取引㎡単価','condoCount']]){
     await page.evaluate(k=>{const el=document.querySelector('#stat-layer');if(el){el.value=k;el.dispatchEvent(new Event('change',{bubbles:true}));}},kind).catch(()=>{});
@@ -272,7 +272,7 @@ async function checkRealestateMapPalette(page,label,failures) {
     if(state.visible==='none')failures.push(label+' '+kind+' transaction layer did not become visible');
     if(!filter.includes(countField)||!filter.includes('5'))failures.push(label+' '+kind+' transaction sample filter invalid: '+filter);
     if(!String(state.legend||'').includes(legendText)||!String(state.legend||'').includes('5件以上'))failures.push(label+' '+kind+' transaction legend missing');
-    if(!String(state.status||'').includes('2025年第1四半期〜2026年第1四半期'))failures.push(label+' '+kind+' transaction period status missing: '+state.status);
+    if(!String(state.status||'').includes(tradeMeta.periodLabel||''))failures.push(label+' '+kind+' transaction period status missing: '+state.status);
   }
 }
 

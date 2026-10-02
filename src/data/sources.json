@@ -325,16 +325,17 @@
     "reinfolib_transactions": {
       "label": "国土交通省 不動産情報ライブラリ「不動産取引価格情報」",
       "status": "ok",
-      "startedAt": "2026-09-28T23:04:44.724240+00:00",
-      "finishedAt": "2026-09-28T23:04:50.432163+00:00",
-      "durationSeconds": 5.71,
+      "startedAt": "2026-10-02T07:01:30.980118+00:00",
+      "finishedAt": "2026-10-02T07:01:31.986742+00:00",
+      "durationSeconds": 1.01,
       "metrics": {
         "records": 1703,
         "transactionRecords": 321682,
         "publishedResidentialRecords": 278595,
         "latestPeriod": "2026Q1",
-        "acquisition": "official-web-csv-bootstrap"
-      }
+        "acquisition": "official-api-XIT001"
+      },
+      "previousRecordCount": 1703
     },
     "geps_awards": {
       "label": "調達ポータル 落札実績オープンデータ",
