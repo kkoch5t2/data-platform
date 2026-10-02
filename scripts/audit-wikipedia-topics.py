@@ -144,8 +144,9 @@ def main() -> int:
             fail(f"non-embeddable YouTube item: {video_id}")
         if not str(item.get("url") or "").startswith("https://www.youtube.com/watch?v="):
             fail(f"invalid YouTube URL: {video_id}")
-        if not str(item.get("thumbnail") or "").startswith("https://"):
-            fail(f"invalid YouTube thumbnail: {video_id}")
+        expected_thumbnail = f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
+        if item.get("thumbnail") != expected_thumbnail:
+            fail(f"noncanonical YouTube thumbnail: {video_id} {item.get('thumbnail')}")
         if not item.get("title") or not item.get("channelTitle"):
             fail(f"missing YouTube metadata: {video_id}")
         if not isinstance(item.get("views"), int) or item.get("views") < 0:

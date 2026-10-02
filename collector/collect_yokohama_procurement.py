@@ -95,12 +95,12 @@ def post_result_page(op,year,page=1):
     body=urllib.parse.urlencode(params,encoding='shift_jis').encode('ascii')
     req=urllib.request.Request(BASE,data=body,headers={**UA,'Content-Type':'application/x-www-form-urlencoded'})
     last=None
-    for attempt in range(4):
+    for attempt in range(5):
         try:
-            with op.open(req,timeout=20) as r:return r.read().decode('cp932','ignore')
+            with op.open(req,timeout=35) as r:return r.read().decode('cp932','ignore')
         except Exception as exc:
             last=exc
-            if attempt<3: time.sleep(1.5*(attempt+1))
+            if attempt<4: time.sleep(2*(attempt+1))
     raise last
 
 def yokohama_date(value):
@@ -129,12 +129,12 @@ def post_result_detail(op,year,contract,page):
     body=urllib.parse.urlencode(params,encoding='shift_jis').encode('ascii')
     req=urllib.request.Request(BASE,data=body,headers={**UA,'Content-Type':'application/x-www-form-urlencoded'})
     last=None
-    for attempt in range(4):
+    for attempt in range(5):
         try:
-            with op.open(req,timeout=20) as r:return r.read().decode('cp932','ignore')
+            with op.open(req,timeout=35) as r:return r.read().decode('cp932','ignore')
         except Exception as exc:
             last=exc
-            if attempt<3:time.sleep(1.5*(attempt+1))
+            if attempt<4:time.sleep(2*(attempt+1))
     raise last
 
 def detail_contract_amount(raw,winner):
@@ -259,7 +259,10 @@ def main(years,delay=0.03,do_export=True,results_only=False):
     if do_export: summary=export_json(conn)
     else: summary={'records':conn.execute('select count(*) from procurements').fetchone()[0]}
     conn.close();print(f'yokohama: bulletinsParsed={len(all_items)} resultsParsed={result_rows_count} resultAmounts={result_amounts} total={summary["records"]}')
-    return {'records':len(all_items),'added':added,'duplicates':skipped,'bulletins':bulletins,'years':len(years),
+    # A results-only recovery run must still publish a meaningful record count so health
+    # checks do not turn a successful official-result refresh into a false zero-record run.
+    metric_records=result_rows_count if results_only else len(all_items)
+    return {'records':metric_records,'added':added,'duplicates':skipped,'bulletins':bulletins,'years':len(years),
       'resultRows':result_rows_count,'resultAdded':result_added,'resultUpdated':result_updated,'resultAmounts':result_amounts,'resultPages':result_pages,'resultNoAward':result_no_award}
 
 if __name__=='__main__':

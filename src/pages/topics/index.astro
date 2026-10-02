@@ -111,7 +111,7 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
     <div class="youtube-grid">
       {youtubeItems.map((x) => <article class="youtube-card">
         <button class="youtube-thumb" type="button" data-youtube-play data-video-id={x.videoId} aria-label={`${x.title} を再生`}>
-          <img src={x.thumbnail} alt="" loading="lazy" decoding="async">
+          <img src={`https://i.ytimg.com/vi/${x.videoId}/hqdefault.jpg`} data-youtube-thumb data-video-id={x.videoId} alt="" loading="lazy" decoding="async">
           <span class="youtube-play" aria-hidden="true"><span>▶</span></span>
         </button>
         <div class="youtube-copy">
@@ -207,6 +207,17 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
     applyOverallFilter();
   }));
   search?.addEventListener('input', applyOverallFilter);
+  document.querySelectorAll('img[data-youtube-thumb]').forEach((img) => {
+    const fallback = () => {
+      const videoId = img.dataset.videoId || '';
+      if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) { img.hidden = true; return; }
+      if (img.dataset.fallback === 'mq') { img.hidden = true; return; }
+      img.dataset.fallback = 'mq';
+      img.src = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
+    };
+    img.addEventListener('error', fallback);
+    if (img.complete && !img.naturalWidth) fallback();
+  });
   document.querySelectorAll('[data-youtube-play]').forEach((button) => button.addEventListener('click', () => {
     const videoId = button.dataset.videoId || '';
     if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return;
