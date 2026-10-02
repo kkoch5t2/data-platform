@@ -31,6 +31,7 @@ EXACT_PATHS = {
     "public/data/poi-stations-2025.json",
     "public/data/regional-migration-history.json",
     "public/data/regional-trends-2026.json",
+    "public/data/realestate-transactions.json",
     "public/data/site-analytics.json",
     "public/data/traffic-accidents-2024.json",
     "public/data/wikipedia-topics.json",

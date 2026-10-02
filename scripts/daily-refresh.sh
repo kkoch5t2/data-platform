@@ -241,6 +241,15 @@ if [[ ! -f "$MONTH_MARKER" ]] || ! grep -qx "$MONTH" "$MONTH_MARKER"; then
   printf '%s\n' "$MONTH" > "$MONTH_MARKER"
 fi
 
+REINFOLIB_WEEK="$(date +%G-W%V)"
+REINFOLIB_MARKER="$STATE_DIR/last-reinfolib-check"
+if [[ ! -f "$REINFOLIB_MARKER" ]] || ! grep -qx "$REINFOLIB_WEEK" "$REINFOLIB_MARKER"; then
+  echo "Checking MLIT Reinfolib for a newly published transaction quarter"
+  python3 collector/collect_reinfolib_transactions.py --if-new
+  python3 collector/check_health.py --source reinfolib_transactions
+  printf '%s\n' "$REINFOLIB_WEEK" > "$REINFOLIB_MARKER"
+fi
+
 after_records="$(python3 - "$DB" <<'PY'
 import sqlite3, sys
 print(sqlite3.connect(sys.argv[1]).execute("select count(*) from procurements").fetchone()[0])

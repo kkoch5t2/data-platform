@@ -37,6 +37,10 @@ def median(values, digits=0):
 
 def period_key(year, quarter): return f"{int(year)}Q{int(quarter)}"
 
+def normalize_municipality_code(value):
+    s=str(value or '').strip()
+    return s.zfill(5) if s.isdigit() and len(s)<=5 else s
+
 def reinfolib_api_key():
     import stat
     key=os.environ.get('REINFOLIB_API_KEY','').strip()
@@ -71,12 +75,20 @@ def row_from_csv(row):
         'floorArea': number(row.get('延床面積（㎡）')),'period': normalize_period(row.get('取引時期')),
     }
 
+def api_area_number(value, *, floor=False):
+    s=str(value or '').strip()
+    # XIT001 uses numeric sentinels for CSV boundary labels.
+    # Area: 8888=5,000㎡以上, 9999=2,000㎡以上.
+    # TotalFloorArea: 9999=2,000㎡以上; 5/0 correspond to 10㎡未満.
+    if s in ({'9999','5','0'} if floor else {'8888','9999'}): return None
+    return number(value)
+
 def row_from_api(row):
     return {
-        'type': row.get('Type'),'code': row.get('MunicipalityCode'),'prefecture': row.get('Prefecture'),
+        'type': row.get('Type'),'code': normalize_municipality_code(row.get('MunicipalityCode')),'prefecture': row.get('Prefecture'),
         'municipality': row.get('Municipality'),'tradePrice': number(row.get('TradePrice')),
-        'area': number(row.get('Area')),'unitPrice': number(row.get('UnitPrice')),
-        'floorArea': number(row.get('TotalFloorArea')),'period': normalize_period(row.get('Period')),
+        'area': api_area_number(row.get('Area')),'unitPrice': number(row.get('UnitPrice')),
+        'floorArea': api_area_number(row.get('TotalFloorArea'),floor=True),'period': normalize_period(row.get('Period')),
     }
 
 def load_bootstrap(folder, allowed_periods):
@@ -91,7 +103,7 @@ def load_bootstrap(folder, allowed_periods):
             rows.extend(r for raw in reader if (r:=row_from_csv(raw))['period'] in allowed_periods)
     return rows
 
-def api_request(key, year, quarter, area):
+def api_request(key, year, quarter, area, save_raw=True):
     params={'year':year,'quarter':quarter,'area':area,'priceClassification':'01','language':'ja'}
     url=API_URL+'?'+urllib.parse.urlencode(params)
     req=urllib.request.Request(url,headers={**UA,'Ocp-Apim-Subscription-Key':key,'Accept-Encoding':'gzip'})
@@ -100,8 +112,33 @@ def api_request(key, year, quarter, area):
         if 'gzip' in (response.headers.get('Content-Encoding') or '').lower(): data=gzip.decompress(data)
     payload=json.loads(data.decode('utf-8'))
     if payload.get('status')!='OK': raise ValueError(f'XIT001 status not OK for {area} {year}Q{quarter}')
-    save_raw_json(SOURCE_ID,f'{year}Q{quarter}-{area}',{'url':url,'data':payload.get('data',[])})
+    if save_raw:
+        save_raw_json(SOURCE_ID,f'{year}Q{quarter}-{area}',{'url':url,'data':payload.get('data',[])})
     return [row_from_api(x) for x in payload.get('data',[])]
+
+def previous_periods(year, quarter, count=5):
+    out=[]
+    y,q=int(year),int(quarter)
+    for _ in range(count):
+        out.append((y,q))
+        q-=1
+        if q<1: y,q=y-1,4
+    return list(reversed(out))
+
+def discover_periods(key, count=5):
+    now=datetime.now(timezone.utc)
+    y,q=now.year,(now.month-1)//3+1
+    for _ in range(8):
+        try:
+            probe=api_request(key,y,q,'13',save_raw=False)
+        except urllib.error.HTTPError as e:
+            if e.code != 404: raise
+            probe=[]
+        if probe:
+            return previous_periods(y,q,count)
+        q-=1
+        if q<1: y,q=y-1,4
+    raise RuntimeError('could not discover latest published XIT001 quarter')
 
 def load_api(key, periods):
     rows=[]; last_call=0.0
@@ -145,15 +182,27 @@ def summarize(rows):
         'medianFloorArea':median([r.get('floorArea') for r in rows],1),
     }
 
-def main(bootstrap_dir=None):
-    periods=[period_key(*p) for p in DEFAULT_PERIODS]
+def main(bootstrap_dir=None, if_new=False):
     if bootstrap_dir:
-        rows=load_bootstrap(bootstrap_dir,set(periods)); acquisition='official-web-csv-bootstrap'
+        selected_periods=DEFAULT_PERIODS
+        rows=load_bootstrap(bootstrap_dir,{period_key(*p) for p in selected_periods}); acquisition='official-web-csv-bootstrap'
     else:
         key=reinfolib_api_key()
         if not key:
             raise SystemExit('REINFOLIB API key is required: set REINFOLIB_API_KEY or create ~/.config/datlume/reinfolib_api_key with mode 0600 (or pass --bootstrap-dir)')
-        rows=load_api(key,DEFAULT_PERIODS); acquisition='official-api-XIT001'
+        selected_periods=discover_periods(key)
+        latest=period_key(*selected_periods[-1])
+        if if_new and OUT.exists():
+            existing=json.loads(OUT.read_text(encoding='utf-8'))
+            healthy=(existing.get('acquisition')=='official-api-XIT001' and existing.get('latestPeriod')==latest and
+                     existing.get('unmappedRecords')==0 and len(existing.get('municipalities',[]))>=1600 and
+                     int(existing.get('publishedResidentialRecords') or 0)>=200000)
+            if healthy:
+                print(f'reinfolib transactions: already current through {latest}; full collection skipped')
+                return {'records':len(existing.get('municipalities',[])),'transactionRecords':int(existing.get('rawTransactionRecords') or 0),
+                        'publishedResidentialRecords':int(existing.get('publishedResidentialRecords') or 0),'latestPeriod':latest,'acquisition':'official-api-XIT001'}
+        rows=load_api(key,selected_periods); acquisition='official-api-XIT001'
+    periods=[period_key(*p) for p in selected_periods]
     resolve=municipality_mapper(); mapped=[]; unmapped=0; ignored=0
     for row in rows:
         seg=segment_for(row.get('type'))
@@ -173,7 +222,7 @@ def main(bootstrap_dir=None):
     payload={
         'schemaVersion':1,'generatedAt':datetime.now(timezone.utc).isoformat(),'source':SOURCE_LABEL,'sourceUrl':SOURCE_URL,
         'apiManualUrl':API_MANUAL,'acquisition':acquisition,'priceClassification':'01','periods':periods,'latestPeriod':periods[-1],
-        'periodLabel':'2025年第1四半期〜2026年第1四半期','minSampleForMap':5,
+        'periodLabel':f'{selected_periods[0][0]}年第{selected_periods[0][1]}四半期〜{selected_periods[-1][0]}年第{selected_periods[-1][1]}四半期','minSampleForMap':5,
         'usageNotice':('このサービスは、国土交通省の不動産情報ライブラリのAPI機能を使用していますが、提供情報の最新性、正確性、完全性等が保証されたものではありません' if acquisition.startswith('official-api') else '出典：国土交通省 不動産情報ライブラリ。公開CSVをDATLUMEで集計・加工しています。'),
         'rawTransactionRecords':len(rows),'publishedResidentialRecords':len(mapped),'ignoredAgricultureForestRecords':ignored,'unmappedRecords':unmapped,
         'national':{'segments':segmented(mapped)},'quarterly':[{'period':p,'segments':segmented(by_period[p])} for p in periods],
@@ -185,5 +234,5 @@ def main(bootstrap_dir=None):
     return {'records':len(municipalities),'transactionRecords':len(rows),'publishedResidentialRecords':len(mapped),'latestPeriod':periods[-1],'acquisition':acquisition}
 
 if __name__=='__main__':
-    ap=argparse.ArgumentParser();ap.add_argument('--bootstrap-dir');args=ap.parse_args()
-    with SourceRun(SOURCE_ID,SOURCE_LABEL) as run: run.set_metrics(**main(args.bootstrap_dir))
+    ap=argparse.ArgumentParser();ap.add_argument('--bootstrap-dir');ap.add_argument('--if-new',action='store_true');args=ap.parse_args()
+    with SourceRun(SOURCE_ID,SOURCE_LABEL) as run: run.set_metrics(**main(args.bootstrap_dir,args.if_new))

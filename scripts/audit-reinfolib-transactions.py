@@ -2,6 +2,8 @@
 import json, math, sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
+from collector.collect_reinfolib_transactions import api_area_number, normalize_municipality_code
 DATA=ROOT/'public/data/realestate-transactions.json'
 
 def main():
@@ -14,7 +16,11 @@ def main():
     periods=d.get('periods') or []
     ok(len(periods)==5 and periods==sorted(periods),'expected five sorted quarters')
     ok(d.get('latestPeriod')==periods[-1] if periods else False,'latest period mismatch')
-    ok(d.get('acquisition') in {'official-api-XIT001','official-web-csv-bootstrap'},'invalid acquisition')
+    ok(d.get('acquisition')=='official-api-XIT001','production acquisition must use XIT001 API')
+    ok(normalize_municipality_code('1101')=='01101','API municipality-code normalization regression')
+    ok(api_area_number('8888') is None and api_area_number('9999') is None,'API land-area sentinel decoding regression')
+    ok(api_area_number('9999',floor=True) is None and api_area_number('5',floor=True) is None and api_area_number('0',floor=True) is None,'API floor-area sentinel decoding regression')
+    ok(api_area_number('10',floor=True)==10,'API ordinary floor area 10 must remain numeric')
     ok((d.get('rawTransactionRecords') or 0)>100000,'raw transaction volume too low')
     ok((d.get('publishedResidentialRecords') or 0)>50000,'published residential volume too low')
     ok((d.get('unmappedRecords') or 0)==0,'unmapped residential records remain')

@@ -323,18 +323,19 @@
     },
     "reinfolib_transactions": {
       "label": "国土交通省 不動産情報ライブラリ 不動産取引価格情報",
-      "enabled": false,
+      "enabled": true,
       "frequency": "quarterly",
       "maxAgeHours": 3000,
       "minRecords": 1000,
-      "acquisition": "official-api-key-required",
+      "acquisition": "official-api-XIT001",
       "command": [
         "python3",
-        "collector/collect_reinfolib_transactions.py"
+        "collector/collect_reinfolib_transactions.py",
+        "--if-new"
       ],
       "country": "JP",
       "domain": "realestate",
-      "note": "XIT001をREINFOLIB_API_KEYまたは~/.config/datlume/reinfolib_api_key（0600）で収集。APIキー未設定の初回は公式Web画面から取得したCSV ZIPを--bootstrap-dirで読み込み、同じ集計ロジックで公開JSONを生成する。APIキーは公開JSON・Git・ログへ保存しない。"
+      "note": "XIT001をREINFOLIB_API_KEYまたは~/.config/datlume/reinfolib_api_key（0600）で収集。最新公表四半期を自動検出し、直近5四半期を公開。--if-newでは最新期が変わった時だけ全国本収集を行う。APIの面積特殊コードは公式CSVの境界表現に合わせて中央値計算から除外。APIキーは公開JSON・Git・ログへ保存しない。"
     },
     "housing_land_2023": {
       "label": "総務省統計局 令和5年住宅・土地統計調査（確報）",
