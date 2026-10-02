@@ -489,7 +489,7 @@ ok(summary.get('organizations')==len(orgs),f'procurement organizations mismatch 
 ok(summary.get('categoryCounts')==dict(category_counts),f'procurement categoryCounts mismatch summary={summary.get("categoryCounts")} actual={dict(category_counts)}')
 other_count=category_counts.get('その他',0)
 other_ratio=(other_count/total) if total else 0
-ok(other_ratio<=0.085,f'procurement その他 ratio too high: {other_count}/{total} = {other_ratio:.2%} > 8.5% (JETRO excluded records now included)')
+ok(other_ratio<=0.08,f'procurement その他 ratio too high: {other_count}/{total} = {other_ratio:.2%} > 8%')
 company_master=load(SRC/'companies.json')
 company_by_id={x['id']:x for x in company_master}
 detail_files=sorted((DATA/'company-details').glob('*.json'))
