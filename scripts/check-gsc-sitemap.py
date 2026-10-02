@@ -10,6 +10,7 @@ import os
 import secrets
 import sys
 import time
+from datetime import datetime, timedelta, timezone
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -187,14 +188,25 @@ def check_sitemap() -> int:
     if target is None:
         print(json.dumps({"ok": False, "reason": "sitemap_not_found", "site": SITE, "sitemap": SITEMAP}))
         return 2
+    pending = bool(target.get("isPending", False))
+    last_submitted = target.get("lastSubmitted")
+    pending_over_48h = False
+    pending_age_unknown = False
+    if pending:
+        try:
+            submitted = datetime.fromisoformat(str(last_submitted).replace("Z", "+00:00"))
+            pending_over_48h = datetime.now(timezone.utc) - submitted > timedelta(hours=48)
+        except (TypeError, ValueError):
+            pending_age_unknown = True
+    warnings = int(target.get("warnings", 0) or 0)
+    errors = int(target.get("errors", 0) or 0)
+    ok = warnings == 0 and errors == 0 and not pending_over_48h and not pending_age_unknown
     result = {
-        "ok": int(target.get("errors", 0) or 0) == 0 and int(target.get("warnings", 0) or 0) == 0,
-        "site": SITE, "sitemap": SITEMAP,
-        "isPending": bool(target.get("isPending", False)),
-        "lastSubmitted": target.get("lastSubmitted"),
+        "ok": ok, "site": SITE, "sitemap": SITEMAP,
+        "isPending": pending, "pendingOver48h": pending_over_48h,
+        "pendingAgeUnknown": pending_age_unknown, "lastSubmitted": last_submitted,
         "lastDownloaded": target.get("lastDownloaded"),
-        "warnings": int(target.get("warnings", 0) or 0),
-        "errors": int(target.get("errors", 0) or 0),
+        "warnings": warnings, "errors": errors,
     }
     print(json.dumps(result, ensure_ascii=False))
     return 0 if result["ok"] else 1
