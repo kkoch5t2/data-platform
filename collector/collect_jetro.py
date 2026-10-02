@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import argparse, calendar, hashlib, html, http.cookiejar, json, re, sqlite3, time, unicodedata
 import urllib.error, urllib.parse, urllib.request
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 try:
@@ -939,7 +940,8 @@ def canonical_company_name(value):
     return re.sub(r'\s+', '', s).strip(' 、,')
 
 def extract_company_name(value):
-    s = clean(value).strip(' 、,')
+    s = clean(unicodedata.normalize('NFKC', value or '')).strip(' 、,')
+    s = s.replace('(株)', '株式会社').replace('(有)', '有限会社')
     s = re.split(r'[（(]', s, maxsplit=1)[0].strip()
     for suffix in LEGAL_SUFFIXES:
         pos = s.find(suffix)
@@ -979,6 +981,32 @@ def fetch_detail(op, url, title):
         raw = res.read().decode('utf-8','ignore')
     return parse_detail_html(raw, title)
 
+def sapporo_contract_key(year, notice_type, title, award_date, winner_name, award_amount,
+                         source_url, detail_text, contract_method):
+    # All material contract facts must agree; publication date is revision history.
+    parts=[str(year),notice_type or '',title or '',award_date or '',
+           winner_name or '',str(award_amount) if award_amount is not None else '',
+           source_url or '',detail_text or '',contract_method or '']
+    return hashlib.sha256(json.dumps(parts,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()[:32]
+
+
+def reconcile_sapporo_reposts(conn):
+    rows=conn.execute('''SELECT source_id,xid,notice_type,title,award_date,winner_name,award_amount,
+      source_url,detail_text,contract_method,notice_date,collected_at
+      FROM procurements WHERE source_id LIKE 'sapporo:%' AND contract_key IS NULL
+      ORDER BY notice_date,source_id''').fetchall()
+    for sid,year,typ,title,award,winner,amount,url,detail,method,published,seen in rows:
+        key=sapporo_contract_key(year,typ,title,award,winner,amount,url,detail,method)
+        prior=conn.execute('SELECT source_id FROM procurements WHERE contract_key=?',(key,)).fetchone()
+        canonical=prior[0] if prior else sid
+        conn.execute('INSERT OR IGNORE INTO procurement_publications VALUES (?,?,?,?)',
+          (canonical,published or '',sid,seen or ''))
+        if prior and canonical!=sid:
+            conn.execute('DELETE FROM procurements WHERE source_id=?',(sid,))
+        else:
+            conn.execute('UPDATE procurements SET contract_key=? WHERE source_id=?',(key,sid))
+
+
 def init_db(conn):
     conn.executescript('''
     CREATE TABLE IF NOT EXISTS procurements (
@@ -1014,6 +1042,31 @@ def init_db(conn):
         conn.execute("ALTER TABLE procurements ADD COLUMN category TEXT NOT NULL DEFAULT 'その他'")
     if 'category_tags_json' not in cols:
         conn.execute("ALTER TABLE procurements ADD COLUMN category_tags_json TEXT NOT NULL DEFAULT '[]'")
+    for name in ('bid_date', 'contract_date', 'process_status', 'contract_key'):
+        if name not in cols:
+            conn.execute(f'ALTER TABLE procurements ADD COLUMN {name} TEXT')
+    conn.execute('''CREATE TABLE IF NOT EXISTS source_quality_issues (
+      source_id TEXT NOT NULL, field TEXT NOT NULL, raw_value TEXT NOT NULL,
+      reason TEXT NOT NULL, detected_at TEXT NOT NULL,
+      PRIMARY KEY (source_id, field)
+    )''')
+    if 'bid_date' not in cols:
+        for source_id, raw in conn.execute("SELECT source_id,award_date FROM procurements WHERE source_id LIKE 'fukuoka:%' AND award_date IS NOT NULL"):
+            try: date.fromisoformat(raw)
+            except (TypeError, ValueError):
+                conn.execute('INSERT OR IGNORE INTO source_quality_issues VALUES (?,?,?,?,?)',
+                  (source_id,'contract_date',raw,'invalid calendar date',datetime.now(timezone.utc).isoformat()))
+        conn.execute('''UPDATE procurements SET
+          bid_date=notice_date, contract_date=CASE WHEN date(award_date) IS NOT NULL THEN award_date ELSE NULL END,
+          process_status=CASE WHEN contract_method IN ('中止','不調','取止め') THEN contract_method ELSE '結果' END,
+          notice_date=NULL, award_date=NULL WHERE source_id LIKE 'fukuoka:%' ''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS procurement_publications (
+      source_id TEXT NOT NULL, publication_date TEXT NOT NULL,
+      source_row_id TEXT NOT NULL, collected_at TEXT NOT NULL,
+      PRIMARY KEY (source_id, publication_date, source_row_id)
+    )''')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_proc_contract_key ON procurements(contract_key)')
+    reconcile_sapporo_reposts(conn)
     conn.execute('CREATE INDEX IF NOT EXISTS idx_proc_category ON procurements(category)')
     conn.commit()
 def seed_from_json(conn):
@@ -1133,27 +1186,24 @@ def award_amount_status(record):
 def prepare_canonical_procurements(conn):
     geps_max=conn.execute("SELECT MAX(award_date) FROM procurements WHERE source_id LIKE 'geps:%' AND award_date>=?",('2021-04-01',)).fetchone()[0]
     conn.execute('DROP VIEW IF EXISTS canonical_procurements')
-    if geps_max and re.fullmatch(r'20\d{2}-\d{2}-\d{2}',geps_max):
-        safe_max=geps_max.replace("'","''")
-        conn.execute(f"""CREATE TEMP VIEW canonical_procurements AS
-          SELECT * FROM procurements WHERE NOT (
-            source_id LIKE 'jetro:%' AND notice_type LIKE '%落札者等の公示%'
-            AND notice_date>='2021-04-01' AND notice_date<='{safe_max}'
-          )""")
-    else:
-        conn.execute('CREATE TEMP VIEW canonical_procurements AS SELECT * FROM procurements')
+    # A GEPS maximum date is not evidence that every JETRO contract is covered.
+    # Keep all source records until individually reconciled.
+    conn.execute('CREATE TEMP VIEW canonical_procurements AS SELECT * FROM procurements')
     return geps_max or ''
 
 def export_json(conn):
     DATA_DIR.mkdir(parents=True,exist_ok=True)
     geps_award_coverage_end=prepare_canonical_procurements(conn)
     cols = ['source_id','title','notice_date','agency','organization_id','notice_type','source_url','is_it','category','category_tags_json','tags_json',
-      'detail_fetched','award_date','contract_method','award_method','winner_name','company_id','award_amount','estimated_amount','detail_text']
-    rows = conn.execute('SELECT '+','.join(cols)+' FROM canonical_procurements ORDER BY notice_date DESC,source_id DESC').fetchall()
+      'detail_fetched','award_date','contract_method','award_method','winner_name','company_id','award_amount','estimated_amount','detail_text',
+      'bid_date','contract_date','process_status']
+    rows = conn.execute('SELECT '+','.join(cols)+' FROM canonical_procurements ORDER BY COALESCE(bid_date,notice_date) DESC,source_id DESC').fetchall()
     out=[]
     for r in rows:
         d=dict(zip(cols,r)); out.append({
-          'id':d['source_id'],'title':d['title'],'noticeDate':d['notice_date'],'agency':d['agency'],
+          'id':d['source_id'],'title':d['title'],'noticeDate':d['notice_date'],
+          'bidDate':d['bid_date'],'eventDate':d['bid_date'] or d['notice_date'],
+          'contractDate':d['contract_date'],'processStatus':d['process_status'],'agency':d['agency'],
           'organizationId':d['organization_id'],'noticeType':d['notice_type'],'sourceUrl':d['source_url'],
           'source':('geps' if d['source_id'].startswith('geps:') else ('yokohama' if d['source_id'].startswith('yokohama:') else ('sapporo' if d['source_id'].startswith('sapporo:') else ('kobe' if d['source_id'].startswith('kobe:') else ('fukuoka' if d['source_id'].startswith('fukuoka:') else ('chiba' if d['source_id'].startswith('chiba:') else ('kyoto' if d['source_id'].startswith('kyoto:') else ('kawasaki' if d['source_id'].startswith('kawasaki:') else ('sendai' if d['source_id'].startswith('sendai:') else 'jetro'))))))))),
           'isIt':bool(d['is_it']),'category':d['category'] or 'その他','categoryTags':json.loads(d['category_tags_json'] or '[]'),
@@ -1164,7 +1214,8 @@ def export_json(conn):
         out[-1]['awardAmountStatus']=award_amount_status(out[-1])
     # Gitで保持する静的ページ用データは、未使用の詳細本文等を除外して50MB未満に抑える。
     page_records = [{
-      'id':x['id'],'title':x['title'],'noticeDate':x['noticeDate'],'agency':x['agency'],
+      'id':x['id'],'title':x['title'],'noticeDate':x['noticeDate'],'eventDate':x['eventDate'],
+      'bidDate':x['bidDate'],'contractDate':x['contractDate'],'processStatus':x['processStatus'],'agency':x['agency'],
       'organizationId':x['organizationId'],'noticeType':x['noticeType'],'sourceUrl':x['sourceUrl'],
       'source':x['source'],'isIt':x['isIt'],'category':x['category'],'tags':x['tags'],'detailFetched':x['detailFetched'],
       'awardDate':x['awardDate'],'contractMethod':x['contractMethod'],'awardMethod':x['awardMethod'],
@@ -1174,7 +1225,7 @@ def export_json(conn):
     # 年別に分割してGitHubの単一ファイル上限を避ける。旧モノリスJSONは移行後に削除する。
     by_year={}
     for rec in page_records:
-        year=(rec.get('noticeDate') or '')[:4] or 'unknown'
+        year=(rec.get('eventDate') or '')[:4] or 'unknown'
         by_year.setdefault(year,[]).append(rec)
     for old_path in DATA_DIR.glob('procurements-*.json'):
         old_path.unlink()
@@ -1237,9 +1288,9 @@ def export_json(conn):
                      10 if is_sendai else 0)
         tag_mask=sum(1 << tag_idx[t] for t in (x.get('tags') or []) if t in tag_idx)
         compact_row=[
-          sid,x['title'] or '',(x['noticeDate'] or '').replace('-',''),
+          sid,x['title'] or '',(x['eventDate'] or '').replace('-',''),
           agency_idx[x['agency'] or ''],category_idx[x['category'] or 'その他'],tag_mask,
-          (x['awardDate'] or '').replace('-',''),contract_idx[x['contractMethod'] or ''],
+          (x['awardDate'] or x['contractDate'] or '').replace('-',''),contract_idx[x['contractMethod'] or ''],
           award_idx[clean_award_method(x.get('awardMethod') or '')],winner_idx[x['winnerName'] or ''],
           x['awardAmount'] or 0,source_kind,
           {'notFetched':0,'total':1,'unitPrice':2,'foreignCurrency':3,'noAward':4,'notPublished':5}[x['awardAmountStatus']]
@@ -1286,7 +1337,7 @@ def export_json(conn):
         cid=x.get('companyId')
         amount=x.get('awardAmount') or 0
         if cid in company_detail and amount>0:
-            company_detail[cid][3].append([x.get('awardDate') or '',x.get('agency') or '',x.get('title') or '',x.get('sourceUrl') or '',amount])
+            company_detail[cid][3].append([x.get('awardDate') or x.get('contractDate') or '',x.get('agency') or '',x.get('title') or '',x.get('sourceUrl') or '',amount])
     for item in company_detail.values():
         item[3].sort(key=lambda r:r[0],reverse=True)
     COMPANY_DETAIL_DIR.mkdir(parents=True,exist_ok=True)
@@ -1328,14 +1379,16 @@ def export_json(conn):
     sendai_records=sum(1 for x in out if x['id'].startswith('sendai:'))
     local_records=jetro_local_records+yokohama_records+sapporo_records+kobe_records+fukuoka_records+chiba_records+kyoto_records+kawasaki_records+sendai_records
     jetro_records=jetro_national_records+jetro_local_records
-    dates=[x['noticeDate'] for x in out if x.get('noticeDate')]
+    dates=[x['eventDate'] for x in out if x.get('eventDate')]
+    today=datetime.now(ZoneInfo('Asia/Tokyo')).date().isoformat()
+    published_dates=[v for v in dates if v<=today]
     summary={'records':len(out),'nationalRecords':len(out)-local_records,'localRecords':local_records,
       'jetroRecords':jetro_records,'jetroLocalRecords':jetro_local_records,'gepsRecords':geps_records,
       'yokohamaRecords':yokohama_records,'sapporoRecords':sapporo_records,
       'kobeRecords':kobe_records,'fukuokaRecords':fukuoka_records,
       'chibaRecords':chiba_records,'kyotoRecords':kyoto_records,
       'kawasakiRecords':kawasaki_records,'sendaiRecords':sendai_records,
-      'firstDate':min(dates) if dates else None,'lastDate':max(dates) if dates else None,
+      'firstDate':min(dates) if dates else None,'lastDate':max(published_dates) if published_dates else None,
       'itRecords':total_it,'awardRecords':len(awards),'awardEligibleRecords':len(award_eligible),
       'awardStatusCounts':award_status_counts,
       'awardTotal':sum(x['awardAmount'] for x in awards),'companies':len(companies),'organizations':len(orgs),

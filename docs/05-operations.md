@@ -11,13 +11,13 @@
 - Raw/運用データ正本: Ubuntuローカル
 
 ## 2. 日次更新
-`scripts/daily-refresh.sh --scheduled` を06:15 JST以降に毎時起動し、その日の成功後はスキップする設計。話題のトピックはWikimediaの日次集計公開時刻に合わせ、通常更新から分離して14:15 JSTに `scripts/refresh-wikipedia-topics.sh --scheduled` を実行する。
+`scripts/daily-refresh.sh --scheduled` を06:15 JST以降に毎時起動し、その日の成功後はスキップする設計。話題のトピックはWikimediaの日次集計公開時刻に合わせ、通常更新から分離して14:15〜23:15 JSTに毎時 `scripts/refresh-wikipedia-topics.sh --scheduled` を実行する。
 ホスト側cronはリポジトリ外設定のため、変更時はサーバ上のcrontabも確認する。
 
 現行の想定cron:
 ```cron
 15 6-13,15-23 * * * /home/kota/Sites/public-market-data/scripts/daily-refresh.sh --scheduled >/dev/null 2>&1
-15 14 * * * /home/kota/Sites/public-market-data/scripts/refresh-wikipedia-topics.sh --scheduled >/dev/null 2>&1
+15 14-23 * * * /home/kota/Sites/public-market-data/scripts/refresh-wikipedia-topics.sh --scheduled >/dev/null 2>&1
 @reboot /bin/bash -lc 'sleep 120; /home/kota/Sites/public-market-data/scripts/daily-refresh.sh --scheduled' >/dev/null 2>&1
 30 3 * * 0 /home/kota/Sites/public-market-data/scripts/weekly-audit.sh >/dev/null 2>&1
 ```
@@ -35,13 +35,13 @@
 10. 上場企業正規化データの全件整合・異常値監査。前後年が近いのに中間年だけ10倍以上動く往復型に加え、翌年有報がまだない最新年度の安定指標も前年比10倍以上をレビュー対象とする。原典確認済みの固定値だけ許可し、新規候補は停止する。
 11. 同一年度を翌年有報の前期欄と照合する10倍cross-filing監査。未確認の10倍以上不一致は停止。
 12. 上場企業public data再生成。
-13. 月初回のみ各統計領域更新。
+13. 月初回のみ各統計領域更新。住宅・土地2023、人口・世帯、小売価格都市は独立した月次マーカーで実行し、鮮度を検査する。
 14. Cloudflare Web Analyticsスナップショット更新。
 15. scheduledの日次更新ではWikipedia話題トピックを更新せず、14:15 JSTの専用ジョブへ分離する。
 16. 公開予定の全領域データ監査を実行。失敗時はbuild/deploy前に停止。
 
 ### 3.1 Wikipedia話題トピック専用更新
-14:15 JSTに `scripts/refresh-wikipedia-topics.sh --scheduled` を実行する。Wikimedia Pageviewsの取得後、MediaWiki/Wikidataでカテゴリ分類し、Google News RSSで急上昇の背景候補を補完する。YouTube APIキーが設定済みなら、急上昇上位10件を直近7日の日本向け・埋め込み可能動画と照合する。専用監査とbuildが成功した場合だけ生成JSONをGitへcommit/pushし、Cloudflare Pagesへdeployする。ニュースまたはYouTube取得だけの失敗ではWikipediaランキング更新を止めない。
+`scripts/refresh-wikipedia-topics.sh --scheduled` を14:15〜23:15 JSTに毎時再試行する。当日成功すると `last-wikipedia-success-date` に記録してスキップし、失敗は `wikipedia-failures.log` に記録する。Wikimedia Pageviewsの取得後、MediaWiki/Wikidataでカテゴリ分類し、Google News RSSで急上昇の背景候補を補完する。YouTube APIキーが設定済みなら、急上昇上位10件を直近7日の日本向け・埋め込み可能動画と照合する。専用監査とbuildが成功した場合だけ生成JSONをGitへcommit/pushし、Cloudflare Pagesへdeployする。ニュースまたはYouTube取得だけの失敗ではWikipediaランキング更新を止めない。
 17. build、Cloudflare deploy。
 18. 成功履歴とlast-success-date更新。
 
@@ -117,6 +117,8 @@ Cloudflare認証情報はホームディレクトリ配下の専用ファイル�
 - `last-success-date`
 - `last-listed-master-refresh`
 - `last-monthly-refresh`
+- last-monthly-secondary-refresh
+- last-wikipedia-success-date / wikipedia-failures.log
 - `history.jsonl`
 - `daily-refresh.lock`
 - `weekly-audit.lock`

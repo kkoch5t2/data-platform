@@ -20,7 +20,7 @@
     "e2e": "node scripts/e2e-smoke.cjs && node scripts/e2e-deep.cjs",
     "e2e:smoke": "node scripts/e2e-smoke.cjs",
     "e2e:deep": "node scripts/e2e-deep.cjs",
-    "audit:data": "npm run audit:wikipedia-topics && node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && npm run audit:housing-land-2023 && npm run audit:reinfolib-transactions && npm run audit:retail-prices-city && npm run audit:procurement-awards && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py && npm run audit:company-registry",
+    "audit:data": "npm run test:procurement-quality && npm run audit:wikipedia-topics && node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && npm run audit:housing-land-2023 && npm run audit:reinfolib-transactions && npm run audit:retail-prices-city && npm run audit:procurement-awards && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py && npm run audit:company-registry",
     "audit:html": "node scripts/run-python.cjs scripts/audit-generated-html.py",
     "collect:listed-master": "node scripts/run-python.cjs -m collector.listed_companies.collect_master",
     "collect:listed-documents": "node scripts/run-python.cjs -m collector.listed_companies.collect_documents",
@@ -56,7 +56,8 @@
     "collect:company-registry-gbiz-statements": "node scripts/run-python.cjs -m collector.company_registry.collect_gbiz_bulk --type statements",
     "ingest:company-registry-gbiz-statements": "node scripts/run-python.cjs -m collector.company_registry.ingest_gbiz_statements",
     "collect:wikipedia-topics": "node scripts/run-python.cjs collector/collect_wikipedia_topics.py --days 14",
-    "audit:wikipedia-topics": "node scripts/run-python.cjs scripts/audit-wikipedia-topics.py"
+    "audit:wikipedia-topics": "node scripts/run-python.cjs scripts/audit-wikipedia-topics.py",
+    "test:procurement-quality": "node scripts/run-python.cjs scripts/test-procurement-quality.py"
   },
   "dependencies": {
     "astro": "^7.3.4",

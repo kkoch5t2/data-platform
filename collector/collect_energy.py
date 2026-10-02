@@ -275,8 +275,7 @@ def main():
         "nationalSnapshot": {
             "period": "2025年11月",
             "publishedAt": "2026-02-27",
-            "latestTablePeriod": "2026年2月",
-            "latestTableUpdatedAt": "2026-05-29",
+            "snapshotKind": "fixedHistorical",
             "generation100mKwh": 624.1,
             "demand100mKwh": 632.0,
             "demandYoY": 0.3,
@@ -302,8 +301,8 @@ def main():
                 {"prefecture":"大阪府","demand100mKwh":37.8,"share":6.3}
             ],
             "source": "資源エネルギー庁 電力調査統計 2025年11月分 結果概要",
-            "sourceUrl": "https://www.enecho.meti.go.jp/statistics/electric_power/ep002/pdf/2025/0-2025.pdf",
-            "note": "電力調査統計表そのものは2026年2月分まで更新済み。結果概要は2025年11月分を表示。新エネルギー等には、火力にも計上されるバイオマス・廃棄物が再計上されるため、表示比率を単純合計して100%とはしません。"
+            "sourceUrl": "https://www.enecho.meti.go.jp/statistics/electric_power/ep002/",
+            "note": "2025年11月分の固定された過去の参考値です。最新月を表す値ではありません。出典ページ上の月次PDFは更新されるため、このリンクは統計の入口です。新エネルギー等には火力にも計上されるバイオマス・廃棄物が再計上されるため、表示比率を単純合計して100%とはしません。"
         },
         "security": {
             "energySelfSufficiency2024": 16.4,

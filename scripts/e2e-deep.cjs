@@ -359,17 +359,23 @@ async function checkProcurementOverview(page,label,failures) {
     const meta=await fetch('/data/dashboard-meta.json').then(r=>r.json());
     const year=meta.latestYear;const info=Array.isArray(meta.shardInfo)?meta.shardInfo:[];
     const names=info.filter(s=>(s.years||[]).includes(year)).map(s=>s.name);
-    const rows=(await Promise.all(names.map(n=>fetch('/data/'+n).then(r=>r.json())))).flat();
+    const yearRows=(await Promise.all(names.map(n=>fetch('/data/'+n).then(r=>r.json())))).flat();
+    const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'}).replaceAll('-','');
+    const dates=yearRows.map(r=>String(r[2]||'')).filter(d=>d&&d<=today).sort();
+    const cutoff=(dates.at(-1)||String(year)+'1231').slice(4);
+    const rows=yearRows.filter(r=>String(r[2]||'').slice(4)<=cutoff);
     const awards=rows.filter(r=>Number(r[10]||0)>0).length;
     const eligible=rows.filter(r=>Number(r[12]||0)!==0).length;
-    return {awards,eligible,value:eligible?(awards/eligible*100).toFixed(1)+'%':'0.0%'};
+    const kpiAwards=yearRows.filter(r=>Number(r[10]||0)>0).length;
+    const kpiEligible=yearRows.filter(r=>Number(r[12]||0)!==0).length;
+    return {awards,eligible,value:eligible?(awards/eligible*100).toFixed(1)+'%':'0.0%',kpiEligible,kpiValue:kpiEligible?(kpiAwards/kpiEligible*100).toFixed(1)+'%':'0.0%'};
   }).catch(()=>({awards:0,eligible:0,value:''}));
   if(yoyLabel!=='総額を確認できる結果案件')failures.push(label+' unclear award coverage label');
   if(yoyValue!==expectedCoverage.value)failures.push(label+' award coverage denominator mismatch: '+yoyValue+' != '+expectedCoverage.value);
   if(/比較注意|単純比較不可/.test((yoyValue||'')+' '+(yoyMeta||'')))failures.push(label+' confusing award comparison wording remains');
   const eligibleText=new Intl.NumberFormat('ja-JP').format(expectedCoverage.eligible);
   if(!(yoyMeta||'').includes('判定対象 '+eligibleText+'件'))failures.push(label+' award coverage eligible count missing: '+yoyMeta);
-  if(!(kpiAwardMeta||'').includes('判定対象 '+eligibleText+'件の'+expectedCoverage.value))failures.push(label+' KPI award coverage denominator mismatch: '+kpiAwardMeta);
+  if(!(kpiAwardMeta||'').includes('判定対象 '+new Intl.NumberFormat('ja-JP').format(expectedCoverage.kpiEligible)+'件の'+expectedCoverage.kpiValue))failures.push(label+' KPI award coverage denominator mismatch: '+kpiAwardMeta);
 
   const groupTitle=(await page.locator('.card-head h3',{hasText:'大分類別構成'}).count())>0;
   if(!groupTitle)failures.push(label+' large-category chart title missing');

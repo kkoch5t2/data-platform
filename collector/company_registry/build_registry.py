@@ -91,8 +91,8 @@ def procurement_rows(conn: sqlite3.Connection) -> list[dict]:
       SELECT c.company_id,c.company_name,
              COUNT(p.source_id),COALESCE(SUM(p.award_amount),0),
              SUM(CASE WHEN p.award_amount IS NOT NULL THEN 1 ELSE 0 END),
-             MIN(COALESCE(p.award_date,p.notice_date)),
-             MAX(COALESCE(p.award_date,p.notice_date)),
+             MIN(COALESCE(p.award_date,p.contract_date,p.notice_date,p.bid_date)),
+             MAX(COALESCE(p.award_date,p.contract_date,p.notice_date,p.bid_date)),
              COUNT(DISTINCT p.agency)
       FROM companies c
       JOIN canonical_procurements p ON p.company_id=c.company_id
