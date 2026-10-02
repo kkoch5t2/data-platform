@@ -52,6 +52,16 @@ class YouTubeTopicsTest(unittest.TestCase):
         self.assertEqual(result["checkedCount"], 10)
         self.assertEqual(result["matchedCount"], 10)
         self.assertTrue(all(item["embeddable"] for item in result["items"]))
+        self.assertTrue(all(item["thumbnail"].endswith("/hqdefault.jpg") for item in result["items"]))
+
+
+    def test_cached_optional_thumbnail_is_normalized(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(yt, "_api_key", return_value="test-key"):
+            cache = Path(tmp) / "youtube" / "2026-09-30.json"
+            cache.parent.mkdir(parents=True)
+            cache.write_text('{"source":"YouTube Data API v3","items":[{"videoId":"abcdefghijk","thumbnail":"https://i.ytimg.com/vi/abcdefghijk/maxresdefault.jpg"}]}')
+            result = yt.collect_youtube_context([], date(2026, 9, 30), Path(tmp))
+        self.assertEqual(result["items"][0]["thumbnail"], "https://i.ytimg.com/vi/abcdefghijk/hqdefault.jpg")
 
     def test_quality_score_penalizes_clickbait(self):
         trusted = {"title": "田中希実 1500m決勝", "channelTitle": "【公式】TBS スポーツ"}

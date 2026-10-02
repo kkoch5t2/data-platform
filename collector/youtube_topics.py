@@ -65,12 +65,9 @@ def _quality_score(snippet: dict) -> int:
     return score
 
 
-def _thumbnail(snippet: dict, video_id: str) -> str:
-    thumbs = snippet.get("thumbnails") or {}
-    for key in ("maxres", "standard", "high", "medium", "default"):
-        url = (thumbs.get(key) or {}).get("url")
-        if url:
-            return str(url)
+def _thumbnail(video_id: str) -> str:
+    # hqdefault is available much more consistently than maxresdefault/sddefault.
+    # Do not persist optional high-resolution URLs that can return 404 for valid videos.
     return f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
 
 
@@ -131,6 +128,16 @@ def collect_youtube_context(
     if cache.exists() and not refresh:
         cached = json.loads(cache.read_text(encoding="utf-8"))
         if cached.get("source") == "YouTube Data API v3":
+            changed = False
+            for item in cached.get("items") or []:
+                video_id = str(item.get("videoId") or "")
+                if VIDEO_ID_RE.fullmatch(video_id):
+                    thumbnail = _thumbnail(video_id)
+                    if item.get("thumbnail") != thumbnail:
+                        item["thumbnail"] = thumbnail
+                        changed = True
+            if changed:
+                cache.write_text(json.dumps(cached, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
             return cached
 
     base.update({"enabled": True, "status": "ok", "checkedCount": len(checked_rows)})
@@ -197,7 +204,7 @@ def collect_youtube_context(
             "title": str(snippet.get("title") or ""),
             "channelTitle": str(snippet.get("channelTitle") or ""),
             "publishedAt": published_at,
-            "thumbnail": _thumbnail(snippet, video_id),
+            "thumbnail": _thumbnail(video_id),
             "views": views,
             "embeddable": True,
             "matchedBy": "title",
