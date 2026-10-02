@@ -901,6 +901,19 @@ class MarketClassifierTests(unittest.TestCase):
             with self.subTest(title=title):
                 self.assertEqual(classify(title)[2], expected)
 
+    def test_residual_procurement_objects(self):
+        cases = {
+            'テレビパブリシティの実施 一式': '広報・広告・制作',
+            'Science Directの利用 一式': '出版・情報資料',
+            '庁舎電力': 'エネルギー・環境',
+            '優勝馬主賞品（純金製品）の調達': '一般物品・備品',
+            'オナセムノゲン アベパルボベク 一式': '医療・福祉',
+            'ＬＥＤ照明器具': '機械・設備',
+        }
+        for title, expected in cases.items():
+            with self.subTest(title=title):
+                self.assertEqual(classify(title)[2], expected)
+
     def test_contextual_fallback_cases(self):
         for args, expected in CONTEXT_CASES:
             with self.subTest(args=args):
