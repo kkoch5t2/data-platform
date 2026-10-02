@@ -282,9 +282,9 @@
     "social_population": {
       "label": "e-Stat 統計ダッシュボード（社会・人口統計体系）",
       "status": "ok",
-      "startedAt": "2026-09-28T16:45:57.824990+00:00",
-      "finishedAt": "2026-09-28T16:46:15.116684+00:00",
-      "durationSeconds": 17.29,
+      "startedAt": "2026-10-02T15:19:15.310995+00:00",
+      "finishedAt": "2026-10-02T15:19:36.938902+00:00",
+      "durationSeconds": 21.63,
       "metrics": {
         "records": 1741,
         "municipalities": 1741,
@@ -296,9 +296,9 @@
     "retail_prices_city": {
       "label": "総務省統計局 小売物価統計調査（動向編）都市別小売価格",
       "status": "ok",
-      "startedAt": "2026-09-28T14:26:26.010372+00:00",
-      "finishedAt": "2026-09-28T14:27:13.382516+00:00",
-      "durationSeconds": 47.37,
+      "startedAt": "2026-10-02T15:19:37.004405+00:00",
+      "finishedAt": "2026-10-02T15:20:41.691078+00:00",
+      "durationSeconds": 64.69,
       "metrics": {
         "records": 25268,
         "months": 24,
@@ -306,21 +306,22 @@
         "items": 13,
         "latestMonth": "2026-08"
       },
-      "previousRecordCount": 26208
+      "previousRecordCount": 25268
     },
     "housing_land_2023": {
       "label": "総務省統計局 令和5年住宅・土地統計調査（確報）",
       "status": "ok",
-      "startedAt": "2026-09-28T16:44:45.823481+00:00",
-      "finishedAt": "2026-09-28T16:44:52.912403+00:00",
-      "durationSeconds": 7.09,
+      "startedAt": "2026-10-02T15:19:08.207942+00:00",
+      "finishedAt": "2026-10-02T15:19:15.254172+00:00",
+      "durationSeconds": 7.05,
       "metrics": {
         "records": 1059,
         "municipalities": 1059,
         "year": 2023,
         "nationalHousing": 65046700,
         "nationalVacancyRate": 13.84
-      }
+      },
+      "previousRecordCount": 1059
     },
     "reinfolib_transactions": {
       "label": "国土交通省 不動産情報ライブラリ「不動産取引価格情報」",
