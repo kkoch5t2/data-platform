@@ -6,6 +6,8 @@ from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
+from collector.collect_jetro import canonical_company_name, stable_id
 DATA=ROOT/'public'/'data'
 SRC=ROOT/'src'/'data'
 errors=[]
@@ -390,6 +392,12 @@ def valid_agency_name(name):
 
 # Procurement: source shards, browser shards, summary and aggregate consistency.
 summary=load(SRC/'summary.json'); meta=load(DATA/'dashboard-meta.json')
+ok(len(meta['w'])==len(set(meta['w'])), 'procurement: duplicate winner dictionary names')
+nonempty_winners=[name for name in meta['w'] if name]
+ok(len(nonempty_winners)==len({stable_id('co',name) for name in nonempty_winners}),
+   'procurement: multiple winner spellings share one name-based company identity')
+for name in meta['w']:
+    if name: ok(name==canonical_company_name(name), f'procurement: noncanonical winner name {name!r}')
 shards=sorted(SRC.glob('procurements-*.json'))
 agency_idx={v:i for i,v in enumerate(meta['a'])}; category_idx={v:i for i,v in enumerate(meta['c'])}; winner_idx={v:i for i,v in enumerate(meta['w'])}
 total=0; ids=set(); awards=0; award_total=0.0; companies=set(); orgs=set(); first=None; last=None; category_counts=Counter()
@@ -491,6 +499,10 @@ other_count=category_counts.get('その他',0)
 other_ratio=(other_count/total) if total else 0
 ok(other_ratio<=0.08,f'procurement その他 ratio too high: {other_count}/{total} = {other_ratio:.2%} > 8%')
 company_master=load(SRC/'companies.json')
+for company in company_master:
+    name=company['name']
+    ok(name==canonical_company_name(name) and company['id']==stable_id('co',name),
+       f'procurement: noncanonical company identity {company["id"]} {name!r}')
 company_by_id={x['id']:x for x in company_master}
 detail_files=sorted((DATA/'company-details').glob('*.json'))
 ok(1<=len(detail_files)<=256,f'procurement company detail shard count invalid: {len(detail_files)}')

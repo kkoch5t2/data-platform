@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from collector import check_health
 from collector.collect_fukuoka_procurement import parse_date
-from collector.collect_jetro import extract_company_name, init_db
+from collector.collect_jetro import canonical_company_name, extract_company_name, init_db, normalize_existing_company_names, stable_id
 from collector.collect_sapporo_procurement import save
 
 
@@ -24,6 +24,29 @@ class ProcurementQualityTests(unittest.TestCase):
         self.assertEqual(parse_date('2026/2/29'), '')
         self.assertEqual(parse_date('2024/2/29'), '2024-02-29')
         self.assertEqual(extract_company_name('（株）青空システム'), '株式会社青空システム')
+
+    def test_existing_winner_spelling_merges_without_changing_company_ids(self):
+        db = sqlite3.connect(':memory:')
+        init_db(db)
+        names = ['株式会社ＮＴＴデータ', '株式会社NTTデータ', '株式会社One', '株式会社ONE', 'NTTドコモビジネス株式会社']
+        for i, name in enumerate(names):
+            canonical = canonical_company_name(name)
+            company_id = stable_id('co', canonical)
+            db.execute('INSERT OR IGNORE INTO companies VALUES (?,?,?)', (company_id, name, canonical))
+            db.execute('''INSERT INTO procurements
+                (source_id,xid,aid,title,source_url,winner_name,company_id,award_amount,collected_at)
+                VALUES (?,?,?,?,?,?,?,?,?)''',
+                (f'test:{i}', i, str(i), 'test', 'https://example.org', name, company_id, 100, '2026-10-03'))
+        db.commit()
+        self.assertEqual(normalize_existing_company_names(db), (1, 2))
+        self.assertEqual(normalize_existing_company_names(db), (0, 0))
+        rows = db.execute('SELECT winner_name,company_id FROM procurements ORDER BY source_id').fetchall()
+        self.assertEqual(rows[0], rows[1])
+        self.assertEqual(rows[2], rows[3])
+        self.assertNotEqual(rows[1][1], rows[2][1])
+        self.assertNotEqual(rows[3][1], rows[4][1])
+        self.assertEqual(db.execute('SELECT COUNT(*) FROM companies').fetchone()[0], 3)
+        db.close()
 
     def test_sapporo_publication_history(self):
         db = sqlite3.connect(':memory:')
