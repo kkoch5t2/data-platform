@@ -30,6 +30,16 @@ def detail_bucket(key: str) -> str:
     return f"{value % DETAIL_SHARDS:02x}"
 
 
+def listed_issuer_name_key(name: str | None) -> str:
+    """Conservative comparison for JPX issuers without a corporate number."""
+    value = normalize_company_name(name)
+    if value.startswith("株式会社"):
+        value = value[len("株式会社"):]
+    if value.endswith("株式会社"):
+        value = value[:-len("株式会社")]
+    return value
+
+
 def edinet_listed_corporate_numbers() -> set[str]:
     if not EDINET_CODE_ZIP.exists():
         return set()
@@ -223,6 +233,14 @@ def main() -> dict:
         str(row.get("corporateNumber")): row
         for row in listed_rows if str(row.get("corporateNumber") or "").isdigit()
     }
+    # JPX includes TOKYO PRO Market issuers with no EDINET corporate number.
+    # Keep exact issuer-name collisions out of the unlisted publication until
+    # their legal identity can be resolved; never assign an ID by name alone.
+    unresolved_listed_names = {
+        listed_issuer_name_key(row.get("name"))
+        for row in listed_rows if not str(row.get("corporateNumber") or "").isdigit()
+    }
+    unresolved_listed_names.discard("")
 
     procurement_conn = sqlite3.connect(DB_PATH)
     init_db(procurement_conn)
@@ -294,6 +312,8 @@ def main() -> dict:
             entity["listingStatus"] = "listed"
         elif corporate_number in edinet_listed:
             entity["listingStatus"] = "listedElsewhere"
+        elif corporate_number and entity.get("nta") and listed_issuer_name_key(nta.get("name")) in unresolved_listed_names:
+            entity["listingStatus"] = "listedNameUnresolved"
         elif corporate_number and entity.get("nta"):
             entity["listingStatus"] = "notListedInJpxMaster"
         else:
