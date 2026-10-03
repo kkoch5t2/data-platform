@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from collector import check_health
 from collector.collect_fukuoka_procurement import parse_date
-from collector.collect_jetro import canonical_company_name, extract_company_name, init_db, normalize_existing_company_names, stable_id
+from collector.collect_jetro import canonical_company_name, dashboard_award_criterion, dashboard_contract_method, extract_company_name, init_db, normalize_existing_company_names, stable_id
 from collector.collect_sapporo_procurement import save
 
 
@@ -24,6 +24,27 @@ class ProcurementQualityTests(unittest.TestCase):
         self.assertEqual(parse_date('2026/2/29'), '')
         self.assertEqual(parse_date('2024/2/29'), '2024-02-29')
         self.assertEqual(extract_company_name('（株）青空システム'), '株式会社青空システム')
+
+    def test_procurement_method_dimensions_do_not_confuse_contract_and_award_criteria(self):
+        for raw, label in (
+            ('一般', '一般競争入札'),
+            ('一般競争(条件付)', '一般競争入札'),
+            ('一般競争入札・総合評価', '一般競争入札'),
+            ('随意', '随意契約'),
+            ('随契', '随意契約'),
+            ('随意契約（定例見積）', '随意契約'),
+            ('指名', '指名競争入札'),
+            ('見積合せ (公募型)', '見積・見積合わせ'),
+            ('プロポーザル（企画提案）方式', '企画競争・プロポーザル'),
+            ('入札・見積合せ（電子）', '入札・見積合わせ（電子）'),
+        ):
+            self.assertEqual(dashboard_contract_method(raw), label)
+        for raw in ('不調', '中止', '単価契約', '公募'):
+            self.assertEqual(dashboard_contract_method(raw), '')
+        self.assertEqual(dashboard_award_criterion('一般競争入札・総合評価'), '総合評価')
+        self.assertEqual(dashboard_award_criterion('最低価格 一覧に戻る'), '最低価格')
+        for raw in ('一般競争入札', '一般', '指名競争', '随意契約', '随契', '見積'):
+            self.assertEqual(dashboard_award_criterion(raw), '')
 
     def test_existing_winner_spelling_merges_without_changing_company_ids(self):
         db = sqlite3.connect(':memory:')

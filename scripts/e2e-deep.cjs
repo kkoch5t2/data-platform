@@ -349,6 +349,33 @@ async function checkProcurementOverview(page,label,failures) {
   for(const city of ['横浜市','札幌市','神戸市','福岡市','千葉市','京都市']){
     if(!(procurementMeta.a||[]).includes(city))failures.push(label+' municipal procurement agency missing: '+city);
   }
+  const expectedContracts=['一般競争入札','指名競争入札','随意契約','見積・見積合わせ','入札・見積合わせ（電子）','企画競争・プロポーザル'];
+  const expectedCriteria=['最低価格','総合評価','最高価格','価格競争'];
+  const contracts=(procurementMeta.m||[]).filter(Boolean),criteria=(procurementMeta.am||[]).filter(Boolean);
+  if(contracts.some(x=>!expectedContracts.includes(x))||!contracts.includes('随意契約'))
+    failures.push(label+' contract method labels mixed: '+contracts.join(','));
+  if(criteria.some(x=>!expectedCriteria.includes(x))||!criteria.includes('総合評価'))
+    failures.push(label+' award criterion labels mixed: '+criteria.join(','));
+  const methodOptions=await page.locator('#f-method option').allTextContents();
+  if(methodOptions.includes('随意')||methodOptions.includes('随契')||!methodOptions.includes('随意契約'))
+    failures.push(label+' contract method filter aliases remain');
+  if(await page.locator('#filter-toggle').getAttribute('aria-expanded')!=='true')
+    await page.locator('#filter-toggle').click();
+  if(!(await page.locator('details.advanced-filters').getAttribute('open')))
+    await page.locator('details.advanced-filters summary').click();
+  await page.selectOption('#f-method','随意契約');
+  const expectedMethodRows=await page.evaluate(async()=>{
+    const meta=await fetch('/data/dashboard-meta.json').then(r=>r.json());
+    const year=document.querySelector('#f-year')?.value||meta.latestYear;
+    const names=(meta.shardInfo||[]).filter(s=>(s.years||[]).includes(year)).map(s=>s.name);
+    const shards=await Promise.all(names.map(n=>fetch('/data/'+n).then(r=>r.json())));
+    return shards.flat().filter(row=>meta.m[row[7]]==='随意契約').length;
+  });
+  await page.waitForTimeout(120);
+  const actualMethodRows=Number((await page.locator('#result-count').textContent()).replaceAll(',',''));
+  if(actualMethodRows!==expectedMethodRows)
+    failures.push(label+' contract method filter count '+actualMethodRows+' expected '+expectedMethodRows);
+  await page.selectOption('#f-method','');
   const sourceText=(await page.locator('.quality-item',{hasText:'データソース内訳'}).textContent().catch(()=>''))||'';
   for(const city of ['横浜','札幌','神戸','福岡','千葉','京都'])if(!sourceText.includes(city))failures.push(label+' source breakdown missing '+city);
   const yoyLabel=(await page.locator('#yoy-amount').locator('xpath=..').locator('.yoy-label').textContent().catch(()=>''))?.trim();
