@@ -104,8 +104,10 @@ async function checkUnlistedCompanies(page,label,failures) {
     if(response.status()!==200)failures.push(label+' name-group detail HTTP '+response.status()+': '+link);
   }
   const headings=await page.locator('.section-head h2').allTextContents();
-  if(!headings.includes('未上場法人と同名の受注企業名')||!headings.includes('法人番号で確認できた受注実績'))
-    failures.push(label+' name-based and verified sections not distinguished');
+  if(!headings.includes('公共調達の受注額ランキング')||await page.locator('.rank-grid').count()!==1)
+    failures.push(label+' simple ranking missing or duplicate ranking remains');
+  if(await page.locator('#sort-filter').inputValue()!=='name')failures.push(label+' company search defaults to sparse procurement amount');
+  if(await page.locator('#sort-filter option[value="amount"]').count())failures.push(label+' sparse procurement sort remains');
   await page.fill('#company-q','NTTデータ');
   await page.waitForTimeout(120);
   if(!(await page.locator('.company-card h3').allTextContents()).some(name=>name.includes('ＮＴＴデータ')))
@@ -114,6 +116,8 @@ async function checkUnlistedCompanies(page,label,failures) {
   await page.waitForTimeout(120);
   if(!(await page.locator('.company-card h3').allTextContents()).includes('アクセンチュア株式会社'))
     failures.push(label+' Accenture missing from unlisted company search');
+  if((await page.locator('.company-card').first().textContent()).includes('0件'))
+    failures.push(label+' zero verified procurement count shown as company performance');
   await page.fill('#company-q','');
 
   const prefFilter=page.locator('#pref-filter');
@@ -161,6 +165,20 @@ async function checkUnlistedCompanyDetail(page,label,failures) {
   const route=new URL(page.url()).pathname;
   const m=route.match(/^\/unlisted-companies\/(\d{13})\/$/);
   const sample=m?unlistedIndex.find(x=>String(x?.corporateNumber||'')===m[1]):null;
+  if(sample && !sample.awardCount){
+    if(await page.locator('.proc-stats').count()||await page.locator('.bars').count()||await page.locator('tbody tr').count())
+      failures.push(label+' unverified procurement shown as zero-value dashboard');
+    if(!(await page.locator('.plain-note').first().textContent()).includes('まだ掲載していません'))
+      failures.push(label+' missing simple procurement empty state');
+    const matchingGroup=nameGroups.find(group=>group.name.normalize('NFKC')===sample.name.normalize('NFKC'));
+    if(matchingGroup){
+      const href=await page.locator('.plain-note a').getAttribute('href');
+      if(href!==`/procurement/companies/${matchingGroup.companyId}/`)
+        failures.push(label+' related name-based procurement link missing: '+href);
+    }
+  }
+  if(sample?.awardCount && !(await page.locator('.proc-stats').count()))
+    failures.push(label+' verified procurement stats missing');
   if(sample?.hasFinance){
     const expected=Number(sample.financePeriods||0);
     const history=await page.locator('.finance-period-card').count();
