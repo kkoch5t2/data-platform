@@ -236,12 +236,15 @@ def main() -> dict:
     entities: dict[str, dict] = {}
     counters = defaultdict(int)
     direct_company_ids = {row["companyId"] for row in direct_records}
+    name_group_candidates = []
     for row in procurement:
-        # Name matching discovers a real NTA corporation, but does not assign
-        # any of the name group's procurement records to that legal entity.
+        # A name match identifies a candidate for discovery and the separate
+        # name-based view; it never assigns these records to a legal entity.
+        corporate_number, method = exact_name_match(nta_conn, row["name"])
+        if method == "exactNormalizedName":
+            name_group_candidates.append((corporate_number, row))
         if row["companyId"] in direct_company_ids:
             continue
-        corporate_number, method = exact_name_match(nta_conn, row["name"])
         if method == "exactNormalizedName":
             counters["exactNameCandidates"] += 1
             entity = entities.setdefault(corporate_number, blank_entity(corporate_number))
@@ -331,6 +334,18 @@ def main() -> dict:
     generated_at = datetime.now(timezone.utc).isoformat()
     unlisted_rows = [compact_row(entity) for entity in public_entities.values()]
     unlisted_rows.sort(key=lambda row: (-row["awardTotal"], -row["awardCount"], row["name"] or ""))
+    # The name-group ranking links to procurement name pages, never to a
+    # corporate-number page. It is intentionally separate from verified awards.
+    name_groups = [
+        {key: row[key] for key in ("companyId", "name", "awardCount", "awardTotal", "awardAmountCount")}
+        for number, row in name_group_candidates
+        if number in public_entities and row["awardAmountCount"] > 0 and row["awardTotal"] > 0
+    ]
+    name_groups.sort(key=lambda row: (-row["awardTotal"], -row["awardCount"], row["name"]))
+    write_json(PUBLIC / "name-groups.json", {
+        "dataset": "unlisted-name-group-candidates", "generatedAt": generated_at,
+        "records": name_groups[:12],
+    })
     write_json(PUBLIC / "unlisted-index.json", {
         "dataset": "unlisted-companies-index", "generatedAt": generated_at,
         "ntaSourceDate": meta.get("sourceDate"), "records": unlisted_rows,

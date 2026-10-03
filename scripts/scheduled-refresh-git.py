@@ -41,6 +41,7 @@ EXACT_PATHS = {
     "public/data/listed-companies/summary.json",
     "public/data/company-registry/summary.json",
     "public/data/company-registry/unlisted-index.json",
+    "public/data/company-registry/name-groups.json",
 }
 DETAIL_PREFIXES = (
     "public/data/listed-companies/details/",
