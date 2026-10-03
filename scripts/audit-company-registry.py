@@ -5,6 +5,7 @@ import json
 import re
 import sqlite3
 import sys
+import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -12,6 +13,7 @@ sys.path.insert(0, str(ROOT))
 
 from collector.collect_jetro import DB_PATH, prepare_canonical_procurements
 from collector.company_registry.common import NTA_DB, normalize_company_name
+from collector.company_registry.build_registry import exact_name_match
 from collector.company_registry.gbiz_finance import GBIZ_FINANCE_DB
 from collector.company_registry.gbiz_statements import GBIZ_STATEMENTS_DB
 from collector.listed_companies.collect_master import load_edinet_rows
@@ -37,6 +39,7 @@ def check(condition: bool, message: str) -> None:
 
 summary = load(PUBLIC / "summary.json")
 index_rows = load(PUBLIC / "unlisted-index.json").get("records", [])
+name_groups = load(PUBLIC / "name-groups.json").get("records", [])
 index = {row["entityKey"]: row for row in index_rows}
 check(len(index) == len(index_rows), "duplicate entityKey in unlisted index")
 check(len(index) == summary.get("unlistedCompanies"), "summary/unlisted index count mismatch")
@@ -161,6 +164,29 @@ for source_id, number, actual_number, company_id, winner_name, detail, url in pr
     )) and "共同企業体" not in (winner_name or ""), f"{source_id}: source winner/NTA name mismatch")
     check(f"法人番号:{number}" in (detail or ""), f"{source_id}: number missing from source excerpt")
     check(str(url or "").startswith("https://www.city.chiba.jp/"), f"{source_id}: unsupported official source")
+check(len(name_groups) == 12, "name-based ranking must contain 12 candidates")
+check(len({row.get("companyId") for row in name_groups}) == len(name_groups), "duplicate name-group ID")
+check(name_groups == sorted(name_groups, key=lambda row: (-row["awardTotal"], -row["awardCount"], row["name"])),
+      "name-based ranking not sorted by award amount")
+for group in name_groups:
+    company_id, name = group.get("companyId"), group.get("name")
+    check(bool(re.fullmatch(r"co_[0-9a-f]{12}", company_id or "")), f"invalid name-group ID: {company_id}")
+    check("corporateNumber" not in group and "entityKey" not in group, f"{company_id}: legal ID leaked into name-only ranking")
+    corporate_number, method = exact_name_match(nta, name)
+    check(method == "exactNormalizedName" and corporate_number in index,
+          f"{company_id}: no unique active unlisted name candidate")
+    source = proc.execute("""
+        SELECT c.company_name,COUNT(*),COALESCE(SUM(p.award_amount),0),
+               SUM(CASE WHEN p.award_amount IS NOT NULL THEN 1 ELSE 0 END)
+        FROM companies c JOIN canonical_procurements p ON p.company_id=c.company_id
+        WHERE c.company_id=? GROUP BY c.company_id
+    """, (company_id,)).fetchone()
+    check(source == (name, group.get("awardCount"), group.get("awardTotal"), group.get("awardAmountCount")),
+          f"{company_id}: name-group totals differ from source")
+check(any(row.get("name") == "アクセンチュア株式会社" for row in name_groups),
+      "Accenture name group missing from unlisted name-based ranking")
+check(any("NTTデータ" in unicodedata.normalize("NFKC", row.get("name", "")) for row in name_groups),
+      "NTT Data name group missing from unlisted name-based ranking")
 all_source_companies = proc.execute(
     "SELECT COUNT(DISTINCT company_id) FROM canonical_procurements WHERE company_id IS NOT NULL"
 ).fetchone()[0]

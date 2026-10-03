@@ -62,7 +62,7 @@ if [ "$LISTED_DETAIL_SHARDS" -ne 64 ] || [ "$LISTED_COMPANIES" -lt 3000 ] || [ "
   echo "Refusing incomplete deploy: listed shards=$LISTED_DETAIL_SHARDS companies=$LISTED_COMPANIES financialRecords=$LISTED_FINANCIAL_RECORDS"
   exit 3
 fi
-if [ ! -f "functions/unlisted-companies/[corporateNumber].js" ] || [ ! -s "dist/data/company-registry/summary.json" ] || [ ! -s "dist/data/company-registry/unlisted-index.json" ]; then
+if [ ! -f "functions/unlisted-companies/[corporateNumber].js" ] || [ ! -s "dist/data/company-registry/summary.json" ] || [ ! -s "dist/data/company-registry/unlisted-index.json" ] || [ ! -s "dist/data/company-registry/name-groups.json" ]; then
   echo 'Refusing incomplete deploy: unlisted-company Pages Function or registry data missing.'
   exit 3
 fi

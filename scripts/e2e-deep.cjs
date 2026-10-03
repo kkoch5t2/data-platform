@@ -28,6 +28,8 @@ const listedNoFinancialRoute=listedNoFinancial?`/listed-companies/${listedNoFina
 if(listedNoFinancialRoute)staticRoutes.push(listedNoFinancialRoute);
 const unlistedIndexFile=path.join(process.cwd(),'public','data','company-registry','unlisted-index.json');
 const unlistedIndex=fs.existsSync(unlistedIndexFile)?JSON.parse(fs.readFileSync(unlistedIndexFile,'utf8')).records||[]:[];
+const nameGroupFile=path.join(process.cwd(),'public','data','company-registry','name-groups.json');
+const nameGroups=fs.existsSync(nameGroupFile)?JSON.parse(fs.readFileSync(nameGroupFile,'utf8')).records||[]:[];
 const unlistedSample=unlistedIndex.find(x=>/^\d{13}$/.test(String(x?.corporateNumber||'')));
 const unlistedDetailRoute=unlistedSample?`/unlisted-companies/${unlistedSample.corporateNumber}/`:null;
 if(unlistedDetailRoute)staticRoutes.push(unlistedDetailRoute);
@@ -88,6 +90,32 @@ const PREFECTURE_ORDER=['北海道','青森県','岩手県','宮城県','秋田�
 
 async function checkUnlistedCompanies(page,label,failures) {
   await page.waitForFunction(()=>!/読み込み中/.test(document.querySelector('#result-count')?.textContent||''),{timeout:10000}).catch(()=>{});
+  const nameCards=page.locator('.rank-grid').first().locator('.rank-card');
+  if(await nameCards.count()!==6)failures.push(label+' name-based ranking card count');
+  for(let i=0;i<Math.min(6,nameGroups.length);i++){
+    const card=nameCards.nth(i),source=nameGroups[i];
+    if((await card.locator('h3').textContent())!==source.name ||
+       (await card.getAttribute('href'))!==`/procurement/companies/${source.companyId}/`)
+      failures.push(label+' name-group ranking/link mismatch: '+i);
+  }
+  for(let i=0;i<2;i++){
+    const link=await nameCards.nth(i).getAttribute('href');
+    const response=await page.request.get(new URL(link,base).href);
+    if(response.status()!==200)failures.push(label+' name-group detail HTTP '+response.status()+': '+link);
+  }
+  const headings=await page.locator('.section-head h2').allTextContents();
+  if(!headings.includes('未上場法人と同名の受注企業名')||!headings.includes('法人番号で確認できた受注実績'))
+    failures.push(label+' name-based and verified sections not distinguished');
+  await page.fill('#company-q','NTTデータ');
+  await page.waitForTimeout(120);
+  if(!(await page.locator('.company-card h3').allTextContents()).some(name=>name.includes('ＮＴＴデータ')))
+    failures.push(label+' ASCII NTT search does not find full-width NTA name');
+  await page.fill('#company-q','アクセンチュア');
+  await page.waitForTimeout(120);
+  if(!(await page.locator('.company-card h3').allTextContents()).includes('アクセンチュア株式会社'))
+    failures.push(label+' Accenture missing from unlisted company search');
+  await page.fill('#company-q','');
+
   const prefFilter=page.locator('#pref-filter');
   if(await prefFilter.count()){
     const actual=(await prefFilter.locator('option').evaluateAll(os=>os.map(o=>o.value).filter(Boolean)));
