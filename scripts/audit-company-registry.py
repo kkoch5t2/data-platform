@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT))
 
 from collector.collect_jetro import DB_PATH, prepare_canonical_procurements
 from collector.company_registry.common import NTA_DB, normalize_company_name
-from collector.company_registry.build_registry import exact_name_match
+from collector.company_registry.build_registry import exact_name_match, listed_issuer_name_key
 from collector.company_registry.gbiz_finance import GBIZ_FINANCE_DB
 from collector.company_registry.gbiz_statements import GBIZ_STATEMENTS_DB
 from collector.listed_companies.collect_master import load_edinet_rows
@@ -61,6 +61,10 @@ listed_master = load(LISTED).get("records", [])
 jpx_corporate_numbers = {
     str(row.get("corporateNumber")) for row in listed_master if row.get("corporateNumber")
 }
+unresolved_listed_names = {
+    listed_issuer_name_key(row.get("name"))
+    for row in listed_master if not row.get("corporateNumber")
+} - {""}
 _, edinet_rows = load_edinet_rows(EDINET_CODES)
 edinet_listed_numbers = {
     str(row.get("提出者法人番号") or "").strip()
@@ -83,6 +87,8 @@ for key, entity in details.items():
     check(str(nta_payload.get("kind") or "") in COMPANY_KINDS, f"{key}: non-company legal form")
     check(entity.get("listingStatus") == "notListedInJpxMaster", f"{key}: incompatible listing status")
     check(corporate_number not in jpx_corporate_numbers, f"{key}: JPX-listed company published as unlisted")
+    check(listed_issuer_name_key(entity.get("name")) not in unresolved_listed_names,
+          f"{key}: JPX issuer without corporate number published as unlisted")
     check(corporate_number not in edinet_listed_numbers, f"{key}: EDINET-listed company published as unlisted")
     check(not entity.get("listed"), f"{key}: listed payload exists on unlisted company")
     check(row.get("corporateNumber") == corporate_number, f"{key}: index/detail corporate number mismatch")
