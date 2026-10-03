@@ -7,7 +7,8 @@ from zoneinfo import ZoneInfo
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from collector.collect_jetro import canonical_company_name, stable_id
+from collector.collect_jetro import (DASHBOARD_AWARD_CRITERIA, DASHBOARD_CONTRACT_METHODS,
+    canonical_company_name, dashboard_award_criterion, dashboard_contract_method, stable_id)
 DATA=ROOT/'public'/'data'
 SRC=ROOT/'src'/'data'
 errors=[]
@@ -392,6 +393,8 @@ def valid_agency_name(name):
 
 # Procurement: source shards, browser shards, summary and aggregate consistency.
 summary=load(SRC/'summary.json'); meta=load(DATA/'dashboard-meta.json')
+ok(set(meta['m']) <= DASHBOARD_CONTRACT_METHODS | {''}, 'procurement: contract method dictionary has mixed/unknown labels')
+ok(set(meta['am']) <= DASHBOARD_AWARD_CRITERIA | {''}, 'procurement: award criterion dictionary includes contract methods')
 ok(len(meta['w'])==len(set(meta['w'])), 'procurement: duplicate winner dictionary names')
 nonempty_winners=[name for name in meta['w'] if name]
 ok(len(nonempty_winners)==len({stable_id('co',name) for name in nonempty_winners}),
@@ -408,6 +411,10 @@ for p in shards:
     for dp in sorted(DATA.glob(f'dashboard-{year}*.json')):
         if dp.name!='dashboard-meta.json': dashboard.extend(load(dp))
     ok(len(dashboard)==len(rs),f'procurement {year}: dashboard/source count mismatch')
+    expected_methods=Counter((dashboard_contract_method(r.get('contractMethod')),
+                              dashboard_award_criterion(r.get('awardMethod'))) for r in rs)
+    actual_methods=Counter((meta['m'][row[7]],meta['am'][row[8]]) for row in dashboard)
+    ok(expected_methods==actual_methods,f'procurement {year}: contract/award classifications differ from source')
     expected=Counter(); actual=Counter()
     for row in dashboard:
         kind=int(row[11] or 0); direct_url=str(row[13]) if kind in (9,10) and len(row)>13 else ''

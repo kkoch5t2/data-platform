@@ -1010,6 +1010,41 @@ def clean_award_method(value):
             return label
     return s[:80] if len(s) <= 80 else ''
 
+# Dashboard-only classifications. The source and page records retain original labels.
+DASHBOARD_CONTRACT_METHODS = {
+    '一般競争入札', '指名競争入札', '随意契約', '見積・見積合わせ',
+    '入札・見積合わせ（電子）', '企画競争・プロポーザル',
+}
+DASHBOARD_AWARD_CRITERIA = {'最低価格', '総合評価', '最高価格', '価格競争'}
+
+
+def dashboard_contract_method(value):
+    s = unicodedata.normalize('NFKC', clean(value or '')).strip()
+    if not s or s in ('不調', '中止', '取止め', '契約不締結', '単価契約', '公募'):
+        return ''
+    if '入札' in s and ('見積合せ' in s or '見積合わせ' in s):
+        return '入札・見積合わせ（電子）' if '電子' in s else ''
+    if '随意' in s or '随契' in s or '特命' in s:
+        return '随意契約'
+    if '指名' in s:
+        return '指名競争入札'
+    if '一般' in s:
+        return '一般競争入札'
+    if any(term in s for term in ('見積', '見積り合わせ')):
+        return '見積・見積合わせ'
+    if any(term in s for term in ('プロポーザル', 'プロプーザル', '企画提案', '企画競争')):
+        return '企画競争・プロポーザル'
+    return ''
+
+
+def dashboard_award_criterion(value):
+    s = unicodedata.normalize('NFKC', clean(value or ''))
+    for label in ('総合評価', '最低価格', '最高価格', '価格競争'):
+        if label in s:
+            return label
+    return ''
+
+
 def parse_detail_html(raw, title):
     block = choose_detail_block(extract_numbered_fields(visible_text(raw)), title)
     if not block: return {}
@@ -1309,8 +1344,8 @@ def export_json(conn):
     agencies=sorted({x['agency'] or '' for x in out})
     categories=sorted({x['category'] or 'その他' for x in out})
     winners=sorted({x['winnerName'] or '' for x in out})
-    contract_methods=sorted({x['contractMethod'] or '' for x in out})
-    award_methods=sorted({clean_award_method(x.get('awardMethod') or '') for x in out})
+    contract_methods=sorted({dashboard_contract_method(x.get('contractMethod')) for x in out})
+    award_methods=sorted({dashboard_award_criterion(x.get('awardMethod')) for x in out})
     tag_names=sorted({t for x in out for t in (x.get('tags') or [])})
     agency_idx={v:i for i,v in enumerate(agencies)}
     category_idx={v:i for i,v in enumerate(categories)}
@@ -1360,8 +1395,8 @@ def export_json(conn):
         compact_row=[
           sid,x['title'] or '',(x['eventDate'] or '').replace('-',''),
           agency_idx[x['agency'] or ''],category_idx[x['category'] or 'その他'],tag_mask,
-          (x['awardDate'] or x['contractDate'] or '').replace('-',''),contract_idx[x['contractMethod'] or ''],
-          award_idx[clean_award_method(x.get('awardMethod') or '')],winner_idx[x['winnerName'] or ''],
+          (x['awardDate'] or x['contractDate'] or '').replace('-',''),contract_idx[dashboard_contract_method(x.get('contractMethod'))],
+          award_idx[dashboard_award_criterion(x.get('awardMethod'))],winner_idx[x['winnerName'] or ''],
           x['awardAmount'] or 0,source_kind,
           {'notFetched':0,'total':1,'unitPrice':2,'foreignCurrency':3,'noAward':4,'notPublished':5}[x['awardAmountStatus']]
         ]
