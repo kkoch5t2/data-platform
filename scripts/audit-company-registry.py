@@ -66,6 +66,7 @@ edinet_listed_numbers = {
 }
 
 nta = sqlite3.connect(NTA_DB)
+published_source_ids: dict[str, str] = {}
 published_company_ids: set[str] = set()
 for key, entity in details.items():
     row = index[key]
@@ -116,37 +117,64 @@ for key, entity in details.items():
         check(source[0] == nta_payload.get("name"), f"{key}: NTA name differs from source")
         check(str(source[1] or "") in COMPANY_KINDS, f"{key}: source kind is not a company")
         check(not source[2], f"{key}: source corporation is closed")
-    if entity.get("identityMethod") == "exactNormalizedName":
-        nta_name = normalize_company_name(nta_payload.get("name"))
-        aliases = procurement.get("aliases") or []
-        check(any(normalize_company_name(alias) == nta_name for alias in aliases), f"{key}: exact-name identity has no exact alias")
+    source_ids = procurement.get("sourceIds") or []
+    evidence = procurement.get("identityEvidence") or []
+    check(len(source_ids) == len(set(source_ids)) == procurement.get("awardCount"), f"{key}: verified record count mismatch")
+    check({item.get("sourceId") for item in evidence} == set(source_ids), f"{key}: evidence/source IDs mismatch")
+    for item in evidence:
+        check(item.get("corporateNumber") == key, f"{key}: evidence corporate number mismatch")
+        check(item.get("verification") == "sourceWinnerFieldAndNtaName", f"{key}: evidence not verified")
+        check(str(item.get("sourceUrl") or "").startswith("https://www.city.chiba.jp/"), f"{key}: invalid evidence URL")
+    for source_id in source_ids:
+        check(source_id not in published_source_ids, f"{key}: source record assigned twice: {source_id}")
+        published_source_ids[source_id] = key
     for company_id in procurement.get("companyIds") or []:
         check(bool(re.fullmatch(r"co_[0-9a-f]{12}", company_id)), f"{key}: invalid procurement companyId {company_id}")
         published_company_ids.add(company_id)
-nta.close()
-
 proc = sqlite3.connect(DB_PATH)
 prepare_canonical_procurements(proc)
-proc.execute("CREATE TEMP TABLE published_company_ids(company_id TEXT PRIMARY KEY)")
+proc.execute("CREATE TEMP TABLE published_sources(source_id TEXT PRIMARY KEY, corporate_number TEXT NOT NULL)")
 proc.executemany(
-    "INSERT INTO published_company_ids(company_id) VALUES (?)",
-    ((company_id,) for company_id in sorted(published_company_ids)),
+    "INSERT INTO published_sources(source_id,corporate_number) VALUES (?,?)",
+    sorted(published_source_ids.items()),
 )
 source_count, source_total, source_ids = proc.execute("""
   SELECT COUNT(*),COALESCE(SUM(p.award_amount),0),COUNT(DISTINCT p.company_id)
   FROM canonical_procurements p
-  JOIN published_company_ids i ON i.company_id=p.company_id
+  JOIN published_sources i ON i.source_id=p.source_id
 """).fetchone()
+for source_id, number, actual_number, company_id, winner_name, detail, url in proc.execute("""
+  SELECT p.source_id,i.corporate_number,l.corporate_number,p.company_id,
+         p.winner_name,p.detail_text,p.source_url
+  FROM published_sources i
+  JOIN canonical_procurements p ON p.source_id=i.source_id
+  LEFT JOIN company_corporate_numbers l
+    ON l.source_id=p.source_id AND l.company_id=p.company_id AND l.corporate_number=i.corporate_number
+"""):
+    check(actual_number == number, f"{source_id}: no same-record corporate-number link")
+    check(bool(winner_name) and bool(detail) and bool(url), f"{source_id}: missing official record evidence")
+    nta_name = nta.execute("SELECT name FROM corporations WHERE corporate_number=?", (number,)).fetchone()
+    normalized = normalize_company_name(winner_name)
+    registered = normalize_company_name(nta_name[0]) if nta_name else ""
+    check(bool(nta_name) and (normalized == registered or any(
+        normalized == registered + suffix for suffix in ("千葉支店", "千葉営業所")
+    )) and "共同企業体" not in (winner_name or ""), f"{source_id}: source winner/NTA name mismatch")
+    check(f"法人番号:{number}" in (detail or ""), f"{source_id}: number missing from source excerpt")
+    check(str(url or "").startswith("https://www.city.chiba.jp/"), f"{source_id}: unsupported official source")
 all_source_companies = proc.execute(
     "SELECT COUNT(DISTINCT company_id) FROM canonical_procurements WHERE company_id IS NOT NULL"
 ).fetchone()[0]
 proc.close()
+nta.close()
 
 published_count = sum((entity.get("procurement") or {}).get("awardCount", 0) for entity in details.values())
 published_total = sum((entity.get("procurement") or {}).get("awardTotal", 0) for entity in details.values())
 check(published_count == source_count, "published/source procurement count mismatch")
 check(published_total == source_total, "published/source procurement award total mismatch")
 check(source_ids == len(published_company_ids), "published procurement companyId coverage mismatch")
+check(summary.get("publicVerifiedProcurementRecords") == source_count, "summary verified record count mismatch")
+check(summary.get("publicMatchedCompanyIds") == source_ids, "summary matched company IDs mismatch")
+check(summary.get("exactNameCandidates", 0) + summary.get("ambiguousNames", 0) + summary.get("procurementMatched", 0) <= all_source_companies, "candidate groups exceed source")
 check(summary.get("procurementCompanies") == all_source_companies, "summary/source procurement company count mismatch")
 check(summary.get("unlistedCompanies") == len(details), "summary/detail unlisted count mismatch")
 check(summary.get("publicEntities") == len(details), "summary/detail public entity count mismatch")

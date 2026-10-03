@@ -76,13 +76,56 @@ def exact_name_match(conn: sqlite3.Connection, name: str) -> tuple[str | None, s
     return None, "ambiguousNormalizedName" if len(rows) > 1 else None
 
 
-def load_direct_links(conn: sqlite3.Connection) -> dict[str, list[str]]:
-    links: dict[str, set[str]] = defaultdict(set)
-    for company_id, corporate_number in conn.execute(
-        "SELECT company_id,corporate_number FROM company_corporate_numbers"
-    ):
-        links[company_id].add(corporate_number)
-    return {key: sorted(values) for key, values in links.items()}
+def direct_record_rows(conn: sqlite3.Connection, nta_conn: sqlite3.Connection) -> tuple[list[dict], dict]:
+    """Only an official winner field with a number on the same source record is evidence."""
+    prepare_canonical_procurements(conn)
+    rows = []
+    rejected = defaultdict(int)
+    conflicts = {source_id for source_id, in conn.execute("""
+        SELECT source_id FROM company_corporate_numbers
+        GROUP BY source_id HAVING COUNT(DISTINCT corporate_number)>1
+    """)}
+    seen = set()
+    for source_id, company_id, name, number, method, url, excerpt, amount, date, agency in conn.execute("""
+        SELECT p.source_id,p.company_id,p.winner_name,l.corporate_number,l.method,
+               p.source_url,p.detail_text,p.award_amount,
+               COALESCE(p.award_date,p.contract_date,p.notice_date,p.bid_date),p.agency
+        FROM company_corporate_numbers l
+        JOIN canonical_procurements p ON p.source_id=l.source_id AND p.company_id=l.company_id
+        WHERE l.method IN ('officialSource','officialSourceBackfill')
+        ORDER BY p.source_id,l.corporate_number
+    """):
+        if source_id in conflicts:
+            rejected["conflictingSourceNumbers"] += 1
+            continue
+        if source_id in seen:
+            rejected["duplicateSourceEvidence"] += 1
+            continue
+        seen.add(source_id)
+        nta = nta_company(nta_conn, number)
+        if not nta:
+            rejected["notInNta"] += 1
+            continue
+        normalized = normalize_company_name(name)
+        registered = normalize_company_name(nta["name"])
+        # Branch names can identify the numbered company; joint ventures cannot.
+        branch = any(normalized == registered + suffix for suffix in ("千葉支店", "千葉営業所"))
+        if "共同企業体" in (name or "") or not (normalized == registered or branch):
+            rejected["nameOrJointVenture"] += 1
+            continue
+        if f"法人番号:{number}" not in (excerpt or ""):
+            rejected["missingSourceNumber"] += 1
+            continue
+        if not url or not url.startswith("https://www.city.chiba.jp/"):
+            rejected["unsupportedSource"] += 1
+            continue
+        rows.append({
+            "sourceId": source_id, "companyId": company_id, "name": name,
+            "corporateNumber": number, "method": method, "sourceUrl": url,
+            "sourceExcerpt": excerpt, "awardAmount": amount, "date": date,
+            "agency": agency,
+        })
+    return rows, dict(rejected)
 
 
 def procurement_rows(conn: sqlite3.Connection) -> list[dict]:
@@ -112,27 +155,34 @@ def blank_entity(key: str) -> dict:
         "identityMethod": None, "identityStatus": "unmatched",
         "nta": None, "listed": None,
         "procurement": {
-            "companyIds": [], "aliases": [], "awardCount": 0, "awardTotal": 0,
+            "companyIds": [], "sourceIds": [], "identityEvidence": [], "aliases": [], "awardCount": 0, "awardTotal": 0,
             "awardAmountCount": 0, "firstAwardDate": None,
             "lastAwardDate": None,
         },
     }
 
 
-def merge_procurement(entity: dict, row: dict) -> None:
+def merge_verified_record(entity: dict, row: dict) -> None:
     procurement = entity["procurement"]
-    procurement["companyIds"].append(row["companyId"])
+    if row["companyId"] not in procurement["companyIds"]:
+        procurement["companyIds"].append(row["companyId"])
     if row["name"] not in procurement["aliases"]:
         procurement["aliases"].append(row["name"])
-    procurement["awardCount"] += row["awardCount"]
-    procurement["awardTotal"] += row["awardTotal"]
-    procurement["awardAmountCount"] += row["awardAmountCount"]
-    first = row["firstAwardDate"]
-    last = row["lastAwardDate"]
-    if first and (not procurement["firstAwardDate"] or first < procurement["firstAwardDate"]):
-        procurement["firstAwardDate"] = first
-    if last and (not procurement["lastAwardDate"] or last > procurement["lastAwardDate"]):
-        procurement["lastAwardDate"] = last
+    procurement["sourceIds"].append(row["sourceId"])
+    procurement["identityEvidence"].append({
+        "sourceId": row["sourceId"], "sourceUrl": row["sourceUrl"],
+        "sourceExcerpt": row["sourceExcerpt"], "corporateNumber": row["corporateNumber"],
+        "method": row["method"], "verification": "sourceWinnerFieldAndNtaName",
+    })
+    procurement["awardCount"] += 1
+    if row["awardAmount"] is not None:
+        procurement["awardTotal"] += row["awardAmount"]
+        procurement["awardAmountCount"] += 1
+    date = row["date"]
+    if date and (not procurement["firstAwardDate"] or date < procurement["firstAwardDate"]):
+        procurement["firstAwardDate"] = date
+    if date and (not procurement["lastAwardDate"] or date > procurement["lastAwardDate"]):
+        procurement["lastAwardDate"] = date
 
 
 def compact_row(entity: dict) -> dict:
@@ -176,44 +226,40 @@ def main() -> dict:
 
     procurement_conn = sqlite3.connect(DB_PATH)
     init_db(procurement_conn)
-    direct_links = load_direct_links(procurement_conn)
     procurement = procurement_rows(procurement_conn)
     nta_conn = sqlite3.connect(NTA_DB)
+    direct_records, rejected_direct = direct_record_rows(procurement_conn, nta_conn)
     meta = nta_metadata(nta_conn)
     finance_map, finance_meta = load_finance_map()
     statements_map, statements_meta = load_statements_map()
 
     entities: dict[str, dict] = {}
     counters = defaultdict(int)
+    direct_company_ids = {row["companyId"] for row in direct_records}
     for row in procurement:
-        direct = direct_links.get(row["companyId"], [])
-        corporate_number = None
-        method = None
-        if len(direct) == 1:
-            corporate_number, method = direct[0], "officialSource"
-            counters["directSourceMatches"] += 1
-        elif len(direct) > 1:
-            counters["ambiguousDirect"] += 1
-        else:
-            corporate_number, method = exact_name_match(nta_conn, row["name"])
-            if method == "exactNormalizedName":
-                counters["exactNameMatches"] += 1
-            elif method == "ambiguousNormalizedName":
-                counters["ambiguousNames"] += 1
-        key = corporate_number or f"proc:{row['companyId']}"
-        entity = entities.setdefault(key, blank_entity(key))
-        if corporate_number:
+        # Name matching discovers a real NTA corporation, but does not assign
+        # any of the name group's procurement records to that legal entity.
+        if row["companyId"] in direct_company_ids:
+            continue
+        corporate_number, method = exact_name_match(nta_conn, row["name"])
+        if method == "exactNormalizedName":
+            counters["exactNameCandidates"] += 1
+            entity = entities.setdefault(corporate_number, blank_entity(corporate_number))
             entity["corporateNumber"] = corporate_number
-            entity["identityStatus"] = "matched"
-            entity["identityMethod"] = method
-        elif len(direct) > 1:
-            entity["identityStatus"] = "ambiguous"
-            entity["identityMethod"] = "conflictingOfficialNumbers"
-            entity["corporateNumberCandidates"] = direct
+            entity["identityStatus"] = "candidate"
+            entity["identityMethod"] = "exactNormalizedName"
         elif method == "ambiguousNormalizedName":
-            entity["identityStatus"] = "ambiguous"
-            entity["identityMethod"] = method
-        merge_procurement(entity, row)
+            counters["ambiguousNames"] += 1
+
+    for row in direct_records:
+        number = row["corporateNumber"]
+        entity = entities.setdefault(number, blank_entity(number))
+        entity["corporateNumber"] = number
+        entity["identityStatus"] = "matched"
+        entity["identityMethod"] = "officialWinnerRecord"
+        merge_verified_record(entity, row)
+    counters["directSourceMatches"] = len(direct_company_ids)
+    counters["verifiedProcurementRecords"] = len(direct_records)
 
     for listed in listed_rows:
         corporate_number = str(listed.get("corporateNumber") or "").strip() or None
@@ -262,6 +308,7 @@ def main() -> dict:
         entity["finance"] = csv_finance or statement_finance
         entity["financeSourceType"] = "finance" if csv_finance else ("statements" if statement_finance else None)
         entity["procurement"]["companyIds"].sort()
+        entity["procurement"]["sourceIds"].sort()
         entity["procurement"]["aliases"].sort()
         listing_counts[entity["listingStatus"]] += 1
 
@@ -288,7 +335,7 @@ def main() -> dict:
         "dataset": "unlisted-companies-index", "generatedAt": generated_at,
         "ntaSourceDate": meta.get("sourceDate"), "records": unlisted_rows,
     })
-    matched_procurement = counters["directSourceMatches"] + counters["exactNameMatches"]
+    matched_procurement = counters["directSourceMatches"]
     finance_public_count = sum(1 for entity in public_entities.values() if entity.get("finance"))
     finance_csv_public_count = sum(1 for entity in public_entities.values() if entity.get("financeSourceType") == "finance")
     statements_public_count = sum(1 for entity in public_entities.values() if entity.get("financialStatements"))
@@ -300,7 +347,11 @@ def main() -> dict:
         "procurementMatched": matched_procurement,
         "procurementUnmatched": len(procurement) - matched_procurement,
         "directSourceMatches": counters["directSourceMatches"],
-        "exactNameMatches": counters["exactNameMatches"],
+        "exactNameCandidates": counters["exactNameCandidates"],
+        "verifiedProcurementRecords": counters["verifiedProcurementRecords"],
+        "publicVerifiedProcurementRecords": sum(e["procurement"]["awardCount"] for e in public_entities.values()),
+        "publicMatchedCompanyIds": len({cid for e in public_entities.values() for cid in e["procurement"]["companyIds"]}),
+        "rejectedDirectEvidence": rejected_direct,
         "ambiguousOfficialNumbers": counters["ambiguousDirect"],
         "ambiguousNames": counters["ambiguousNames"],
         "listedCompanies": len(listed_rows),

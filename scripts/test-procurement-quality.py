@@ -48,6 +48,29 @@ class ProcurementQualityTests(unittest.TestCase):
         self.assertEqual(db.execute('SELECT COUNT(*) FROM companies').fetchone()[0], 3)
         db.close()
 
+    def test_corporate_evidence_migrates_and_keeps_multiple_source_records(self):
+        db = sqlite3.connect(':memory:')
+        db.execute("""CREATE TABLE company_corporate_numbers (
+          company_id TEXT NOT NULL, corporate_number TEXT NOT NULL, method TEXT NOT NULL,
+          source_id TEXT, updated_at TEXT NOT NULL,
+          PRIMARY KEY (company_id, corporate_number)
+        )""")
+        db.execute("INSERT INTO company_corporate_numbers VALUES (?,?,?,?,?)",
+                   ('co_123456789abc', '1234567890123', 'officialSource',
+                    'chiba:first', '2026-10-03'))
+        init_db(db)
+        db.execute("INSERT INTO company_corporate_numbers VALUES (?,?,?,?,?)",
+                   ('co_123456789abc', '1234567890123', 'officialSource',
+                    'chiba:second', '2026-10-03'))
+        self.assertEqual(
+            [r[0] for r in db.execute(
+                "SELECT source_id FROM company_corporate_numbers ORDER BY source_id")],
+            ['chiba:first', 'chiba:second'])
+        init_db(db)
+        self.assertEqual(db.execute(
+            "SELECT COUNT(*) FROM company_corporate_numbers").fetchone()[0], 2)
+        db.close()
+
     def test_sapporo_publication_history(self):
         db = sqlite3.connect(':memory:')
         init_db(db)

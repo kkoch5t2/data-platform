@@ -12,6 +12,8 @@ DATLUMEは「画面が開く」だけでなく、数値・出典・リンク・�
 構成は `audit-data-integrity.py`、生活・履歴系を深掘りする `audit-living-history.py`、上場企業正規化を検査する `audit-listed-normalized.py`、正規化値から公開64 shard/indexへの変換一致を検査する `audit-listed-public.py`。大量件数でも全件走査を前提とし、失敗時はリリースを止める。
 市区町村座標、犯罪・事故、病院/学校/駅POI、履歴年次グリッド、派生式、source-nativeな欠損許容範囲まで監査対象とする。
 
+法人別調達実績は出典ID単位で原DBと照合し、同一案件の複数法人への計上、番号のない案件の法人帰属、件数・金額の不一致を検出する。社名一致による候補数は法人別調達実績件数から分離して確認する。
+
 ## 3. EDINET/XBRL監査
 `npm run validate:listed-financials` で、企業文書種別、連結/個別context、unit、従業員数・株式数presentation、セグメント、主要株主、検証済み補正、持続しない極端な桁変動を検査する。
 `npm run audit:listed-cross-filing` は当年値と翌年有報の前期比較値を、同一concept・連結区分・period type・unitで突合する。10倍以上の新しい不一致は失敗とし、確認済みの過年度組替え・訂正・比較表側の原典異常だけを値付きallowlistで管理する。

@@ -517,10 +517,13 @@ for dp in detail_files:
         ok(isinstance(item,list) and len(item)==4,f'company detail shape invalid {cid}')
         if not isinstance(item,list) or len(item)!=4: continue
         name,count,total_amount,rows=item
-        row_amount=0.0; prev=None
+        row_amount=0.0; prev=None; source_ids=set()
         for row in rows:
-            ok(isinstance(row,list) and len(row)==5,f'company detail row shape invalid {cid}')
-            if not isinstance(row,list) or len(row)!=5: continue
+            ok(isinstance(row,list) and len(row)==6,f'company detail row shape invalid {cid}')
+            if not isinstance(row,list) or len(row)!=6: continue
+            ok(isinstance(row[5],str) and bool(row[5]),f'company detail source ID missing {cid}')
+            ok(row[5] not in source_ids,f'company detail duplicate source ID {cid}')
+            source_ids.add(row[5])
             ok(float(row[4] or 0)>0,f'company detail non-positive amount {cid}')
             row_amount+=float(row[4] or 0)
             if prev is not None: ok((row[0] or '')<=prev,f'company detail date order invalid {cid}')
