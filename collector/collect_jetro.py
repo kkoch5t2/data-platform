@@ -1074,8 +1074,8 @@ def init_db(conn):
     );
     CREATE TABLE IF NOT EXISTS company_corporate_numbers (
       company_id TEXT NOT NULL, corporate_number TEXT NOT NULL, method TEXT NOT NULL,
-      source_id TEXT, updated_at TEXT NOT NULL,
-      PRIMARY KEY (company_id, corporate_number)
+      source_id TEXT NOT NULL, updated_at TEXT NOT NULL,
+      PRIMARY KEY (company_id, corporate_number, source_id)
     );
     CREATE INDEX IF NOT EXISTS idx_company_corporate_number
       ON company_corporate_numbers(corporate_number);
@@ -1087,6 +1087,23 @@ def init_db(conn):
     CREATE INDEX IF NOT EXISTS idx_proc_company ON procurements(company_id);
     CREATE INDEX IF NOT EXISTS idx_proc_org ON procurements(organization_id);
     ''')
+    link_pk = [row[1] for row in conn.execute('PRAGMA table_info(company_corporate_numbers)') if row[5]]
+    if link_pk == ['company_id', 'corporate_number']:
+        # Retain every source-level observation, including repeated contracts
+        # for one corporation. Legacy NULL source IDs remain nonmatching evidence.
+        conn.execute("""CREATE TABLE company_corporate_numbers_by_source (
+          company_id TEXT NOT NULL, corporate_number TEXT NOT NULL, method TEXT NOT NULL,
+          source_id TEXT NOT NULL, updated_at TEXT NOT NULL,
+          PRIMARY KEY (company_id, corporate_number, source_id)
+        )""")
+        conn.execute("""INSERT INTO company_corporate_numbers_by_source
+          SELECT company_id,corporate_number,method,
+                 COALESCE(source_id,'legacy:' || company_id || ':' || corporate_number),updated_at
+          FROM company_corporate_numbers""")
+        conn.execute('DROP TABLE company_corporate_numbers')
+        conn.execute('ALTER TABLE company_corporate_numbers_by_source RENAME TO company_corporate_numbers')
+        conn.execute('CREATE INDEX idx_company_corporate_number ON company_corporate_numbers(corporate_number)')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_company_corporate_source ON company_corporate_numbers(source_id)')
     cols = {row[1] for row in conn.execute('PRAGMA table_info(procurements)')}
     if 'category' not in cols:
         conn.execute("ALTER TABLE procurements ADD COLUMN category TEXT NOT NULL DEFAULT 'その他'")
@@ -1390,7 +1407,7 @@ def export_json(conn):
         cid=x.get('companyId')
         amount=x.get('awardAmount') or 0
         if cid in company_detail and amount>0:
-            company_detail[cid][3].append([x.get('awardDate') or x.get('contractDate') or '',x.get('agency') or '',x.get('title') or '',x.get('sourceUrl') or '',amount])
+            company_detail[cid][3].append([x.get('awardDate') or x.get('contractDate') or '',x.get('agency') or '',x.get('title') or '',x.get('sourceUrl') or '',amount,x.get('id') or ''])
     for item in company_detail.values():
         item[3].sort(key=lambda r:r[0],reverse=True)
     COMPANY_DETAIL_DIR.mkdir(parents=True,exist_ok=True)
