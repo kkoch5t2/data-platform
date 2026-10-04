@@ -59,6 +59,35 @@ with sqlite3.connect(root/'data/public_it.db') as db:db.execute('insert into pro
                 self.assertEqual(len(evidence),1)
                 self.assertIn('injected failure',evidence[0].read_text())
 
+    def test_existing_seed_skips_classification_but_preserves_agency_repair(self):
+        import sys
+        sys.path.insert(0,str(ROOT))
+        from collector import collect_jetro as collector
+        with tempfile.TemporaryDirectory() as directory, sqlite3.connect(':memory:') as db:
+            data=Path(directory)
+            collector.init_db(db)
+            rows=[{'id':'jetro:1:example','title':'existing title','agency':'original agency',
+                   'winnerName':'example company','category':'original category'}]
+            file=data/'procurements-2026.json';file.write_text(json.dumps(rows))
+            with patch.object(collector,'DATA_DIR',data), patch.object(collector,'JSON_PATH',data/'missing.json'):
+                collector.seed_from_json(db)
+                original=db.execute('SELECT title,category,collected_at FROM procurements').fetchone()
+                rows[0].update(agency='repaired agency',title='must preserve existing title')
+                file.write_text(json.dumps(rows))
+                with patch.object(collector,'classify',side_effect=AssertionError('existing row reclassified')):
+                    self.assertEqual(collector.seed_from_json(db),1)
+                self.assertEqual(db.execute('SELECT title,category,collected_at FROM procurements').fetchone(),original)
+                self.assertEqual(db.execute('SELECT agency FROM procurements').fetchone()[0],'repaired agency')
+                rows[0]['agency']='';file.write_text(json.dumps(rows))
+                collector.seed_from_json(db)
+                self.assertEqual(db.execute('SELECT agency FROM procurements').fetchone()[0],'repaired agency')
+                rows.append({'id':'jetro:2:new','title':'new title','agency':'new agency'})
+                file.write_text(json.dumps(rows))
+                with patch.object(collector,'classify',return_value=(False,[],'new category',[])) as classify:
+                    self.assertEqual(collector.seed_from_json(db),2)
+                    classify.assert_called_once_with('new title')
+                self.assertEqual(db.execute("SELECT category FROM procurements WHERE source_id='jetro:2:new'").fetchone()[0],'new category')
+
     def test_shared_update_lock_skips_both_jobs(self):
         import fcntl
         with tempfile.TemporaryDirectory() as directory:

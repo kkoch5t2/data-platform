@@ -1181,6 +1181,7 @@ def seed_from_json(conn):
         except Exception as e:
             print(f'seed_error {path.name}: {e}')
     now = datetime.now(timezone.utc).isoformat(); count = 0
+    existing_ids = {row[0] for row in conn.execute('SELECT source_id FROM procurements')}
     for r in records:
         parts = str(r.get('id','')).split(':')
         if len(parts) != 3 or parts[0] not in ('jetro','jetro-local','geps','yokohama','sapporo'): continue
@@ -1189,6 +1190,15 @@ def seed_from_json(conn):
         winner = canonical_company_name(r.get('winnerName') or ''); company_id = stable_id('co', winner) if winner else None
         if org_id: conn.execute('INSERT OR IGNORE INTO organizations VALUES (?,?)',(org_id,agency))
         if company_id: conn.execute('INSERT OR IGNORE INTO companies VALUES (?,?,?)',(company_id,winner,norm(winner)))
+        # The conflict path only repairs agency/organization. Reclassifying an
+        # already stored title is wasted work and does not update those fields.
+        if r['id'] in existing_ids:
+            conn.execute('''UPDATE procurements SET
+                agency=CASE WHEN ?<>'' THEN ? ELSE agency END,
+                organization_id=CASE WHEN ? IS NOT NULL THEN ? ELSE organization_id END
+                WHERE source_id=?''', (agency, agency, org_id, org_id, r['id']))
+            count += 1
+            continue
         is_it, tags, category, category_tags = classify(r.get('title',''))
         source_url=r.get('sourceUrl') or (f'{BASE}/gov_procurement/local/articles/{aid}.html' if scope=='jetro-local' else (f'https://www.p-portal.go.jp/pps-web-biz/UAB02/OAB0201?caseNo={aid}' if scope=='geps' else f'{BASE}/gov_procurement/national/articles/{xid}/{aid}.html'))
         conn.execute('''INSERT INTO procurements

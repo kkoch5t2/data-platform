@@ -27,7 +27,7 @@
 2. scheduled時は未許可のGit差分があれば停止。
 3. 空き容量10GiB未満なら停止。
 4. 公共調達DBをバックアップ。
-5. 前回成功日から当日まで公共調達をcatch-up。
+5. 前回成功日から当日まで公共調達をcatch-up。JETROのJSON復元では既存IDは機関名の補完だけを行い、新規IDだけを分類・挿入する。既存案件の分類や財務・落札値をJSONで再上書きしない。
 6. 公共調達health check。
 7. 月初回のみJPX/EDINET企業マスタ更新。
 8. EDINET文書取得、download、incremental normalize。
