@@ -1,6 +1,6 @@
 # DATLUME 運用設計書
 
-最終更新: 2026-10-02
+最終更新: 2026-10-04
 
 ## 1. 運用環境
 - Ubuntu 正本: `$HOME/Sites/public-market-data`
@@ -23,7 +23,7 @@
 ```
 
 ## 3. 日次処理フロー
-1. flockで多重起動防止。
+1. flockで多重起動防止。日次とトピックの両ジョブは共通の `update.lock` を取得して、収集開始からデプロイ終了まで同じ作業ツリーへの更新を直列化する。ロック使用中は次の毎時起動へ延期する。
 2. scheduled時は未許可のGit差分があれば停止。
 3. 空き容量10GiB未満なら停止。
 4. 公共調達DBをバックアップ。
@@ -100,7 +100,7 @@ GUIブラウザが使える端末での初回認証は `--authorize`。ヘッド
 Cloudflare認証情報はホームディレクトリ配下の専用ファイルから読み、リポジトリへ置かない。
 
 ## 6. 障害時対応
-- 公共調達収集失敗: バックアップDBへ復元し、その日のデプロイを中止。
+- 公共調達収集・health・回帰チェック失敗: バックアップDBと収集前の `sources.json`、summary、企業・機関JSON、調達・dashboard・企業詳細shardをまとめて復元し、その回のデプロイを中止。INT/TERMによる停止でも復元する。失敗時の取得状況は `logs/procurement-failure-sources-*.json` に保存し、成功日のマーカーを更新しない。次の毎時起動で再試行する。横浜市の結果一覧は1回60秒、最大5回の通信再試行と失敗ログを持つ。
 - health check失敗: デプロイを中止。
 - EDINET給与外れ値未解決: 上場企業更新を失敗させる。原典自体が異常で訂正値を確定できない場合は推測補正せず、その年度の値を欠損扱いにする。
 - 上場企業のunit/context/連結選択/異常値監査に未解決がある: public data生成前に停止する。
@@ -123,6 +123,7 @@ Cloudflare認証情報はホームディレクトリ配下の専用ファイル�
 - `daily-refresh.lock`
 - `weekly-audit.lock`
 - `release.lock`
+- `update.lock` / `procurement-refresh-snapshot/`
 
 ## 8. 手動運用
 - 全体確認: `npm run release:check`

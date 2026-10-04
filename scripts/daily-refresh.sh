@@ -12,6 +12,9 @@ LAST_SUCCESS="$STATE_DIR/last-success-date"
 PREV_SUMMARY="$STATE_DIR/pre-refresh-summary.json"
 MODE="${1:-manual}"
 RELEASE_LOCK="$STATE_DIR/release.lock"
+UPDATE_LOCK="$STATE_DIR/update.lock"
+PROCUREMENT_SNAPSHOT="$STATE_DIR/procurement-refresh-snapshot"
+PROCUREMENT_ACTIVE=0
 SCHEDULED_HOST_MARKER="$HOME/.config/datlume/allow-scheduled-refresh"
 EXPECTED_SCHEDULED_HOST="kota-Intel"
 
@@ -33,12 +36,21 @@ record_stop() {
     "$(date -Is)" "$CURRENT_STEP" "$rc" "$reason" "$LOG" >> "$FAILURE_LOG"
 }
 
+rollback_procurement() {
+  if (( PROCUREMENT_ACTIVE == 0 )); then return; fi
+  PROCUREMENT_ACTIVE=0
+  echo "Restoring procurement database and generated outputs after failure"
+  [[ ! -s "$backup" ]] || cp --reflink=auto "$backup" "$DB"
+  python3 scripts/procurement-refresh-state.py restore "$PROCUREMENT_SNAPSHOT"
+}
+
 on_error() {
   local rc="$1" line="$2" command="$3"
   trap - ERR
   command="${command//$'\n'/ }"
   echo "ERROR: DATLUME refresh stopped: step=$CURRENT_STEP rc=$rc line=$line command=$command"
   record_stop "$rc" "line=$line command=$command"
+  rollback_procurement
   exit "$rc"
 }
 
@@ -61,6 +73,9 @@ fi
 
 exec 9>"$LOCK"
 if ! flock -n 9; then exit 0; fi
+# Both refresh jobs mutate one worktree, so serialize collection through deployment.
+exec 7>"$UPDATE_LOCK"
+if ! flock -n 7; then exit 0; fi
 
 if [[ "$MODE" == "--scheduled" && -f "$LAST_SUCCESS" ]] && grep -qx "$TODAY" "$LAST_SUCCESS"; then
   exit 0
@@ -127,6 +142,12 @@ fiscal_year="$(date +%Y)"
 if (( 10#$(date +%m) < 4 )); then fiscal_year="$((10#$fiscal_year-1))"; fi
 previous_fiscal_year="$((10#$fiscal_year-1))"
 
+run_step "procurement-output-snapshot" python3 scripts/procurement-refresh-state.py snapshot "$PROCUREMENT_SNAPSHOT"
+PROCUREMENT_ACTIVE=1
+trap 'rollback_procurement' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
 CURRENT_STEP="procurement-collection"
 trap - ERR
 set +e
@@ -177,7 +198,7 @@ set -e
 trap 'on_error "$?" "$LINENO" "$BASH_COMMAND"' ERR
 if (( collect_rc != 0 )); then
   echo "ERROR: procurement collection failed rc=$collect_rc"
-  [[ -s "$backup" ]] && cp "$backup" "$DB"
+  rollback_procurement
   record_stop "$collect_rc" "procurement collector returned a non-zero status; database restored from backup when available"
   exit "$collect_rc"
 fi
@@ -185,7 +206,7 @@ fi
 CURRENT_STEP="procurement-health-check"
 if ! python3 collector/check_health.py --source geps_awards --source jetro --source jetro_local --source yokohama_procurement --source sapporo_procurement --source kobe_procurement --source fukuoka_procurement --source chiba_procurement --source kyoto_procurement --source kawasaki_procurement --source sendai_procurement; then
   echo "ERROR: procurement health check failed; restoring database"
-  [[ -s "$backup" ]] && cp "$backup" "$DB"
+  rollback_procurement
   record_stop 21 "procurement health check failed; database restored from backup when available"
   exit 21
 fi
@@ -193,11 +214,12 @@ fi
 CURRENT_STEP="procurement-regression-check"
 if [[ -s "$PREV_SUMMARY" ]] && ! python3 scripts/check-procurement-regression.py --previous "$PREV_SUMMARY" --current "$ROOT/src/data/summary.json"; then
   echo "ERROR: procurement coverage regressed; restoring database and previous summary"
-  [[ -s "$backup" ]] && cp "$backup" "$DB"
-  [[ -s "$PREV_SUMMARY" ]] && cp "$PREV_SUMMARY" "$ROOT/src/data/summary.json"
+  rollback_procurement
   record_stop 24 "procurement coverage regressed; deployment blocked"
   exit 24
 fi
+
+PROCUREMENT_ACTIVE=0
 
 MONTH="$(date +%Y-%m)"
 LISTED_MASTER_MARKER="$STATE_DIR/last-listed-master-refresh"

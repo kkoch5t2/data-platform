@@ -7,6 +7,7 @@ STATE_DIR="$ROOT/data/automation"
 LOG_DIR="$STATE_DIR/logs"
 LOCK="$STATE_DIR/wikipedia-topics-refresh.lock"
 RELEASE_LOCK="$STATE_DIR/release.lock"
+UPDATE_LOCK="$STATE_DIR/update.lock"
 SCHEDULED_HOST_MARKER="$HOME/.config/datlume/allow-scheduled-refresh"
 EXPECTED_SCHEDULED_HOST="kota-Intel"
 MODE="${1:---scheduled}"
@@ -27,6 +28,8 @@ fi
 
 exec 9>"$LOCK"
 if ! flock -n 9; then exit 0; fi
+exec 7>"$UPDATE_LOCK"
+if ! flock -n 7; then exit 0; fi
 if [[ "$MODE" == "--scheduled" && -f "$SUCCESS" ]] && grep -qx "$TODAY" "$SUCCESS"; then exit 0; fi
 exec > >(tee -a "$LOG") 2>&1
 
@@ -61,6 +64,7 @@ flock 8
 CURRENT_STEP="build-and-deploy"
 export DATLUME_RELEASE_LOCK_HELD=1
 npm run build
+npm run audit:html
 python3 scripts/scheduled-refresh-git.py commit-push --base "$BASE" --date "$TODAY"
 bash ./deploy-datlume.sh
 python3 scripts/scheduled-refresh-git.py check-clean

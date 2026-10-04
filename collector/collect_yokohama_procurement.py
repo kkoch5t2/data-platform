@@ -97,9 +97,10 @@ def post_result_page(op,year,page=1):
     last=None
     for attempt in range(5):
         try:
-            with op.open(req,timeout=35) as r:return r.read().decode('cp932','ignore')
+            with op.open(req,timeout=60) as r:return r.read().decode('cp932','ignore')
         except Exception as exc:
             last=exc
+            print(f'WARNING yokohama page={page} request attempt={attempt+1}/5 failed: {type(exc).__name__}: {exc}',flush=True)
             if attempt<4: time.sleep(2*(attempt+1))
     raise last
 
