@@ -617,6 +617,19 @@ async function checkTopics(page,label,failures) {
         for(let i=0;i<Math.min(await lazy.count(),3);i++){await lazy.nth(i).click().catch(()=>{});await page.waitForTimeout(180)}
         await page.waitForTimeout(350);
 
+        // Offscreen lazy images have dimensions before their request starts. Load them
+        // before judging the decoded result; genuine 404/decoding errors still fail.
+        await page.evaluate(async()=>{
+          const images=[...document.querySelectorAll('img')].filter(i=>i.offsetWidth||i.offsetHeight||i.getClientRects().length);
+          await Promise.all(images.map(i=>new Promise(resolve=>{
+            if(i.complete){resolve();return;}
+            const timer=setTimeout(done,8000);
+            function done(){clearTimeout(timer);i.removeEventListener('load',done);i.removeEventListener('error',done);resolve();}
+            i.addEventListener('load',done,{once:true});i.addEventListener('error',done,{once:true});
+            i.loading='eager';
+          })));
+        });
+
         const state=await page.evaluate(()=>{
           const visible=el=>!!(el.offsetWidth||el.offsetHeight||el.getClientRects().length);
           const brand=document.querySelector('.brand');

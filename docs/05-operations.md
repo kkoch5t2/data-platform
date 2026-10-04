@@ -1,6 +1,6 @@
 # DATLUME 運用設計書
 
-最終更新: 2026-10-04
+最終更新: 2026-10-05
 
 ## 1. 運用環境
 - Ubuntu 正本: `$HOME/Sites/public-market-data`
@@ -23,10 +23,10 @@
 ```
 
 ## 3. 日次処理フロー
-1. flockで多重起動防止。日次とトピックの両ジョブは共通の `update.lock` を取得して、収集開始からデプロイ終了まで同じ作業ツリーへの更新を直列化する。ロック使用中は次の毎時起動へ延期する。
+1. `scheduled-refresh.py` がジョブごとのflockを取得し、Git正本を変更しない専用のdetached worktreeで収集する。日次・週次はDB/正規化データを共有するため `update.lock` で直列化する。トピックはこのロックを取得せず独立して収集できる。公開時だけ共通の `release.lock` を取得する。
 2. scheduled時は未許可のGit差分があれば停止。
 3. 空き容量10GiB未満なら停止。
-4. SQLite backup APIで公共調達DBをバックアップし、全体integrity checkに成功した場合だけバックアップを置き換える。WAL内のcommitも含め、壊れたDBで既存バックアップを上書きしない。
+4. 収集前にSQLite backup APIでDBを検証・保存し、EDINET文書索引と正規化データをまとめてスナップショットする。月次/週次マーカーは作業場所の一時領域へコピーし、本番検証成功まで共有状態へ反映しない。WAL内のcommitも含め、壊れたDBで既存バックアップを上書きしない。
 5. 前回成功日から当日まで公共調達をcatch-up。JETROのJSON復元では既存IDは機関名の補完だけを行い、新規IDだけを分類・挿入する。既存案件の分類や財務・落札値をJSONで再上書きしない。
 6. 公共調達health check。
 7. 月初回のみJPX/EDINET企業マスタ更新。
@@ -41,9 +41,11 @@
 16. 公開予定の全領域データ監査を実行。失敗時はbuild/deploy前に停止。
 
 ### 3.1 Wikipedia話題トピック専用更新
-`scripts/refresh-wikipedia-topics.sh --scheduled` を14:15〜23:15 JSTに毎時再試行する。当日成功すると `last-wikipedia-success-date` に記録してスキップし、失敗は `wikipedia-failures.log` に記録する。Wikimedia Pageviewsの取得後、MediaWiki/Wikidataでカテゴリ分類し、Google News RSSで急上昇の背景候補を補完する。YouTube APIキーが設定済みなら、急上昇上位10件を直近7日の日本向け・埋め込み可能動画と照合する。専用監査とbuildが成功した場合だけ生成JSONをGitへcommit/pushし、Cloudflare Pagesへdeployする。ニュースまたはYouTube取得だけの失敗ではWikipediaランキング更新を止めない。
-17. build、Cloudflare deploy。
-18. 成功履歴とlast-success-date更新。
+`scripts/refresh-wikipedia-topics.sh --scheduled` を14:15〜23:15 JSTに毎時再試行する。当日成功すると `last-wikipedia-success-date` に記録してスキップし、失敗は `wikipedia-failures.log` に記録する。Wikimedia Pageviewsの取得後、MediaWiki/Wikidataでカテゴリ分類し、Google News RSSで急上昇の背景候補を補完する。YouTube APIキーが設定済みなら、急上昇上位10件を直近7日の日本向け・埋め込み可能動画と照合する。独立したworktreeで取得・専用監査する。朝の日次収集が実行中でも公開ロックが空けばbuild・commit/push・deployできる。トピックの公開が先に完了した場合、日次公開は新しいトピックJSONを取り込む。ニュースまたはYouTube取得だけの失敗ではWikipediaランキング更新を止めない。
+17. 公開ロック内で最新mainへ生成差分を反映する。取得中に別ジョブが更新した `sources.json` はソース単位でマージする。同一ファイル・同一ソースの競合、収集中のコード変更は公開を止め、次回再取得する。トピック公開は最新の日次公開済みのGit管理外データを再読込し、調達を古い状態へ戻さない。
+18. 全領域監査（日次）または専用監査（トピック）、build、HTML監査、Wrangler Pagesローカル環境で主要ルートと動的詳細のPC/モバイルE2Eを実行する。
+19. 生成差分だけGitへcommit/pushし、正本mainをfast-forwardする。日次のGit管理外データもここで同期する。Cloudflare deploy後、公開manifest/JSON/XMLの一致と主要ページのPC/モバイル本番E2Eを確認する。
+20. 全確認成功後だけ月次マーカー・成功履歴・last-success-dateを更新する。取得成功やHTTP 200のみで成功扱いにしない。
 
 ### 3.2 YouTube照合の秘密設定
 YouTube照合は任意機能。APIキーはGit管理せず、`YOUTUBE_API_KEY` 環境変数または `~/.config/datlume/youtube_api_key` から読む。キー未設定時はYouTube部分だけ安全にスキップする。
@@ -72,7 +74,7 @@ python3 scripts/check-gsc-sitemap.py
 GUIブラウザが使える端末での初回認証は `--authorize`。ヘッドレス端末では `--headless-start` で認証URLを発行し、Google同意後のlocalhost callback URLを `--complete-stdin` へ標準入力してtokenを保存する。
 
 ## 4. 週次監査
-`scripts/weekly-audit.sh` は週1回、以下を実行する。
+`scripts/weekly-audit.sh` は週1回、日次とは別の隔離worktreeで以下を実行する。DBと正規化データを使う間は日次と共通のupdate.lockを保持し、失敗時は復元する。公開用ファイルの生成がGit正本へ未コミット変更を残すことはない。週次監査自体は本番へdeployしない。
 - 平均年間給与外れ値検証
 - 主要株主のpresentation補完検証
 - 上場企業正規化データ監査
@@ -98,9 +100,13 @@ GUIブラウザが使える端末での初回認証は `--authorize`。ヘッド
 - 単一ファイル25MiB以下。
 
 Cloudflare認証情報はホームディレクトリ配下の専用ファイルから読み、リポジトリへ置かない。
+`deploy-datlume.sh` はupload前に `dist/data/release-manifest.json` を生成する。主要公開JSON、統計JSON・直近dashboard shard、sitemapとshardの両端サンプルのSHA-256・bytesを保持し、deploy後に本番と照合する。manifest自体のreleaseId一致も必須。キャッシュ伝播遅延は最大6回再試行し、最後まで不一致ならdeployコマンドを失敗扱いにする。結果は `last-production-verification.json` へ保存する。manifestはdist成果物だけに置き、秘密やローカルパスを含めない。
 
 ## 6. 障害時対応
-- 公共調達収集・health・回帰チェック失敗: バックアップDBと収集前の `sources.json`、summary、企業・機関JSON、調達・dashboard・企業詳細shardをまとめて復元し、その回のデプロイを中止。INT/TERMによる停止でも復元する。DB復元は検証済みバックアップから別ファイルへコピーし、終了したcollectorのjournal/WAL/SHMを除去してから置き換える。失敗時の取得状況は `logs/procurement-failure-sources-*.json` に保存し、成功日のマーカーを更新しない。次の毎時起動で再試行する。横浜市の結果一覧は1回60秒、最大5回の通信再試行と失敗ログを持つ。
+- 調達、上場企業、統計、トピック、build、ローカルE2E失敗: Git正本と公開済みデータを変更しない。未pushの日次/週次はDB・文書索引・正規化データを復元し、新規の正規化ファイルも除去する。取得Rawと失敗sourcesを証跡として残す。成功日と月次マーカーを更新しない。
+- INT/TERM: collectorの子プロセスグループを停止・終了確認してから復元する。SIGKILL/停電: `transactions/<job>/manifest.json` を次回起動時に読み、同じ起動IDの残存collectorを止めてから復元する。日次/週次は相手ジョブの未完了transactionも復旧してから開始する。
+- push成功後のdeploy/本番確認失敗: 公開Git履歴を巻き戻さず、DB・正規化・正本をcommit済み状態へ保つ。成功日と月次マーカーは進めず、次回起動で再取得・検査・deployする。push応答が失われた場合もorigin/mainへのcommit包含を確認して判断する。確認不能なら復元せずtransactionを保存する。
+- 横浜市の結果一覧は1回60秒、最大5回の通信再試行と失敗ログを持つ。
 - health check失敗: デプロイを中止。
 - EDINET給与外れ値未解決: 上場企業更新を失敗させる。原典自体が異常で訂正値を確定できない場合は推測補正せず、その年度の値を欠損扱いにする。
 - 上場企業のunit/context/連結選択/異常値監査に未解決がある: public data生成前に停止する。
@@ -123,7 +129,12 @@ Cloudflare認証情報はホームディレクトリ配下の専用ファイル�
 - `daily-refresh.lock`
 - `weekly-audit.lock`
 - `release.lock`
-- `update.lock` / `procurement-refresh-snapshot/`
+- `update.lock`: 日次/週次のDB・正規化データ排他
+- `workspaces/daily`, `workspaces/topics`, `workspaces/weekly`: ジョブ別の隔離Git作業場所
+- `transactions/<job>/manifest.json`: 中断復旧用状態、DB/正規化スナップショット
+- `last-production-verification.json`: 最後の公開データ照合結果
+- `logs/<job>-failure-sources-*.json`: 失敗時の取得状況証跡
+- `procurement-refresh-snapshot/`: 2026-10-04までの旧復元用状態（現行更新では使用しない）
 
 ## 8. 手動運用
 - 全体確認: `npm run release:check`
@@ -136,3 +147,11 @@ Cloudflare認証情報はホームディレクトリ配下の専用ファイル�
 - データ監査: `npm run audit:data`
 - HTML監査: `npm run audit:html`
 - E2E: `npm run e2e:deep`
+
+## 9. 移行・運用確認
+cronの呼び出しパス・時刻は従来どおり。日次/トピック/週次のshellは新しいオーケストレータを起動する薄い入口になる。`collect-daily.sh` と `weekly-audit-worker.sh` は専用作業場所からのみ実行する。
+通常手動更新も隔離・Git反映・検証を通す。`--scheduled` は認可ホスト・当日成功スキップ・06:15以降の日次起動を追加する。
+主要本番ページはトップ、トピック、調達、上場企業、上場企業7203、未上場企業。生成データのみ変わった別ジョブのcommitを公開直前に取り込めるが、収集中のソース変更・同じファイルの競合では公開を止める。
+復旧snapshotは処理成功/復旧完了時に削除する。直近の隔離作業場所は次回起動時に再作成する。ジョブのRawは共有して取得済み証跡を保持する。ローカルGitに既存のユーザー変更があれば破棄せず停止する。
+
+住宅・土地、人口・世帯、小売価格の月次生成JSONもscheduled Git許可対象に含め、これらが更新された場合に公開前チェックで止まらないことを検査する。

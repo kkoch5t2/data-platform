@@ -83,6 +83,7 @@ if [ "$UNLISTED_DETAIL_SHARDS" -ne 64 ] || [ "$UNLISTED_COMPANIES" -lt 10000 ] |
   exit 3
 fi
 npx wrangler pages functions build functions --outfile /tmp/datlume-pages-functions.js --output-routes-path /tmp/datlume-pages-routes.json --minify >/dev/null
+python3 scripts/verify-production.py --dist dist --write-manifest
 FILE_COUNT=$(find dist -type f | wc -l)
 MAX_SIZE=$(find dist -type f -printf '%s\n' | awk 'BEGIN{m=0} {if ($1>m) m=$1} END{print m}')
 if [ "$FILE_COUNT" -gt 20000 ]; then echo "Too many files: $FILE_COUNT"; exit 1; fi
@@ -115,3 +116,5 @@ else:
 PY
 echo 'Uploading full DATLUME build to Cloudflare Pages...'
 npx wrangler pages deploy dist --project-name=datlume --branch=main --commit-dirty=true
+
+python3 scripts/verify-production.py --dist dist --base-url https://datlume.com --report "$STATE_DIR/last-production-verification.json"

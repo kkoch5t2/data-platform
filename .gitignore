@@ -46,3 +46,5 @@ __pycache__/
 .wrangler/
 /tmp/
 /node_modules
+# Isolated refresh worktrees link the shared runtime directory.
+/data

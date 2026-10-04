@@ -1,6 +1,6 @@
 # DATLUME QA・テスト設計書
 
-最終更新: 2026-10-04
+最終更新: 2026-10-05
 
 ## 1. 品質方針
 DATLUMEは「画面が開く」だけでなく、数値・出典・リンク・操作・モバイル表示・データ整合性まで確認する。
@@ -85,4 +85,16 @@ PCと幅390px相当のモバイルを両方検証する。
 本番反映後に同じ主要ルートを再確認し、ローカルのみ成功を完了条件としない。
 
 ## 10. 自動更新の障害復旧テスト
-`python3 scripts/test-refresh-recovery.py` は実際の日次shellを隔離した小規模DB・公開データで実行し、収集失敗・health失敗・回帰失敗の各場合にDB、sources、summary、公開shardが元に戻り、新規shardが削除され、失敗証跡と前回成功日が保持されることを検査する。両ジョブの共通ロックと横浜市通信の一時障害回復・再試行上限も確認する。WALにcommit済みの値をバックアップへ含め、中断で残ったhot journalを復元時に除去することも検査する。JETROの既存IDでは再分類せず機関名補完を保持し、新規IDだけ分類されることも確認する。
+`python3 scripts/test-scheduled-refresh.py` は実Gitのbare remote、隔離worktree、小規模SQLiteを使用する。実際の `collect-daily.sh` の収集/health/回帰/上場企業/月次失敗、build/ローカルE2E失敗を注入し、DB・文書索引・正規化の復元、正本Gitのclean状態、成功日/月次マーカーの不変を確認する。
+日次のDBロック保持中にトピックを公開し、その後の日次公開が新しいトピックとソース状態を保持することを検証する。同じ生成ファイルの競合、収集中のコード変更、既存のユーザー変更は破棄せず公開停止する。
+push後のdeploy/本番E2E失敗ではGitに公開済みの状態を復元せず保持し、成功日を進めないことを確認する。中断した子プロセスはDB復元前に停止する。
+`python3 scripts/test-production-verification.py` はHTTP 200でも古いmanifest・古いJSON・壊れたXML・別ページなら失敗し、キャッシュ伝播による一時不一致の再試行後に一致すれば成功することを確認する。
+`python3 scripts/test-refresh-recovery.py` はSQLiteのWALコミットをバックアップへ含め、hot journalを復元時に除去すること、JETRO既存IDの再分類省略と機関名補完、新規IDの分類、横浜市の通信再試行上限を検査する。
+
+## 11. 公開自動照合
+`deploy-datlume.sh` はupload前にrelease-manifestを作り、本番manifest、主要公開JSON、sitemap、詳細shard両端サンプルをSHA-256とbytesで検証する。古いデータがHTTP 200を返しても成功扱いにしない。
+日次/トピックはbuild前監査に加え、Wrangler Pagesローカル環境で主要ルートと動的詳細のPC/モバイルE2E、本番の主要ページと動的企業詳細のPC/モバイルE2Eを必須にする。これらが通って初めて成功マーカーを更新する。
+
+住宅・土地、人口・世帯、小売価格の月次生成JSONもscheduled Git許可対象に含め、これらが更新された場合に公開前チェックで止まらないことを検査する。
+
+画像QAは画面外のlazy画像を取得・decode完了まで待って検査する。未取得のlazy画像を破損と誤判定しないが、取得・decode失敗は引き続きFAILとする。
