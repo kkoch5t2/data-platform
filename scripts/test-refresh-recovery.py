@@ -15,7 +15,7 @@ ROOT=Path(__file__).resolve().parents[1]
 
 class RecoveryTests(unittest.TestCase):
     def test_failure_paths_restore_database_outputs_and_keep_evidence(self):
-        for failure in ('collection','health','regression'):
+        for failure in ('collection','health','regression','signal'):
             with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
                 root=Path(directory)
                 for folder in ['scripts','collector','src/data','public/data/company-details','data/automation']:
@@ -41,14 +41,15 @@ root=Path.cwd()
 (root/'public/data/company-details/00.json').write_text('[2]')
 with sqlite3.connect(root/'data/public_it.db') as db:db.execute('insert into procurements values(2)')
 '''
-                (root/'collector/collect_geps_awards.py').write_text(mutator+('raise SystemExit(1)\n' if failure=='collection' else ''))
+                stop = 'raise SystemExit(1)\n' if failure=='collection' else ('import os,signal;os.kill(os.getppid(),signal.SIGTERM)\n' if failure=='signal' else '')
+                (root/'collector/collect_geps_awards.py').write_text(mutator+stop)
                 for source in ['jetro','jetro_local','yokohama_procurement','sapporo_procurement','kobe_procurement',
                                'fukuoka_procurement','chiba_procurement','kyoto_procurement','kawasaki_procurement','sendai_procurement']:
                     (root/f'collector/collect_{source}.py').write_text('')
                 (root/'collector/check_health.py').write_text('raise SystemExit(1)' if failure=='health' else '')
                 (root/'scripts/check-procurement-regression.py').write_text('raise SystemExit(1)')
                 result=subprocess.run(['bash',str(root/'scripts/daily-refresh.sh')],cwd=root,text=True,capture_output=True,timeout=30)
-                self.assertEqual(result.returncode,{'collection':1,'health':21,'regression':24}[failure],result.stdout+result.stderr)
+                self.assertEqual(result.returncode,{'collection':1,'health':21,'regression':24,'signal':143}[failure],result.stdout+result.stderr)
                 for name,value in before.items():self.assertEqual((root/name).read_text(),value,name)
                 self.assertFalse((root/'src/data/procurements-2099.json').exists())
                 self.assertEqual(unrelated.read_text(),'untouched')
