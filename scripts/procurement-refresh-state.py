@@ -3,7 +3,9 @@
 import argparse
 import json
 import shutil
+import sqlite3
 import subprocess
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -52,9 +54,42 @@ def restore(root, destination):
         copy(destination / rel, root / rel)
     print(f"Procurement outputs restored: {len(entries)} files; failure status retained in logs")
 
+def check_database(path):
+    with closing(sqlite3.connect(f"file:{path}?mode=ro", uri=True)) as db:
+        result = db.execute("PRAGMA integrity_check(1)").fetchall()
+    if result != [("ok",)]:
+        raise RuntimeError(f"Database integrity failed for {path}: {result}")
+
+def backup_database(root, destination):
+    source = root / "data/public_it.db"
+    if not source.exists():
+        return
+    temporary = destination.with_suffix(destination.suffix + ".tmp")
+    temporary.unlink(missing_ok=True)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    # SQLite backup includes committed state even when a WAL exists.
+    with closing(sqlite3.connect(source)) as db, closing(sqlite3.connect(temporary)) as backup:
+        db.backup(backup)
+    check_database(temporary)
+    temporary.replace(destination)
+    print("Procurement database backup passed integrity check")
+
+def restore_database(root, source):
+    check_database(source)
+    target = root / "data/public_it.db"
+    temporary = target.with_suffix(".restore")
+    copy(source, temporary)
+    # Collectors have exited; journals from the failed connection must never
+    # be replayed onto the restored database image.
+    for suffix in ("-journal", "-wal", "-shm"):
+        Path(str(target) + suffix).unlink(missing_ok=True)
+    temporary.replace(target)
+    print("Procurement database restored from verified backup")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=["snapshot", "restore"])
+    parser.add_argument("action", choices=["snapshot", "restore", "backup-db", "restore-db"])
     parser.add_argument("destination", type=Path)
     args = parser.parse_args()
-    {"snapshot": snapshot, "restore": restore}[args.action](ROOT, args.destination)
+    {"snapshot": snapshot, "restore": restore,
+     "backup-db": backup_database, "restore-db": restore_database}[args.action](ROOT, args.destination)

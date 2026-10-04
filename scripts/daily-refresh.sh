@@ -40,7 +40,7 @@ rollback_procurement() {
   if (( PROCUREMENT_ACTIVE == 0 )); then return; fi
   PROCUREMENT_ACTIVE=0
   echo "Restoring procurement database and generated outputs after failure"
-  [[ ! -s "$backup" ]] || cp --reflink=auto "$backup" "$DB"
+  [[ ! -s "$backup" ]] || python3 scripts/procurement-refresh-state.py restore-db "$backup"
   python3 scripts/procurement-refresh-state.py restore "$PROCUREMENT_SNAPSHOT"
 }
 
@@ -116,8 +116,7 @@ PY
 
 backup="$BACKUP_DIR/public_it-$(date +%F).db"
 if [[ -s "$DB" ]]; then
-  cp --reflink=auto "$DB" "$backup.tmp"
-  mv "$backup.tmp" "$backup"
+  run_step "procurement-database-backup" python3 scripts/procurement-refresh-state.py backup-db "$backup"
 fi
 if [[ -s "$ROOT/src/data/summary.json" ]]; then
   cp "$ROOT/src/data/summary.json" "$PREV_SUMMARY"

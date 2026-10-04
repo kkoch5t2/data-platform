@@ -59,6 +59,30 @@ with sqlite3.connect(root/'data/public_it.db') as db:db.execute('insert into pro
                 self.assertEqual(len(evidence),1)
                 self.assertIn('injected failure',evidence[0].read_text())
 
+    def test_sqlite_backup_captures_wal_and_restore_discards_hot_journal(self):
+        spec=importlib.util.spec_from_file_location('refresh_state',ROOT/'scripts/procurement-refresh-state.py')
+        state=importlib.util.module_from_spec(spec);spec.loader.exec_module(state)
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);(root/'data').mkdir()
+            target=root/'data/public_it.db';backup=root/'data/backup.db'
+            with sqlite3.connect(target) as db:
+                db.execute('PRAGMA journal_mode=WAL')
+                db.execute('create table procurements(id integer, value text)')
+                db.execute("insert into procurements values(1,'committed')")
+                db.commit()
+                state.backup_database(root,backup)
+            db.close()
+            with sqlite3.connect(target) as db:db.execute('PRAGMA journal_mode=DELETE')
+            db.close()
+            code="import sqlite3,os;db=sqlite3.connect("+repr(str(target))+ ");db.execute('BEGIN IMMEDIATE');db.execute(\"update procurements set value='uncommitted'\");os._exit(1)"
+            subprocess.run(['python3','-c',code],check=False)
+            self.assertTrue(Path(str(target)+'-journal').exists())
+            state.restore_database(root,backup)
+            self.assertFalse(Path(str(target)+'-journal').exists())
+            with sqlite3.connect(target) as db:
+                self.assertEqual(db.execute('select value from procurements').fetchone()[0],'committed')
+                self.assertEqual(db.execute('pragma integrity_check').fetchall(),[('ok',)])
+
     def test_existing_seed_skips_classification_but_preserves_agency_repair(self):
         import sys
         sys.path.insert(0,str(ROOT))
