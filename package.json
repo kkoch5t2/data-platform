@@ -41,6 +41,7 @@
     "audit:listed-source": "node scripts/run-python.cjs scripts/audit-listed-source-values.py",
     "collect:social-population": "node scripts/run-python.cjs collector/collect_social_population.py",
     "collect:retail-prices-city": "node scripts/run-python.cjs collector/collect_retail_prices_city.py",
+    "backfill:retail-prices-city": "node scripts/run-python.cjs collector/backfill_retail_prices_city.py",
     "audit:retail-prices-city": "node scripts/run-python.cjs scripts/audit-retail-prices-city.py",
     "audit:housing-land-2023": "node scripts/run-python.cjs scripts/audit-housing-land-2023.py",
     "audit:reinfolib-transactions": "node scripts/run-python.cjs scripts/audit-reinfolib-transactions.py",
@@ -64,7 +65,8 @@
     "e2e:workplace": "node scripts/e2e-workplace.cjs",
     "collect:ipss-population": "node scripts/run-python.cjs collector/collect_ipss_population.py",
     "audit:ipss-population": "node scripts/run-python.cjs scripts/audit-ipss-population.py",
-    "e2e:ipss-population": "node scripts/e2e-ipss-population.cjs"
+    "e2e:ipss-population": "node scripts/e2e-ipss-population.cjs",
+    "e2e:retail-history": "node scripts/e2e-retail-history.cjs"
   },
   "dependencies": {
     "astro": "^7.3.4",

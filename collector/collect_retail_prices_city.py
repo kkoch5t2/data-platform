@@ -191,10 +191,34 @@ def main():
    arr=[series.get(m) for m in months]
    if any(v is not None for v in arr):values[code][city]=arr
  payload={'schemaVersion':1,'generatedAt':now.isoformat(),'source':'総務省統計局 小売物価統計調査（動向編） 主要品目の都市別小売価格','sourceUrl':SOURCE_PAGE,'latestMonth':latest,'months':months,'cityCount':len(city_codes),'items':items,'cities':[{'code':c,'name':city_names[c]} for c in city_codes],'values':values,'missingPolicy':'「-」「...」等の非数値は欠損(null)として保持。公式表に数値の0が記録されている場合は0をそのまま保持。'}
+ if OUT.exists():
+  previous=json.loads(OUT.read_text(encoding='utf-8'))
+  if previous.get('schemaVersion')==2 and previous.get('months',[None])[0]=='2000-01':
+   previous_units={item['code']:item['unit'] for item in previous['items']}
+   for item in items:
+    if previous_units.get(item['code'])!=item['unit']:
+     raise ValueError(f"Published item unit changed for {item['code']}: {previous_units.get(item['code'])} -> {item['unit']}; historical series needs review")
+   all_months=sorted(set(previous['months'])|set(months))
+   prev_idx={m:i for i,m in enumerate(previous['months'])}; fresh_idx={m:i for i,m in enumerate(months)}
+   cities_all={c['code']:c for c in previous['cities']}
+   cities_all.update({c['code']:c for c in payload['cities']})
+   combined={}
+   for item in ITEMS:
+    code=item['code'];combined[code]={}
+    for city in cities_all:
+     earlier=previous['values'].get(code,{}).get(city,[])
+     recent=payload['values'].get(code,{}).get(city,[])
+     series=[recent[fresh_idx[m]] if m in fresh_idx and recent else
+             None if m in fresh_idx else
+             earlier[prev_idx[m]] if m in prev_idx and earlier else None
+             for m in all_months]
+     if any(v is not None for v in series):combined[code][city]=series
+   payload.update({key:previous[key] for key in ('historicalSource','historicalSourceUrl','historicalMonthCount','unitConversions','incompatibleHistoricalUnits') if key in previous})
+   payload.update({'schemaVersion':2,'months':all_months,'cities':list(cities_all.values()),'cityCount':len(cities_all),'values':combined})
  OUT.parent.mkdir(parents=True,exist_ok=True); OUT.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
- count=sum(sum(1 for value in series if value is not None) for item in values.values() for series in item.values())
- print(f'retail-prices-city: {len(months)} months / {len(city_codes)} cities / {len(items)} items -> {OUT}')
- return {'records':count,'months':len(months),'cities':len(city_codes),'items':len(items),'latestMonth':latest}
+ count=sum(value is not None for item in payload['values'].values() for series in item.values() for value in series)
+ print(f"retail-prices-city: {len(payload['months'])} months / {payload['cityCount']} cities / {len(items)} items -> {OUT}")
+ return {'records':count,'months':len(payload['months']),'cities':payload['cityCount'],'items':len(items),'latestMonth':latest}
 
 if __name__=='__main__':
  with SourceRun('retail_prices_city','総務省統計局 小売物価統計調査（動向編）都市別小売価格') as run:run.set_metrics(**main())

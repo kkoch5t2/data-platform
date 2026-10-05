@@ -296,13 +296,13 @@
     "retail_prices_city": {
       "label": "総務省統計局 小売物価統計調査（動向編）都市別小売価格",
       "status": "ok",
-      "startedAt": "2026-10-02T15:19:37.004405+00:00",
-      "finishedAt": "2026-10-02T15:20:41.691078+00:00",
-      "durationSeconds": 64.69,
+      "startedAt": "2026-10-05T09:56:21.674186+00:00",
+      "finishedAt": "2026-10-05T09:57:53.089157+00:00",
+      "durationSeconds": 91.41,
       "metrics": {
-        "records": 25268,
-        "months": 24,
-        "cities": 84,
+        "records": 286501,
+        "months": 320,
+        "cities": 90,
         "items": 13,
         "latestMonth": "2026-08"
       },

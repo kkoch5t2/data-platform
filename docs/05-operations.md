@@ -161,3 +161,8 @@ cronの呼び出しパス・時刻は従来どおり。日次/トピック/週�
 日次の上場/未上場公開データ生成前にcollect:shokubaとhealth --source shokubaを実行する。公式ZIPは過去原本も保持。workplace.sqliteを隔離更新の復旧対象へ追加し、収集/監査失敗では公開を止める。
 
 社人研の将来人口は `last-ipss-population-refresh` マーカーで月初回に原典4表を再取得し、スキーマ・1,884地域・年齢3区分・2020年人口の整合監査後に公開する。
+
+
+### 小売物価の履歴バックフィルと月次更新
+
+一度だけ npm run backfill:retail-prices-city を実行して原表を保存・組み立てる。--years 2000-2000 --download-only のような部分取得も可能。各年のe-Stat一覧を再照合し、公開ファイルの分割が変わった月だけパース済みスナップショットを再取得する。通常の npm run collect:retail-prices-city は2000年以降の既存履歴を保持して最新24か月を再取得する。最新品目の単位が変わった場合は失敗させ、履歴比較の見直しを要求する。更新後 npm run audit:retail-prices-city を実行する。
