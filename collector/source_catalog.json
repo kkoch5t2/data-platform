@@ -77,6 +77,20 @@
       "country": "JP",
       "domain": "regional"
     },
+    "lodging_statistics": {
+      "label": "観光庁 宿泊旅行統計調査",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 8000,
+      "acquisition": "official-open-data-xlsx",
+      "command": [
+        "python3",
+        "collector/collect_lodging_statistics.py"
+      ],
+      "country": "JP",
+      "domain": "regional"
+    },
     "employment_economy": {
       "label": "厚生労働省 賃金構造基本統計 / 統計センター SSDSE",
       "enabled": true,
@@ -422,7 +436,13 @@
       "maxAgeHours": 840,
       "minRecords": 100000,
       "acquisition": "official-zip-token",
-      "command": ["python3", "-m", "collector.company_registry.collect_gbiz_bulk", "--type", "subsidy"],
+      "command": [
+        "python3",
+        "-m",
+        "collector.company_registry.collect_gbiz_bulk",
+        "--type",
+        "subsidy"
+      ],
       "country": "JP",
       "domain": "company"
     },
@@ -433,7 +453,13 @@
       "maxAgeHours": 840,
       "minRecords": 1000000,
       "acquisition": "official-zip-token",
-      "command": ["python3", "-m", "collector.company_registry.collect_gbiz_bulk", "--type", "patent"],
+      "command": [
+        "python3",
+        "-m",
+        "collector.company_registry.collect_gbiz_bulk",
+        "--type",
+        "patent"
+      ],
       "country": "JP",
       "domain": "company"
     },

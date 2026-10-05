@@ -94,6 +94,6 @@ def load_activity_map(corporate_numbers) -> tuple[dict[str, dict], dict[str, dic
             continue
         activities[number] = {
             "subsidies": {"count": len(subsidy_records), "recent": subsidy_records[:8], "sourceDate": metadata["subsidy"]["sourceDate"]} if subsidy_records else None,
-            "patents": {"count": len(patent_records), "recent": patent_records[:8], "sourceDate": metadata["patent"]["sourceDate"]} if patent_records else None,
+            "patents": {"count": len(patent_records), "recent": patent_records[:20], "sourceDate": metadata["patent"]["sourceDate"]} if patent_records else None,
         }
     return activities, metadata

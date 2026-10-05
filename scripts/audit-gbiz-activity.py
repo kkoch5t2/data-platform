@@ -57,7 +57,7 @@ for area, records, index in (("listed-companies", listed, listed_index), ("compa
             if not value:
                 continue
             counts[metric] += 1
-            assert 0 < len(value["recent"]) <= min(8, value["count"])
+            assert 0 < len(value["recent"]) <= min(8 if metric == "subsidies" else 20, value["count"])
             assert value["sourceDate"] == sources["subsidy" if metric == "subsidies" else "patent"]["sourceDate"]
             if metric == "patents":
                 registrations = [v["registration"] for v in value["recent"]]

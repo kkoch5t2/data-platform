@@ -12,12 +12,16 @@ function subsidyCard(data, sourceDate) {
 }
 function patentCard(data, sourceDate) {
   if (!data?.count) return '';
-  const rows = (data.recent || []).map(item => {
+  const renderPatent = item => {
     const url = sourceLink(item.url);
     const name = esc(item.name || '名称の記載なし');
     return `<li><div><b>${url ? `<a href="${esc(url)}" target="_blank" rel="noreferrer">${name}</a>` : name}</b><small>登録番号 ${esc(item.registration)} · 出願 ${esc(item.applicationDate || '日付の記載なし')}</small></div></li>`;
-  }).join('');
-  return `<section class="activity-panel"><div class="activity-head"><h2>特許の記録</h2><span>${Number(data.count).toLocaleString('ja-JP')}件</span></div><p>同じ登録番号の分類行をまとめた件数です。直近の最大8件を出願日順に表示。</p><ul>${rows}</ul><p class="activity-source">データ取得元：<a href="https://info.gbiz.go.jp/hojin/DownloadTop" target="_blank" rel="noreferrer">Gビズインフォ</a> · 配布日 ${esc(sourceDate || '不明')}。登録日や現在の権利状態を示す件数ではありません。</p></section>`;
+  };
+  const recent = data.recent || [];
+  const first = recent.slice(0, 5).map(renderPatent).join('');
+  const more = recent.slice(5);
+  const expanded = more.length ? `<details class="activity-more"><summary>さらに${more.length}件を見る</summary><ul>${more.map(renderPatent).join('')}</ul></details>` : '';
+  return `<section class="activity-panel"><div class="activity-head"><h2>特許の記録</h2><span>${Number(data.count).toLocaleString('ja-JP')}件</span></div><p>同じ登録番号の分類行をまとめ、出願日順に最新5件を表示。続きは最大20件まで見られます。</p><ul>${first}</ul>${expanded}<p class="activity-source">データ取得元：<a href="https://info.gbiz.go.jp/hojin/DownloadTop" target="_blank" rel="noreferrer">Gビズインフォ</a> · 配布日 ${esc(sourceDate || '不明')}。登録日や現在の権利状態を示す件数ではありません。</p></section>`;
 }
 export function renderActivity(activity) {
   if (!activity?.subsidies && !activity?.patents) return '';

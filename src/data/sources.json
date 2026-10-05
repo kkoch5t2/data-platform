@@ -454,6 +454,19 @@
         "records": 4600382,
         "sourceDate": "2026-10-05"
       }
+    },
+    "lodging_statistics": {
+      "label": "観光庁 宿泊旅行統計調査",
+      "status": "ok",
+      "startedAt": "2026-10-05T15:22:20.644102+00:00",
+      "finishedAt": "2026-10-05T15:22:23.982632+00:00",
+      "durationSeconds": 3.34,
+      "metrics": {
+        "records": 8976,
+        "areas": 48,
+        "latestMonth": "2026-07"
+      },
+      "previousRecordCount": 8976
     }
   }
 }

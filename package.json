@@ -20,7 +20,7 @@
     "e2e": "node scripts/e2e-smoke.cjs && node scripts/e2e-deep.cjs",
     "e2e:smoke": "node scripts/e2e-smoke.cjs",
     "e2e:deep": "node scripts/e2e-deep.cjs",
-    "audit:data": "npm run test:procurement-quality && npm run audit:wikipedia-topics && node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && npm run audit:housing-land-2023 && npm run audit:reinfolib-transactions && npm run audit:retail-prices-city && npm run audit:procurement-awards && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py && npm run audit:company-registry && npm run test:gbiz-activity && npm run audit:gbiz-activity && npm run test:shokuba && npm run audit:shokuba && npm run audit:ipss-population",
+    "audit:data": "npm run test:procurement-quality && npm run audit:wikipedia-topics && node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && npm run audit:housing-land-2023 && npm run audit:reinfolib-transactions && npm run audit:retail-prices-city && npm run audit:procurement-awards && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py && npm run audit:company-registry && npm run test:gbiz-activity && npm run audit:gbiz-activity && npm run test:shokuba && npm run audit:shokuba && npm run audit:ipss-population && npm run audit:lodging-statistics",
     "audit:html": "node scripts/run-python.cjs scripts/audit-generated-html.py",
     "collect:listed-master": "node scripts/run-python.cjs -m collector.listed_companies.collect_master",
     "collect:listed-documents": "node scripts/run-python.cjs -m collector.listed_companies.collect_documents",
@@ -46,7 +46,7 @@
     "audit:housing-land-2023": "node scripts/run-python.cjs scripts/audit-housing-land-2023.py",
     "audit:reinfolib-transactions": "node scripts/run-python.cjs scripts/audit-reinfolib-transactions.py",
     "audit:procurement-awards": "node scripts/run-python.cjs scripts/audit-procurement-awards.py",
-    "collect:company-registry-nta": "node scripts/run-python.cjs -m collector.company_registry.collect_nta --region \u5168\u56fd",
+    "collect:company-registry-nta": "node scripts/run-python.cjs -m collector.company_registry.collect_nta --region 全国",
     "backfill:company-registry-procurement": "node scripts/run-python.cjs -m collector.company_registry.backfill_procurement_links",
     "build:company-registry": "node scripts/run-python.cjs -m collector.company_registry.build_registry",
     "audit:company-registry": "node scripts/run-python.cjs scripts/audit-company-registry.py",
@@ -71,7 +71,10 @@
     "collect:ipss-population": "node scripts/run-python.cjs collector/collect_ipss_population.py",
     "audit:ipss-population": "node scripts/run-python.cjs scripts/audit-ipss-population.py",
     "e2e:ipss-population": "node scripts/e2e-ipss-population.cjs",
-    "e2e:retail-history": "node scripts/e2e-retail-history.cjs"
+    "e2e:retail-history": "node scripts/e2e-retail-history.cjs",
+    "collect:lodging-statistics": "node scripts/run-python.cjs collector/collect_lodging_statistics.py",
+    "audit:lodging-statistics": "node scripts/run-python.cjs scripts/audit-lodging-statistics.py",
+    "e2e:lodging-statistics": "node scripts/e2e-lodging-statistics.cjs"
   },
   "dependencies": {
     "astro": "^7.3.4",

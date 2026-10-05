@@ -159,6 +159,14 @@ if [[ ! -f "$MONTH_MARKER" ]] || ! grep -qx "$MONTH" "$MONTH_MARKER"; then
   printf '%s\n' "$MONTH" > "$MONTH_MARKER"
 fi
 
+# Independently refresh this newly added source even when the regional monthly marker already passed.
+LODGING_MARKER="$STATE_DIR/last-lodging-statistics-refresh"
+if [[ ! -f "$LODGING_MARKER" ]] || ! grep -qx "$MONTH" "$LODGING_MARKER"; then
+  run_step "monthly-lodging-statistics" npm run collect:lodging-statistics
+  run_step "monthly-lodging-health" python3 collector/check_health.py --source lodging_statistics
+  printf '%s\n' "$MONTH" > "$LODGING_MARKER"
+fi
+
 # This marker is separate so a month already refreshed before this source list changed
 # still runs the newly covered collectors once on the next scheduled attempt.
 SECONDARY_MONTH_MARKER="$STATE_DIR/last-monthly-secondary-refresh"

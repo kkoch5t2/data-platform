@@ -70,3 +70,6 @@
 
 ## Gビズインフォの補助金・特許（2026-10-05追加）
 上場・未上場企業詳細に法人番号で追加する。`collect_gbiz_bulk.py` で月次ZIPを取得し、`gbiz_activity.py` が特許の登録番号重複をまとめる。`functions/_shared/activity.js` と `public/activity.css` が表示を担当し、`scripts/audit-gbiz-activity.py` と `scripts/e2e-gbiz-activity.cjs` が原典・PC/モバイルを検査する。
+
+## 宿泊旅行統計（2026-10-05追加）
+`/regional/stays/` — 観光庁の月次推移表。`collector/collect_lodging_statistics.py` → `public/data/lodging-statistics.json` → 地域比較・ランキング。月次独立マーカー、`scripts/audit-lodging-statistics.py`、`scripts/e2e-lodging-statistics.cjs`。
