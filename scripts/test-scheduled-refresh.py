@@ -194,7 +194,7 @@ class Tests(unittest.TestCase):
 
     def test_monthly_secondary_datasets_can_be_published_but_code_changes_cannot(self):
         paths = ('public/data/housing-land-2023.json', 'public/data/municipality-social-indicators.json',
-                 'public/data/retail-prices-city-monthly.json')
+                 'public/data/retail-prices-city-monthly.json', 'public/data/municipality-population-projections.json')
         with tempfile.TemporaryDirectory() as directory:
             fixture = Fixture(directory)
             class Monthly(SmallRefresh):

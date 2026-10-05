@@ -420,6 +420,18 @@
         "sourceDate": "2026-10-05",
         "sha256": "59d748d5228bb6f7317e30f63df888151c0c71d1dc2b6aab8368c3082e883fe9"
       }
+    },
+    "ipss_population": {
+      "label": "社人研 地域別将来推計人口（2023年推計）",
+      "status": "ok",
+      "startedAt": "2026-10-05T04:45:46.205402+00:00",
+      "finishedAt": "2026-10-05T04:45:50.231680+00:00",
+      "durationSeconds": 4.03,
+      "metrics": {
+        "records": 1884,
+        "geocoded": 1708
+      },
+      "previousRecordCount": 1884
     }
   }
 }

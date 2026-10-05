@@ -162,6 +162,14 @@ if [[ ! -f "$SECONDARY_MONTH_MARKER" ]] || ! grep -qx "$MONTH" "$SECONDARY_MONTH
   printf '%s\n' "$MONTH" > "$SECONDARY_MONTH_MARKER"
 fi
 
+# Independent marker also runs a newly added projection source in an already refreshed month.
+IPSS_MARKER="$STATE_DIR/last-ipss-population-refresh"
+if [[ ! -f "$IPSS_MARKER" ]] || ! grep -qx "$MONTH" "$IPSS_MARKER"; then
+  run_step "monthly-ipss-population" python3 collector/collect_ipss_population.py
+  run_step "monthly-ipss-health" python3 collector/check_health.py --source ipss_population
+  printf '%s\n' "$MONTH" > "$IPSS_MARKER"
+fi
+
 REINFOLIB_WEEK="$(date +%G-W%V)"
 REINFOLIB_MARKER="$STATE_DIR/last-reinfolib-check"
 if [[ ! -f "$REINFOLIB_MARKER" ]] || ! grep -qx "$REINFOLIB_WEEK" "$REINFOLIB_MARKER"; then

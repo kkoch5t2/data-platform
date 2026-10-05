@@ -26,6 +26,7 @@ EXACT_PATHS = {
     "public/data/land-prices-2026.json",
     "public/data/land-survey-2026.json",
     "public/data/municipality-stats-2026.json",
+    "public/data/municipality-population-projections.json",
     "public/data/poi-hospitals-2020.json",
     "public/data/poi-schools-2023.json",
     "public/data/poi-stations-2025.json",

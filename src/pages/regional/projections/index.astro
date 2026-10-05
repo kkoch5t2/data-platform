@@ -1,0 +1,92 @@
+<!doctype html><html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<meta name="description" content="社人研の公式推計で市区町村の2020～2050年の人口と年齢構成を地図とグラフで比較。">
+<link rel="canonical" href="https://datlume.com/regional/projections/"><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="/vendor/maplibre-6.11.1/maplibre-gl.css"><title>市区町村の将来人口 | DATLUME</title>
+<style>
+:root{--ink:#142033;--muted:#667085;--line:#e4e9f0;--bg:#f4f6f9;--nav:#0e1b2e}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Noto Sans JP",sans-serif}a{color:inherit}.wrap{width:min(1220px,calc(100% - 32px));margin:auto}
+header{background:var(--nav);color:#fff;padding:19px 0 40px}.top{display:flex;justify-content:space-between;gap:20px;align-items:center}.brand{text-decoration:none;font-size:18px;font-weight:750;letter-spacing:.15em}.back{font-size:13px;color:#d9e4f4}.hero{margin-top:38px}.hero h1{font-size:clamp(31px,4.5vw,54px);letter-spacing:-.045em;margin:0 0 10px}.hero p{color:#c7d3e4;line-height:1.7;max-width:800px;margin:0}
+main{padding:18px 0 64px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:12px}.controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.control label{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-bottom:6px}.control select{width:100%;height:42px;border:1px solid #d9dee7;border-radius:9px;background:#fff;padding:0 9px;font:inherit;font-size:13px}.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.kpi{min-width:0}.kpi small{color:var(--muted)}.kpi strong{display:block;font-size:clamp(21px,2.5vw,28px);margin:6px 0}.kpi span{font-size:12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:1.15fr 1fr;gap:12px}.grid .card{min-width:0}.card h2{font-size:18px;margin:0 0 6px}.sub{font-size:12px;color:var(--muted);line-height:1.65;margin:0 0 12px}.chart{height:340px}#map{height:500px;border-radius:10px;background:#e7edf3}.legend{font-size:12px;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap;margin:0 0 12px}.legend b{font-size:15px}.note{font-size:12px;color:#475467;line-height:1.75}.maplibregl-popup-content{font:12px/1.6 system-ui,sans-serif;color:#142033}.maplibregl-popup-content button{cursor:pointer;border:0;background:#1769e0;color:white;border-radius:6px;padding:6px 9px;margin-top:5px}.status{font-size:12px;color:#667085;margin:8px 0}footer{font-size:12px;color:var(--muted);padding-bottom:30px}
+@media(max-width:850px){.controls{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}@media(max-width:520px){.wrap{width:calc(100% - 24px)}.controls{grid-template-columns:1fr 1fr;gap:10px}.kpis{grid-template-columns:1fr}.chart{height:290px}#map{height:400px}.card{padding:14px}.hero{margin-top:30px}}
+</style></head><body>
+<header><div class="wrap"><div class="top"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px"><img src="/favicon.svg" alt="" width="24" height="24" style="filter:brightness(0) invert(1)"><span>DATLUME</span></a><a class="back" href="/regional/">← 都道府県別推移</a></div><div class="hero"><h1>市区町村の将来人口</h1><p>社人研の2023年推計。2020年の国勢調査を基準に、2050年まで5年ごとの人口と年齢構成を比べられます。</p></div></div></header>
+<main class="wrap">
+<section class="card controls" aria-label="比較する地域">
+<div class="control"><label for="pref-a">地域 A・都道府県</label><select id="pref-a"></select></div><div class="control"><label for="city-a">地域 A・市区町村</label><select id="city-a"></select></div>
+<div class="control"><label for="pref-b">地域 B・都道府県</label><select id="pref-b"><option value="">比較なし</option></select></div><div class="control"><label for="city-b">地域 B・市区町村</label><select id="city-b" disabled><option value="">比較なし</option></select></div></section>
+<section class="kpis" aria-live="polite"><div class="card kpi"><small id="kpi-place">地域 A</small><strong id="kpi-pop">—</strong><span>2050年の推計人口</span></div><div class="card kpi"><small>2020年比</small><strong id="kpi-change">—</strong><span id="kpi-change-meta">人口の変化</span></div><div class="card kpi"><small>65歳以上の割合</small><strong id="kpi-elderly">—</strong><span id="kpi-elderly-meta">2050年推計</span></div></section>
+<section class="grid"><div class="card"><h2>人口の推移</h2><p class="sub">2020年を100とした指数。2020年は国勢調査、2025年以降は推計値です。</p><div id="trend" class="chart" role="img" aria-label="選んだ地域の人口推計推移"></div></div><div class="card"><h2>年齢構成</h2><p class="sub">地域 A の年齢3区分。2020年の年齢不詳は3区分に含まれません。</p><div id="age" class="chart" role="img" aria-label="選んだ地域の年齢構成推計"></div></div></section>
+<section class="card"><h2>2050年の人口変化を地図で見る</h2><p class="sub">点は市区町村の代表点です。色は2020年比、円の大きさは2050年の人口を表します。点を選ぶと地域 A を切り替えます。区を持つ政令指定都市は市全体の代表点を表示します。</p>
+<div class="legend"><span><b style="color:#1769e0">●</b> 増加・維持</span><span><b style="color:#f59e0b">●</b> 20%未満の減少</span><span><b style="color:#e25a46">●</b> 20%以上の減少</span></div><div id="map"></div><div id="map-status" class="status">地図を読み込み中…</div></section>
+<section class="card note"><strong>出典と読み方</strong><br>国立社会保障・人口問題研究所「日本の地域別将来推計人口（令和5（2023）年推計）」<a href="https://www.ipss.go.jp/pp-shicyoson/j/shicyoson23/2gaiyo_hyo/gaiyo.asp" target="_blank" rel="noreferrer">結果表1、2-1～2-3 ↗</a> を加工して作成。2020年は基準人口、2025～2050年は2023年時点の仮定に基づく将来推計で、各年の実績ではありません。福島県浜通り13市町村には個別推計がなく、「浜通り地域」合計のみを比較候補に載せています。政令指定都市20市の合計行は区と重複するため地域数に加えません。地図の代表点は既存のSSDSE-A収録自治体と名称・コードが一致する地域に限ります。</section>
+</main><footer class="wrap">DATLUME — 日本の公開データを、比較できる形に。</footer>
+<script>
+import * as echarts from 'echarts';
+import * as maplibregl from 'maplibre-gl';
+const $=id=>document.getElementById(id),nf=new Intl.NumberFormat('ja-JP');
+const trend=echarts.init($('trend')),age=echarts.init($('age'));
+let data,rows=[],map=null,popup=null;
+const label=r=>r.municipality+(r.kind==='1'?'（区合計）':'');
+const place=r=>r.prefecture+' '+label(r);
+const ratio=r=>r.values.at(-1)[0]/r.values[0][0]*100;
+const selected=id=>rows.find(r=>r.code===$(id).value);
+function focusMap(){if(!map?.getLayer('points'))return;const points=rows.filter(r=>r.prefecture===$('pref-a').value&&r.lon!=null);if(!points.length)return;const median=a=>a.sort((x,y)=>x-y)[Math.floor(a.length/2)];const lon=median(points.map(r=>r.lon)),lat=median(points.map(r=>r.lat));const core=points.map(r=>({r,d:(r.lon-lon)**2+(r.lat-lat)**2})).sort((a,b)=>a.d-b.d).slice(0,Math.max(1,Math.ceil(points.length*.85)));const bounds=new maplibregl.LngLatBounds();for(const {r} of core)bounds.extend([r.lon,r.lat]);map.fitBounds(bounds,{padding:45,maxZoom:9,duration:500})}
+function fillCities(prefId,cityId,want){
+ const pref=$(prefId).value,el=$(cityId),candidates=rows.filter(r=>r.prefecture===pref);
+ el.replaceChildren();if(!pref){el.disabled=true;el.add(new Option('比較なし',''));return}
+ el.disabled=false;for(const r of candidates)el.add(new Option(label(r),r.code));
+ el.value=candidates.some(r=>r.code===want)?want:(candidates[0]?.code||'');
+}
+function draw(){
+ const a=selected('city-a'),b=selected('city-b');if(!a)return;
+ const v=a.values.at(-1),base=a.values[0][0],change=ratio(a)-100;
+ $('kpi-place').textContent=place(a);$('kpi-pop').textContent=nf.format(v[0])+'人';
+ $('kpi-change').textContent=(change>0?'+':'')+change.toFixed(1)+'%';
+ $('kpi-change-meta').textContent='2020年 '+nf.format(base)+'人 → 2050年';
+ $('kpi-elderly').textContent=(v[3]/v[0]*100).toFixed(1)+'%';
+ $('kpi-elderly-meta').textContent='65歳以上 '+nf.format(v[3])+'人 / 2050年';
+ const series=[a,b].filter(Boolean).map((r,i)=>({name:place(r),type:'line',symbolSize:7,lineStyle:{width:3},data:r.values.map(x=>+(x[0]/r.values[0][0]*100).toFixed(1)),itemStyle:{color:i?'#e25a46':'#1769e0'}}));
+ trend.setOption({tooltip:{trigger:'axis',valueFormatter:v=>v+'（2020年＝100）'},legend:{top:0,type:'scroll'},grid:{left:55,right:15,top:55,bottom:40},xAxis:{type:'category',data:data.years},yAxis:{type:'value',scale:true,name:'指数'},series},true);
+ age.setOption({tooltip:{trigger:'axis',valueFormatter:v=>nf.format(v)+'人'},legend:{top:0},grid:{left:62,right:12,top:48,bottom:40},xAxis:{type:'category',data:data.years},yAxis:{type:'value',axisLabel:{formatter:v=>v>=1e6?(v/1e6)+'百万':v>=1e4?(v/1e4)+'万':v}},series:[{name:'0～14歳',type:'bar',stack:'age',data:a.values.map(v=>v[1]),itemStyle:{color:'#41a6bd'}},{name:'15～64歳',type:'bar',stack:'age',data:a.values.map(v=>v[2]),itemStyle:{color:'#1769e0'}},{name:'65歳以上',type:'bar',stack:'age',data:a.values.map(v=>v[3]),itemStyle:{color:'#f59e0b'}}]},true);
+ if(map?.getLayer('points'))map.setFilter('points',['==',['get','prefecture'],$('pref-a').value]);
+}
+function setA(code){const r=rows.find(x=>x.code===code);if(!r)return;$('pref-a').value=r.prefecture;fillCities('pref-a','city-a',code);draw()}
+function makeMap(){
+ try{
+  maplibregl.setWorkerUrl('/vendor/maplibre-6.11.1/maplibre-gl-worker.mjs');
+  map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[137.7,36.2],zoom:4.3,minZoom:3,maxZoom:15});
+  map.addControl(new maplibregl.NavigationControl(),'top-right');
+  map.on('load',()=>{
+   const mapped=rows.filter(r=>r.lon!=null&&r.lat!=null);
+   const features=mapped.map(r=>({type:'Feature',geometry:{type:'Point',coordinates:[r.lon,r.lat]},properties:{code:r.code,prefecture:r.prefecture,municipality:label(r),population:r.values.at(-1)[0],ratio:+ratio(r).toFixed(1),color:ratio(r)>=100?'#1769e0':ratio(r)>80?'#f59e0b':'#e25a46'}}));
+   map.addSource('regions',{type:'geojson',data:{type:'FeatureCollection',features}});
+   map.addLayer({id:'points',type:'circle',source:'regions',filter:['==',['get','prefecture'],$('pref-a').value],paint:{'circle-color':['get','color'],'circle-radius':['interpolate',['linear'],['sqrt',['get','population']],0,3,1500,15],'circle-opacity':.75,'circle-stroke-color':'#fff','circle-stroke-width':1}});
+   map.on('click','points',e=>{
+    const p=e.features?.[0]?.properties;if(!p)return;popup?.remove();
+    const box=document.createElement('div'),strong=document.createElement('strong');strong.textContent=p.prefecture+' '+p.municipality;box.append(strong);
+    const detail=document.createElement('div');detail.textContent='2050年 '+nf.format(p.population)+'人 / 2020年比 '+p.ratio+'%';box.append(detail);
+    const button=document.createElement('button');button.textContent='地域 A に選ぶ';button.addEventListener('click',()=>{setA(p.code);popup?.remove()});box.append(button);
+    popup=new maplibregl.Popup({offset:12}).setLngLat(e.features[0].geometry.coordinates).setDOMContent(box).addTo(map);
+   });
+   map.on('mouseenter','points',()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave','points',()=>map.getCanvas().style.cursor='');
+   $('map-status').textContent=nf.format(mapped.length)+'地点を収録（選択都道府県を表示）';focusMap();
+  });
+  map.on('error',()=>{$('map-status').textContent='背景地図を読み込めない場合も上のグラフで比較できます。'});
+ }catch(e){$('map-status').textContent='この環境では地図を表示できません。上のグラフで比較できます。'}
+}
+async function init(){
+ try{
+  const response=await fetch('/data/municipality-population-projections.json');if(!response.ok)throw Error('fetch');
+  data=await response.json();rows=data.records.filter(r=>r.kind!=='a');
+  const prefs=[...new Set(rows.map(r=>r.prefecture))];
+  for(const p of prefs){$('pref-a').add(new Option(p,p));$('pref-b').add(new Option(p,p))}
+  $('pref-a').value='東京都';fillCities('pref-a','city-a','13101');
+  $('pref-a').addEventListener('change',()=>{fillCities('pref-a','city-a');draw();focusMap()});
+  $('pref-b').addEventListener('change',()=>{fillCities('pref-b','city-b');draw()});
+  $('city-a').addEventListener('change',draw);$('city-b').addEventListener('change',draw);
+  draw();makeMap();
+ }catch(e){$('map-status').textContent='推計データを読み込めませんでした。ページを再読み込みしてください。'}
+}
+window.addEventListener('resize',()=>{trend.resize();age.resize();map?.resize()});init();
+</script></body></html>

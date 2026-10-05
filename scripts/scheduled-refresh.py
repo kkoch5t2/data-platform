@@ -20,7 +20,7 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 MARKERS = ('last-success-date', 'last-listed-master-refresh', 'last-monthly-refresh',
-           'last-monthly-secondary-refresh', 'last-reinfolib-check')
+           'last-monthly-secondary-refresh', 'last-ipss-population-refresh', 'last-reinfolib-check')
 SUCCESS = {'daily': 'last-success-date', 'topics': 'last-wikipedia-success-date',
            'weekly': 'last-weekly-success-date'}
 LOCKS = {'daily': 'daily-refresh.lock', 'topics': 'wikipedia-topics-refresh.lock',

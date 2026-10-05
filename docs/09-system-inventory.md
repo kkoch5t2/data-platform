@@ -10,6 +10,7 @@
 | 公共調達 | `/procurement/` | JETRO / GEPS / 自治体公式 | `collect_jetro.py`、各自治体collector | 日次 |
 | 不動産・暮らし | `/realestate/` | 国土数値情報 / ハザードマップ / 警察庁等 | `collect_land_prices.py`、`collect_living_layers.py` | 月次 |
 | 都道府県別推移 | `/regional/` | SSDSE / 人口移動報告 | `collect_regional_trends.py` 等 | 月次 |
+| 市区町村の将来人口 | `/regional/projections/` | 社人研・2023年推計 | `collect_ipss_population.py` | 月次再確認 |
 | 雇用・賃金 | `/employment-economy/` | 賃金構造基本統計 / SSDSE | `collect_employment_economy.py` 等 | 月次 |
 | 企業・産業 | `/business-industry/` | SSDSE-E | `collect_business_industry.py` 等 | 月次 |
 | 上場企業 | `/listed-companies/` | JPX / EDINET | `collector/listed_companies/*` | 日次 + マスタ月次 |
