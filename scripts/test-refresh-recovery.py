@@ -67,6 +67,51 @@ class RecoveryTests(unittest.TestCase):
                     classify.assert_called_once_with('new title')
                 self.assertEqual(db.execute("SELECT category FROM procurements WHERE source_id='jetro:2:new'").fetchone()[0],'new category')
 
+    def test_geps_snapshot_corrections_are_not_resurrected_by_jetro_seed(self):
+        import sys
+        sys.path.insert(0,str(ROOT))
+        from collector import collect_jetro as jetro
+        sys.path.insert(0,str(ROOT / "collector"))
+        import collect_geps_awards as geps
+        old=['0000000000000532757','作業衣購入','2025-07-31','2370300','J5','8002010','旧社名株式会社','1111111111111']
+        corrected=old.copy();corrected[6]='訂正社名株式会社'
+        withdrawn=old.copy();withdrawn[0]='0000000000000532758'
+        joint=corrected.copy();joint[6]='別受注者株式会社';joint[7]='2222222222222'
+        prior=old.copy();prior[0]='0000000000000432757';prior[2]='2024-07-31'
+        with tempfile.TemporaryDirectory() as directory, sqlite3.connect(':memory:') as db:
+            data=Path(directory);jetro.init_db(db)
+            old_id=geps.upsert(db,old);withdrawn_id=geps.upsert(db,withdrawn);prior_id=geps.upsert(db,prior)
+            data.joinpath('procurements-2025.json').write_text(json.dumps([
+                {'id':old_id,'title':old[1],'agency':'警察庁','awardDate':old[2],'winnerName':old[6]},
+                {'id':withdrawn_id,'title':withdrawn[1],'awardDate':withdrawn[2]},
+                {'id':'jetro:2:new','title':'新規公示','agency':'警察庁'},
+            ]))
+            with patch.object(geps,'download_zip',return_value=(data/'official.zip',[corrected,joint])):
+                count,removed,_,_=geps.import_year(db,2025)
+            self.assertEqual((count,removed),(2,2))
+            expected={prior_id,'geps:'+corrected[0]+':'+geps.stable_record_id(corrected),
+                      'geps:'+joint[0]+':'+geps.stable_record_id(joint)}
+            with patch.object(jetro,'DATA_DIR',data),patch.object(jetro,'JSON_PATH',data/'missing.json'):
+                jetro.seed_from_json(db)
+                jetro.seed_from_json(db)
+            actual={r[0] for r in db.execute("SELECT source_id FROM procurements WHERE source_id LIKE 'geps:%'")}
+            self.assertEqual(actual,expected)
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM procurements WHERE source_id='jetro:2:new'").fetchone()[0],1)
+            self.assertEqual(db.execute('PRAGMA integrity_check').fetchall(),[('ok',)])
+
+    def test_geps_json_bootstrap_remains_available_without_geps_records(self):
+        import sys
+        sys.path.insert(0,str(ROOT))
+        from collector import collect_jetro as jetro
+        with tempfile.TemporaryDirectory() as directory, sqlite3.connect(':memory:') as db:
+            data=Path(directory);jetro.init_db(db)
+            rows=[{'id':'geps:1:first','title':'公式落札','awardDate':'2025-07-31'},
+                  {'id':'geps:2:second','title':'別の公式落札','awardDate':'2025-08-01'}]
+            data.joinpath('procurements-2025.json').write_text(json.dumps(rows))
+            with patch.object(jetro,'DATA_DIR',data),patch.object(jetro,'JSON_PATH',data/'missing.json'):
+                self.assertEqual(jetro.seed_from_json(db),2)
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM procurements WHERE source_id LIKE 'geps:%'").fetchone()[0],2)
+
     def test_yokohama_retries_timeout_then_succeeds_and_raises_after_limit(self):
         import sys
         sys.path.insert(0,str(ROOT))

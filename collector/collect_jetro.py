@@ -1182,10 +1182,16 @@ def seed_from_json(conn):
             print(f'seed_error {path.name}: {e}')
     now = datetime.now(timezone.utc).isoformat(); count = 0
     existing_ids = {row[0] for row in conn.execute('SELECT source_id FROM procurements')}
+    # GEPS is reconciled against the official snapshot before JETRO runs.
+    # Older published JSON must not resurrect withdrawn or corrected rows.
+    # JSON remains usable to bootstrap a database without any GEPS records.
+    geps_initialized = any(sid.startswith('geps:') for sid in existing_ids)
     for r in records:
         parts = str(r.get('id','')).split(':')
         if len(parts) != 3 or parts[0] not in ('jetro','jetro-local','geps','yokohama','sapporo'): continue
         scope=parts[0]; xid=int(parts[1]); aid=parts[2]
+        if scope == 'geps' and geps_initialized:
+            continue
         agency = r.get('agency','') or KNOWN_AGENCY_FIXES.get(r.get('id',''),''); org_id = stable_id('org', agency) if agency else None
         winner = canonical_company_name(r.get('winnerName') or ''); company_id = stable_id('co', winner) if winner else None
         if org_id: conn.execute('INSERT OR IGNORE INTO organizations VALUES (?,?)',(org_id,agency))
