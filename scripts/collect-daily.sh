@@ -126,6 +126,14 @@ run_step "listed-count-5x-validation" npm run validate:listed-counts
 run_step "listed-shareholder-validation" npm run validate:listed-shareholders
 run_step "shokuba-workplace" npm run collect:shokuba
 run_step "shokuba-health" python3 collector/check_health.py --source shokuba
+GBIZ_MARKER="$STATE_DIR/last-gbiz-activity-refresh"
+MONTH="$(date +%Y-%m)"
+if [[ ! -f "$GBIZ_MARKER" ]] || ! grep -qx "$MONTH" "$GBIZ_MARKER" ]; then
+  run_step "monthly-gbiz-subsidy" npm run collect:gbiz-subsidy
+  run_step "monthly-gbiz-patent" npm run collect:gbiz-patent
+  run_step "monthly-gbiz-health" python3 collector/check_health.py --source gbiz_subsidy --source gbiz_patent
+  printf '%s\n' "$MONTH" > "$GBIZ_MARKER"
+fi
 # Build the public listed-company snapshot before reconciling the company registry.
 run_step "listed-public-data-build" npm run build:listed-data
 # Procurement and listed-master updates both affect unlisted-company identity and award summaries.

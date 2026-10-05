@@ -6,6 +6,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 
 from collector.collect_shokuba import load_workplaces
+from collector.company_registry.gbiz_activity import load_activity_map
 from .common import PUBLIC, RAW, write_json
 from .collect_master import normalize_name
 
@@ -91,6 +92,7 @@ def compact_latest_record(record: dict | None) -> dict | None:
 def main() -> None:
     master = load_json(PUBLIC / "master.json", {"records": [], "counts": {}})
     workplace_map, workplace_meta = load_workplaces(c.get("corporateNumber") for c in master.get("records", []))
+    activity_map, activity_meta = load_activity_map(c.get("corporateNumber") for c in master.get("records", []))
     financials = load_json(RAW / "normalized" / "financials.json", {"records": []})
     name_lookup: dict[str, list[dict]] = defaultdict(list)
     for item in master.get("records", []):
@@ -123,6 +125,7 @@ def main() -> None:
         payload = {
             "company": company,
             "workplace": workplace_map.get(str(company.get("corporateNumber") or "")),
+            "activity": activity_map.get(str(company.get("corporateNumber") or "")),
             "financials": [compact_history_record(record) for record in series],
             "latest": compact_latest_record(latest),
             "coverage": {
@@ -202,6 +205,9 @@ def main() -> None:
         "companies": len(index_records),
         "workplaceCompanies": len(workplace_map),
         "workplaceSourceDate": workplace_meta.get("sourceDate"),
+        "activitySources": activity_meta,
+        "subsidyCompanies": sum(bool(a.get("subsidies")) for a in activity_map.values()),
+        "patentCompanies": sum(bool(a.get("patents")) for a in activity_map.values()),
         "financialCompanies": sum(1 for x in index_records if x["hasFinancials"]),
         "financialRecords": sum(len(x) for x in by_company.values()),
         "markets": master.get("counts", {}).get("byMarket", {}),
@@ -211,6 +217,9 @@ def main() -> None:
         "companies": len(index_records),
         "workplaceCompanies": len(workplace_map),
         "workplaceSourceDate": workplace_meta.get("sourceDate"),
+        "activitySources": activity_meta,
+        "subsidyCompanies": sum(bool(a.get("subsidies")) for a in activity_map.values()),
+        "patentCompanies": sum(bool(a.get("patents")) for a in activity_map.values()),
         "financialCompanies": sum(1 for x in index_records if x["hasFinancials"]),
         "financialRecords": sum(len(x) for x in by_company.values()),
         "detailShards": DETAIL_SHARDS,

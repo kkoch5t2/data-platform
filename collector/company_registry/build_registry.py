@@ -12,6 +12,7 @@ from collector.listed_companies.collect_master import load_edinet_rows
 from .common import NTA_DB, PUBLIC, ROOT, normalize_company_name, write_json
 from collector.collect_shokuba import load_workplaces
 from .gbiz_finance import load_finance_map
+from .gbiz_activity import load_activity_map
 from .gbiz_statements import load_statements_map
 
 LISTED_MASTER = ROOT / "public" / "data" / "listed-companies" / "master.json"
@@ -214,6 +215,8 @@ def compact_row(entity: dict) -> dict:
         "awardCount": procurement["awardCount"],
         "awardTotal": procurement["awardTotal"],
         "hasWorkplace": bool(entity.get("workplace")),
+        "hasSubsidies": bool((entity.get("activity") or {}).get("subsidies")),
+        "hasPatents": bool((entity.get("activity") or {}).get("patents")),
         "hasFinance": bool(entity.get("finance")),
         "financeSourceType": entity.get("financeSourceType"),
         "hasFinancialStatements": bool(entity.get("financialStatements")),
@@ -300,6 +303,7 @@ def main() -> dict:
         }
 
     workplace_map, workplace_meta = load_workplaces(entities.keys())
+    activity_map, activity_meta = load_activity_map(entities.keys())
     listing_counts = defaultdict(int)
     corporate_entities = 0
     for entity in entities.values():
@@ -331,6 +335,7 @@ def main() -> dict:
         csv_finance = finance_map.get(corporate_number) if entity["unlistedEligible"] else None
         statement_finance = statements_map.get(corporate_number) if entity["unlistedEligible"] else None
         entity["workplace"] = workplace_map.get(corporate_number)
+        entity["activity"] = activity_map.get(corporate_number)
         entity["financialStatements"] = statement_finance
         entity["finance"] = csv_finance or statement_finance
         entity["financeSourceType"] = "finance" if csv_finance else ("statements" if statement_finance else None)
@@ -397,6 +402,8 @@ def main() -> dict:
         "edinetListedCorporateNumbers": len(edinet_listed),
         "unlistedCompanies": len(unlisted_rows),
         "unlistedWorkplaceCompanies": sum(bool(e.get("workplace")) for e in public_entities.values()),
+        "unlistedSubsidyCompanies": sum(bool((e.get("activity") or {}).get("subsidies")) for e in public_entities.values()),
+        "unlistedPatentCompanies": sum(bool((e.get("activity") or {}).get("patents")) for e in public_entities.values()),
         "unlistedFinanceCompanies": finance_public_count,
         "unlistedFinanceCsvCompanies": finance_csv_public_count,
         "unlistedStatementCompanies": statements_public_count,
@@ -406,6 +413,7 @@ def main() -> dict:
         "detailShards": DETAIL_SHARDS,
         "sources": {
             "shokuba": {"sourceDate": workplace_meta.get("sourceDate"), "sourceUrl": workplace_meta.get("sourceUrl"), "usableCompanies": int(workplace_meta.get("usableCompanies", 0))},
+            "gbizActivity": activity_meta,
             "nta": {"url": meta.get("source"), "sourceDate": meta.get("sourceDate"),
                     "region": meta.get("region"), "corporations": int(meta.get("corporations", 0))},
             "listedMasterSourceDate": listed_payload.get("sourceDate"),

@@ -415,6 +415,28 @@
       "domain": "employment-economy",
       "note": "法人番号で既存の上場・未上場企業詳細へ照合。原典の対象区分・補足・更新日時と単位を保持し、未掲載は0にしない。"
     },
+    "gbiz_subsidy": {
+      "label": "Gビズインフォ 補助金情報",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 100000,
+      "acquisition": "official-zip-token",
+      "command": ["python3", "-m", "collector.company_registry.collect_gbiz_bulk", "--type", "subsidy"],
+      "country": "JP",
+      "domain": "company"
+    },
+    "gbiz_patent": {
+      "label": "Gビズインフォ 特許情報",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 1000000,
+      "acquisition": "official-zip-token",
+      "command": ["python3", "-m", "collector.company_registry.collect_gbiz_bulk", "--type", "patent"],
+      "country": "JP",
+      "domain": "company"
+    },
     "ipss_population": {
       "label": "社人研 日本の地域別将来推計人口（2023年推計）",
       "enabled": true,

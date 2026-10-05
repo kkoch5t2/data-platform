@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import http.cookiejar
 import os
 import re
@@ -13,6 +15,7 @@ import zipfile
 from pathlib import Path
 
 from .common import RAW, ensure_dirs
+from collector.core.source_run import SourceRun
 
 GBIZ_DOWNLOAD_PAGE = "https://info.gbiz.go.jp/hojin/DownloadTop"
 USER_AGENT = "DATLUME/1.0 (+https://datlume.com/)"
@@ -110,8 +113,22 @@ def download(kind: str) -> Path:
     return destination
 
 
+def count_csv_rows(path: Path) -> int:
+    with zipfile.ZipFile(path) as archive:
+        names = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+        if len(names) != 1:
+            raise ValueError(f"expected one CSV in {path.name}")
+        with archive.open(names[0]) as raw:
+            return sum(1 for _ in csv.DictReader(io.TextIOWrapper(raw, encoding="utf-8-sig", newline="")))
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--type", choices=sorted(DOWNLOAD_TYPES), default="all-activity")
     args = parser.parse_args()
-    download(args.type)
+    if args.type in ("subsidy", "patent"):
+        with SourceRun(f"gbiz_{args.type}", f"Gビズインフォ {args.type}") as run:
+            path = download(args.type)
+            run.set_metrics(records=count_csv_rows(path), sourceDate=re.search(r"20\d{6}", path.name).group(0))
+    else:
+        download(args.type)

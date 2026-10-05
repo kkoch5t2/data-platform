@@ -166,3 +166,6 @@ cronの呼び出しパス・時刻は従来どおり。日次/トピック/週�
 ### 小売物価の履歴バックフィルと月次更新
 
 一度だけ npm run backfill:retail-prices-city を実行して原表を保存・組み立てる。--years 2000-2000 --download-only のような部分取得も可能。各年のe-Stat一覧を再照合し、公開ファイルの分割が変わった月だけパース済みスナップショットを再取得する。通常の npm run collect:retail-prices-city は2000年以降の既存履歴を保持して最新24か月を再取得する。最新品目の単位が変わった場合は失敗させ、履歴比較の見直しを要求する。更新後 npm run audit:retail-prices-city を実行する。
+
+## Gビズインフォ補助金・特許（月次）
+日次処理では独立した `last-gbiz-activity-refresh` 月次マーカーを使い、月初回に `collect:gbiz-subsidy` と `collect:gbiz-patent` で公式ZIPを取得する。上場・未上場のpublic生成はZIPを読み法人番号で照合し、検証済みの記録だけを企業詳細shardに入れる。マーカーは本番確認成功後のみ確定する。ZIPはGitに含めずRawとしてホストに保持する。

@@ -67,3 +67,6 @@
 
 ## しょくばらぼ職場情報（2026-10-05追加）
 職場情報：collector/collect_shokuba.py、data/raw/shokuba/（原本ZIPとworkplace.sqlite）、既存listed-companies/company-registry詳細shard、functions/_shared/workplace.js、public/workplace.css、scripts/audit-shokuba.py、scripts/test-shokuba.py、scripts/e2e-workplace.cjs。
+
+## Gビズインフォの補助金・特許（2026-10-05追加）
+上場・未上場企業詳細に法人番号で追加する。`collect_gbiz_bulk.py` で月次ZIPを取得し、`gbiz_activity.py` が特許の登録番号重複をまとめる。`functions/_shared/activity.js` と `public/activity.css` が表示を担当し、`scripts/audit-gbiz-activity.py` と `scripts/e2e-gbiz-activity.cjs` が原典・PC/モバイルを検査する。

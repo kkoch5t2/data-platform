@@ -432,6 +432,28 @@
         "geocoded": 1708
       },
       "previousRecordCount": 1884
+    },
+    "gbiz_subsidy": {
+      "label": "Gビズインフォ subsidy",
+      "status": "ok",
+      "startedAt": "2026-10-05T14:33:02.941194+00:00",
+      "finishedAt": "2026-10-05T14:33:04.556914+00:00",
+      "durationSeconds": 1.62,
+      "metrics": {
+        "records": 545877,
+        "sourceDate": "2026-10-05"
+      }
+    },
+    "gbiz_patent": {
+      "label": "Gビズインフォ patent",
+      "status": "ok",
+      "startedAt": "2026-10-05T14:33:04.558407+00:00",
+      "finishedAt": "2026-10-05T14:33:21.572833+00:00",
+      "durationSeconds": 17.01,
+      "metrics": {
+        "records": 4600382,
+        "sourceDate": "2026-10-05"
+      }
     }
   }
 }
