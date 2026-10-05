@@ -1,6 +1,6 @@
 # DATLUME システム・機能インベントリ
 
-最終更新: 2026-09-27
+最終更新: 2026-10-05
 
 この文書は、公開領域・主要ソース・collector・更新頻度・主要URLを横断して確認するための索引である。
 詳細なソース定義の正本は `collector/source_catalog.json`。
@@ -62,3 +62,7 @@
 - 新しい動的ルート追加: `functions/` + `public/_routes.json` + deploy guard
 - 新しいCookie/広告/計測: `/privacy/` + `07-monetization-adsense.md`
 - 新しいsecret: `08-security.md` + `.gitignore`/運用ファイル配置
+
+
+## しょくばらぼ職場情報（2026-10-05追加）
+職場情報：collector/collect_shokuba.py、data/raw/shokuba/（原本ZIPとworkplace.sqlite）、既存listed-companies/company-registry詳細shard、functions/_shared/workplace.js、public/workplace.css、scripts/audit-shokuba.py、scripts/test-shokuba.py、scripts/e2e-workplace.cjs。

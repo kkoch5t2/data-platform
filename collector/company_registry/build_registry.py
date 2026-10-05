@@ -10,6 +10,7 @@ from pathlib import Path
 from collector.collect_jetro import DB_PATH, init_db, prepare_canonical_procurements
 from collector.listed_companies.collect_master import load_edinet_rows
 from .common import NTA_DB, PUBLIC, ROOT, normalize_company_name, write_json
+from collector.collect_shokuba import load_workplaces
 from .gbiz_finance import load_finance_map
 from .gbiz_statements import load_statements_map
 
@@ -212,6 +213,7 @@ def compact_row(entity: dict) -> dict:
         "industry33": listed.get("industry33"),
         "awardCount": procurement["awardCount"],
         "awardTotal": procurement["awardTotal"],
+        "hasWorkplace": bool(entity.get("workplace")),
         "hasFinance": bool(entity.get("finance")),
         "financeSourceType": entity.get("financeSourceType"),
         "hasFinancialStatements": bool(entity.get("financialStatements")),
@@ -297,6 +299,7 @@ def main() -> dict:
             "industry33": listed.get("industry33"), "edinetCode": listed.get("edinetCode"),
         }
 
+    workplace_map, workplace_meta = load_workplaces(entities.keys())
     listing_counts = defaultdict(int)
     corporate_entities = 0
     for entity in entities.values():
@@ -327,6 +330,7 @@ def main() -> dict:
         )
         csv_finance = finance_map.get(corporate_number) if entity["unlistedEligible"] else None
         statement_finance = statements_map.get(corporate_number) if entity["unlistedEligible"] else None
+        entity["workplace"] = workplace_map.get(corporate_number)
         entity["financialStatements"] = statement_finance
         entity["finance"] = csv_finance or statement_finance
         entity["financeSourceType"] = "finance" if csv_finance else ("statements" if statement_finance else None)
@@ -392,6 +396,7 @@ def main() -> dict:
         "listedCompanies": len(listed_rows),
         "edinetListedCorporateNumbers": len(edinet_listed),
         "unlistedCompanies": len(unlisted_rows),
+        "unlistedWorkplaceCompanies": sum(bool(e.get("workplace")) for e in public_entities.values()),
         "unlistedFinanceCompanies": finance_public_count,
         "unlistedFinanceCsvCompanies": finance_csv_public_count,
         "unlistedStatementCompanies": statements_public_count,
@@ -400,6 +405,7 @@ def main() -> dict:
         "listingStatus": dict(sorted(listing_counts.items())),
         "detailShards": DETAIL_SHARDS,
         "sources": {
+            "shokuba": {"sourceDate": workplace_meta.get("sourceDate"), "sourceUrl": workplace_meta.get("sourceUrl"), "usableCompanies": int(workplace_meta.get("usableCompanies", 0))},
             "nta": {"url": meta.get("source"), "sourceDate": meta.get("sourceDate"),
                     "region": meta.get("region"), "corporations": int(meta.get("corporations", 0))},
             "listedMasterSourceDate": listed_payload.get("sourceDate"),

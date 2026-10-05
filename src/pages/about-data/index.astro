@@ -43,6 +43,8 @@ const ambiguousProcurementNames = companyRegistrySummary.ambiguousNames || 0;
     <div class="card"><div class="label">総額を確認できる結果案件</div><div class="value">{fmt(summary.awardRecords)}件</div><div class="label">判定対象 {fmt(awardEligibleRecords)}件の約 {awardCoverage.toFixed(1)}%</div></div>
   </div>
 
+  <section id="workplace" class="card section"><h2>企業の職場情報</h2><p>厚生労働省「しょくばらぼ」の全件CSVから、法人番号で既存の上場・未上場企業に照合し、残業・有給休暇・平均年齢・採用と定着の公開値を掲載しています。配布データは{companyRegistrySummary.sources?.shokuba?.sourceDate || "—"}時点。未上場企業{fmt(companyRegistrySummary.unlistedWorkplaceCompanies || 0)}社に職場情報を追加しています。</p><p>所定外労働と法定時間外・休日労働、全体と雇用管理区分別の有給取得率は別指標です。対象区分や企業の補足、企業情報の更新日時を保持します。企業グループ全体の値と記載される場合もあります。採用・離職の3列は原典の「前年度／2年度前／3年度前」で、暦年を推測しません。未掲載は0にしません。</p><p>出典：<a href="https://shokuba.mhlw.go.jp/shokuba/utilize/utilize010.do" target="_blank" rel="noreferrer">厚生労働省「しょくばらぼ」</a>のデータを加工して作成。</p></section>
+
   <section id="procurement" class="card section">
     <h2>国・自治体の案件データ</h2>
     <p>国・独立行政法人系の落札実績は、<strong>2014年3月〜2021年3月</strong>を調達ポータル（GEPS）の公式「落札実績オープンデータ」、<strong>2021年4月以降</strong>を調達ポータル公式の年度別落札実績データから取得しています。JETRO「政府公共調達データベース」も収録します。GEPSと同一契約を示す個々の証拠が不足するため、両ソースの掲載行を保持し、ソース横断の契約単位で完全には名寄せしていません。自治体系は各自治体の公式入札・契約結果を直接収集して補完しています。</p>

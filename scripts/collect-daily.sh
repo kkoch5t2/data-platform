@@ -124,6 +124,8 @@ run_step "listed-normalize" npm run normalize:listed-incremental
 run_step "listed-salary-validation" npm run validate:listed-salary
 run_step "listed-count-5x-validation" npm run validate:listed-counts
 run_step "listed-shareholder-validation" npm run validate:listed-shareholders
+run_step "shokuba-workplace" npm run collect:shokuba
+run_step "shokuba-health" python3 collector/check_health.py --source shokuba
 # Build the public listed-company snapshot before reconciling the company registry.
 run_step "listed-public-data-build" npm run build:listed-data
 # Procurement and listed-master updates both affect unlisted-company identity and award summaries.

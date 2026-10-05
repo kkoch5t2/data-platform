@@ -398,6 +398,22 @@
       "country": "GLOBAL",
       "domain": "topics",
       "note": "日本語版Wikipediaの日別閲覧上位を取得。MediaWiki/Wikidataでカテゴリを補助分類し、急上昇上位にはGoogle News RSSの同時期報道を背景候補として付与。日本全体の検索トレンドや世論、ニュースとの因果関係を示す指標ではない。"
+    },
+    "shokuba": {
+      "label": "厚生労働省 しょくばらぼ 職場情報",
+      "enabled": true,
+      "frequency": "daily",
+      "maxAgeHours": 120,
+      "minRecords": 100000,
+      "acquisition": "official-public-csv-zip",
+      "command": [
+        "python3",
+        "-m",
+        "collector.collect_shokuba"
+      ],
+      "country": "JP",
+      "domain": "employment-economy",
+      "note": "法人番号で既存の上場・未上場企業詳細へ照合。原典の対象区分・補足・更新日時と単位を保持し、未掲載は0にしない。"
     }
   }
 }

@@ -25,7 +25,7 @@ SUCCESS = {'daily': 'last-success-date', 'topics': 'last-wikipedia-success-date'
            'weekly': 'last-weekly-success-date'}
 LOCKS = {'daily': 'daily-refresh.lock', 'topics': 'wikipedia-topics-refresh.lock',
          'weekly': 'weekly-audit.lock'}
-RUNTIME_PATTERNS = ('data/raw/listed-companies/normalized/**/*',
+RUNTIME_PATTERNS = ('data/raw/shokuba/workplace.sqlite', 'data/raw/listed-companies/normalized/**/*',
                     'data/raw/listed-companies/documents-index.json')
 ROUTES = '/,/topics/,/procurement/,/listed-companies/,/listed-companies/7203/,/unlisted-companies/'
 
@@ -356,6 +356,7 @@ class Refresh:
 
     def browser_checks(self, base):
         self.command(['npm', 'run', 'e2e:deep'], extra_env={'E2E_BASE_URL': base, 'E2E_ONLY': ROUTES})
+        self.command(['npm', 'run', 'e2e:workplace'], extra_env={'E2E_BASE_URL': base})
 
     def checks(self):
         self.phase = 'release-check'
@@ -395,6 +396,7 @@ class Refresh:
             # Wrangler serves the same Pages Functions and assets as production.
             self.command(['npm', 'run', 'e2e:deep'], extra_env={'E2E_BASE_URL': url,
                          'E2E_ONLY': ROUTES})
+            self.command(['npm', 'run', 'e2e:workplace'], extra_env={'E2E_BASE_URL': url})
         finally:
             if preview.poll() is None:
                 try:

@@ -407,6 +407,19 @@
         "youtubeMatched": 8
       },
       "previousRecordCount": 100
+    },
+    "shokuba": {
+      "label": "厚生労働省 しょくばらぼ",
+      "status": "ok",
+      "startedAt": "2026-10-05T04:11:29.844563+00:00",
+      "finishedAt": "2026-10-05T04:11:46.308117+00:00",
+      "durationSeconds": 16.46,
+      "metrics": {
+        "records": 152392,
+        "usableCompanies": 22426,
+        "sourceDate": "2026-10-05",
+        "sha256": "59d748d5228bb6f7317e30f63df888151c0c71d1dc2b6aab8368c3082e883fe9"
+      }
     }
   }
 }
