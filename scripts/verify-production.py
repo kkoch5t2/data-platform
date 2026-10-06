@@ -18,7 +18,7 @@ REQUIRED = ('data/dashboard-meta.json', 'data/listed-companies/summary.json',
             'data/listed-companies/index.json', 'data/company-registry/summary.json',
             'data/company-registry/unlisted-index.json', 'data/wikipedia-topics.json',
             'data/weather/index.json', 'data/weather/44.json', 'sitemap.xml')
-PAGES = ('/', '/topics/', '/procurement/', '/regional/weather/', '/listed-companies/', '/unlisted-companies/')
+PAGES = ('/', '/topics/', '/procurement/', '/procurement/companies/', '/procurement/companies/page/2/', '/regional/weather/', '/listed-companies/', '/unlisted-companies/')
 
 
 def digest(body):
@@ -99,6 +99,8 @@ def verify(expected, base, attempts=6, delay=10, report=None):
             for route in expected['pages']:
                 try:
                     body = request(base, route, release).decode('utf-8')
+                    if route.startswith('/procurement/companies/') and len(body.encode('utf-8')) > 300_000:
+                        raise RuntimeError('Company ranking page exceeds 300 KB')
                     if '<h1' not in body.lower() or 'DATLUME' not in body:
                         raise RuntimeError('Expected page content is missing')
                 except Exception as error:
