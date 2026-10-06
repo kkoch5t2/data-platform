@@ -1,5 +1,5 @@
 {
   "version": 1,
   "include": ["/listed-companies/*", "/procurement/companies/*", "/unlisted-companies/*"],
-  "exclude": ["/listed-companies/", "/listed-companies/compare/", "/listed-companies/industries/*", "/procurement/companies/", "/unlisted-companies/"]
+  "exclude": ["/listed-companies/", "/listed-companies/compare/", "/listed-companies/industries/*", "/procurement/companies/", "/procurement/companies/page/*", "/unlisted-companies/"]
 }
