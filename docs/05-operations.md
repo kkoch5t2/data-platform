@@ -185,3 +185,6 @@ cronの呼び出しパス・時刻は従来どおり。日次/トピック/週�
 5GHzのBEACON-LOSSと認証タイムアウトを確認し、保存済み2.4GHz接続へ復旧した。`scripts/wifi-reconnect-watchdog.py` はwlp1s0の切断が180秒以上続いた場合に限り保存済み2.4GHzプロファイルへ再接続し、再試行間隔を600秒以上にする。正常接続・接続処理中・無線無効時は介入しない。結果はsystemd journalへ記録する。
 
 監視はリポジトリへの追加だけでは有効にならない。管理者がホスト上で `scripts/install-wifi-reconnect-watchdog.sh` を実行する必要がある。有効化後は `systemctl status wifi-reconnect-watchdog.timer` と `journalctl -u wifi-reconnect-watchdog.service` で確認する。保存済み接続のUUIDやインターフェースを変更した場合は監視設定も更新する。
+
+### 公共交通の収集用Python環境
+公共交通のExcel原典処理にはopenpyxlが必要。Ubuntu正本の `.venv` を `python3 -m venv --system-site-packages .venv` で作成し、`.venv/bin/pip install openpyxl requests beautifulsoup4 lxml pandas` で追加する。scheduled-refreshは正本の `.venv/bin/python3` が存在すると同環境を子処理に継承し、独立worktreeでも同じ依存ライブラリを使う。2026-10-07にホスト環境を作成し、公開前の収集・原典監査を確認した。

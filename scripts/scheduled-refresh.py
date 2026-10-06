@@ -104,6 +104,9 @@ class Refresh:
         self.base = None
         self.log = None
         self.env = dict(os.environ, TZ='Asia/Tokyo')
+        runtime = self.root / '.venv/bin'
+        if (runtime / 'python3').exists():
+            self.env['PATH'] = str(runtime) + ':' + self.env['PATH']
         self.env['PATH'] = str(Path.home() / '.nvm/versions/node/v22.23.2/bin') + ':' + self.env['PATH']
 
     def git(self, *args, cwd=None, check=True):
