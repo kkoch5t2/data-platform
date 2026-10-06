@@ -1,0 +1,9 @@
+[Unit]
+Description=Check Wi-Fi connection every minute
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=60s
+AccuracySec=5s
+Unit=wifi-reconnect-watchdog.service
+[Install]
+WantedBy=timers.target
