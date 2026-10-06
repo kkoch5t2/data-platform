@@ -201,10 +201,25 @@ class Refresh:
         for rel, path in files.items():
             copy_file(path, target / rel)
 
+    def ensure_browser_dependencies(self):
+        if not (self.root / 'package.json').exists():
+            return
+        probe = ['node', '-e', "const {chromium}=require('playwright'); require('fs').accessSync(chromium.executablePath())"]
+        if subprocess.run(probe, cwd=self.root, env=self.env, capture_output=True).returncode == 0:
+            return
+        self.phase = 'browser-dependencies'
+        print('Playwright or Chromium missing; restoring browser dependencies before collection', flush=True)
+        self.command(['npm', 'ci', '--include=dev'], cwd=self.root)
+        if subprocess.run(probe, cwd=self.root, env=self.env, capture_output=True).returncode:
+            self.command(['npx', 'playwright', 'install', 'chromium'], cwd=self.root)
+        subprocess.run(probe, cwd=self.root, env=self.env, check=True)
+
     def prepare(self):
         self.phase = 'prepare-workspace'
         with lock(self.state / 'release.lock'):
             self.base = self.clean_primary()
+            self.ensure_browser_dependencies()
+            self.phase = 'prepare-workspace'
             self.workspace.parent.mkdir(parents=True, exist_ok=True)
             if self.workspace.exists():
                 self.git('worktree', 'remove', '--force', str(self.workspace))
