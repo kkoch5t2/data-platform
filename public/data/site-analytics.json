@@ -1,23 +1,23 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-10-06T05:45:22Z",
+  "generatedAt": "2026-10-06T21:57:22Z",
   "range": {
     "days": 7,
-    "start": "2026-09-29T05:45:22Z",
-    "end": "2026-10-06T05:45:22Z"
+    "start": "2026-09-29T21:57:22Z",
+    "end": "2026-10-06T21:57:22Z"
   },
-  "pageviews": 2997,
-  "visits": 691,
+  "pageviews": 3075,
+  "visits": 717,
   "topPages": [
-    {
-      "path": "/procurement/",
-      "pageviews": 520,
-      "visits": 50
-    },
     {
       "path": "/economy-prices/",
       "pageviews": 510,
       "visits": 10
+    },
+    {
+      "path": "/procurement/",
+      "pageviews": 440,
+      "visits": 40
     },
     {
       "path": "/employment-economy/",
@@ -25,13 +25,18 @@
       "visits": 0
     },
     {
-      "path": "/",
-      "pageviews": 300,
-      "visits": 170
-    },
-    {
       "path": "/energy/",
       "pageviews": 290,
+      "visits": 0
+    },
+    {
+      "path": "/",
+      "pageviews": 270,
+      "visits": 180
+    },
+    {
+      "path": "/transport/",
+      "pageviews": 240,
       "visits": 0
     },
     {
@@ -45,19 +50,19 @@
       "visits": 80
     },
     {
-      "path": "/topics/",
-      "pageviews": 60,
-      "visits": 30
-    },
-    {
       "path": "/realestate/",
       "pageviews": 60,
       "visits": 60
     },
     {
       "path": "/unlisted-companies/",
-      "pageviews": 50,
-      "visits": 10
+      "pageviews": 60,
+      "visits": 20
+    },
+    {
+      "path": "/topics/",
+      "pageviews": 60,
+      "visits": 30
     },
     {
       "path": "/analytics/",
@@ -66,11 +71,6 @@
     },
     {
       "path": "/listed-companies/",
-      "pageviews": 30,
-      "visits": 30
-    },
-    {
-      "path": "/procurement/years/2026/markets/admin-bpo/",
       "pageviews": 30,
       "visits": 30
     },
@@ -85,6 +85,16 @@
       "visits": 0
     },
     {
+      "path": "/regional/stays/",
+      "pageviews": 30,
+      "visits": 30
+    },
+    {
+      "path": "/procurement/years/2026/markets/admin-bpo/",
+      "pageviews": 30,
+      "visits": 30
+    },
+    {
       "path": "/business-industry/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
       "pageviews": 20,
       "visits": 20
@@ -95,44 +105,19 @@
       "visits": 10
     },
     {
-      "path": "/economy-prices/indicators/clothing/",
-      "pageviews": 10,
-      "visits": 10
-    },
-    {
-      "path": "/employment-economy/prefectures/%E5%AE%AE%E5%9F%8E%E7%9C%8C/",
-      "pageviews": 10,
-      "visits": 0
-    },
-    {
       "path": "/regional/projections/",
       "pageviews": 10,
       "visits": 0
     },
     {
+      "path": "/economy-prices/indicators/clothing/",
+      "pageviews": 10,
+      "visits": 10
+    },
+    {
       "path": "/procurement/organizations/org_5a15751faf3f/",
       "pageviews": 10,
       "visits": 10
-    },
-    {
-      "path": "/regional/stays/",
-      "pageviews": 10,
-      "visits": 10
-    },
-    {
-      "path": "/economy-prices/indicators/food/",
-      "pageviews": 10,
-      "visits": 0
-    },
-    {
-      "path": "/listed-companies/industries/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E6%A5%AD/",
-      "pageviews": 10,
-      "visits": 0
-    },
-    {
-      "path": "/regional/indicators/housing-starts/",
-      "pageviews": 10,
-      "visits": 0
     },
     {
       "path": "/listed-companies/industries/%E6%83%85%E5%A0%B1%E3%83%BB%E9%80%9A%E4%BF%A1%E6%A5%AD/",
@@ -143,7 +128,7 @@
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 2306,
+      "pageviews": 2358,
       "visits": 0
     },
     {
@@ -153,8 +138,8 @@
     },
     {
       "host": "www.bing.com",
-      "pageviews": 5,
-      "visits": 5
+      "pageviews": 7,
+      "visits": 7
     },
     {
       "host": "github.com",
@@ -180,8 +165,8 @@
   "daily": [
     {
       "date": "2026-09-29",
-      "pageviews": 559,
-      "visits": 83
+      "pageviews": 424,
+      "visits": 61
     },
     {
       "date": "2026-09-30",
@@ -215,8 +200,8 @@
     },
     {
       "date": "2026-10-06",
-      "pageviews": 105,
-      "visits": 22
+      "pageviews": 318,
+      "visits": 70
     }
   ],
   "history": [
@@ -247,8 +232,8 @@
     },
     {
       "date": "2026-09-29",
-      "pageviews": 559,
-      "visits": 83
+      "pageviews": 424,
+      "visits": 61
     },
     {
       "date": "2026-09-30",
@@ -282,8 +267,8 @@
     },
     {
       "date": "2026-10-06",
-      "pageviews": 105,
-      "visits": 22
+      "pageviews": 318,
+      "visits": 70
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
