@@ -1,0 +1,17 @@
+[Unit]
+Description=Recover sustained Wi-Fi disconnection with saved profile
+After=NetworkManager.service
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/wifi-reconnect-watchdog.py
+RuntimeDirectory=wifi-reconnect-watchdog
+RuntimeDirectoryMode=0700
+RuntimeDirectoryPreserve=yes
+TimeoutStartSec=60
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=wifi-reconnect-watchdog
