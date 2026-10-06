@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -72,6 +73,8 @@ def changed_paths():
 
 def is_allowed(path):
     if path in EXACT_PATHS:
+        return True
+    if re.fullmatch(r"public/data/weather/[0-9]{2}\.json", path):
         return True
     return path.endswith(".json") and any(path.startswith(p) for p in DETAIL_PREFIXES)
 
