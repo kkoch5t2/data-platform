@@ -1,195 +1,175 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-10-05T01:23:43Z",
+  "generatedAt": "2026-10-06T05:45:22Z",
   "range": {
     "days": 7,
-    "start": "2026-09-28T01:23:43Z",
-    "end": "2026-10-05T01:23:43Z"
+    "start": "2026-09-29T05:45:22Z",
+    "end": "2026-10-06T05:45:22Z"
   },
-  "pageviews": 3212,
-  "visits": 646,
+  "pageviews": 2997,
+  "visits": 691,
   "topPages": [
     {
-      "path": "/economy-prices/",
-      "pageviews": 597,
-      "visits": 26
-    },
-    {
       "path": "/procurement/",
-      "pageviews": 584,
-      "visits": 86
+      "pageviews": 520,
+      "visits": 50
     },
     {
-      "path": "/employment-economy/",
-      "pageviews": 572,
-      "visits": 1
-    },
-    {
-      "path": "/energy/",
-      "pageviews": 449,
-      "visits": 3
-    },
-    {
-      "path": "/",
-      "pageviews": 207,
-      "visits": 88
-    },
-    {
-      "path": "/regional/",
-      "pageviews": 131,
-      "visits": 11
-    },
-    {
-      "path": "/business-industry/",
-      "pageviews": 100,
-      "visits": 18
-    },
-    {
-      "path": "/about-data/",
-      "pageviews": 72,
-      "visits": 56
-    },
-    {
-      "path": "/listed-companies/compare/",
-      "pageviews": 55,
+      "path": "/economy-prices/",
+      "pageviews": 510,
       "visits": 10
     },
     {
-      "path": "/listed-companies/",
-      "pageviews": 55,
-      "visits": 38
-    },
-    {
-      "path": "/topics/",
-      "pageviews": 51,
-      "visits": 23
-    },
-    {
-      "path": "/unlisted-companies/",
-      "pageviews": 44,
-      "visits": 23
-    },
-    {
-      "path": "/realestate/",
-      "pageviews": 37,
-      "visits": 33
-    },
-    {
-      "path": "/regional/indicators/elderly-rate/",
-      "pageviews": 25,
-      "visits": 25
-    },
-    {
-      "path": "/business-industry/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
-      "pageviews": 19,
-      "visits": 19
-    },
-    {
-      "path": "/listed-companies/industries/%E8%BC%B8%E9%80%81%E7%94%A8%E6%A9%9F%E5%99%A8/",
-      "pageviews": 19,
-      "visits": 19
-    },
-    {
-      "path": "/economy-prices/indicators/clothing/",
-      "pageviews": 17,
-      "visits": 17
-    },
-    {
-      "path": "/energy/indicators/electricity/",
-      "pageviews": 17,
-      "visits": 17
-    },
-    {
-      "path": "/economy-prices/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
-      "pageviews": 15,
-      "visits": 15
-    },
-    {
-      "path": "/employment-economy/indicators/annual-pay/",
-      "pageviews": 14,
-      "visits": 12
-    },
-    {
-      "path": "/procurement/markets/admin-bpo/",
-      "pageviews": 13,
-      "visits": 13
-    },
-    {
-      "path": "/business-industry/indicators/employees-per-establishment/",
-      "pageviews": 12,
-      "visits": 12
-    },
-    {
-      "path": "/procurement/years/2026/",
-      "pageviews": 11,
-      "visits": 11
-    },
-    {
-      "path": "/analytics/",
-      "pageviews": 11,
-      "visits": 9
-    },
-    {
-      "path": "/procurement/years/2026/markets/admin-bpo/",
-      "pageviews": 9,
-      "visits": 9
-    },
-    {
-      "path": "/employment-economy/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
-      "pageviews": 9,
-      "visits": 9
-    },
-    {
-      "path": "/procurement/companies/",
-      "pageviews": 7,
-      "visits": 7
-    },
-    {
-      "path": "/listed-companies/industries/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E6%A5%AD/",
-      "pageviews": 6,
+      "path": "/employment-economy/",
+      "pageviews": 410,
       "visits": 0
     },
     {
-      "path": "/regional/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
-      "pageviews": 5,
-      "visits": 5
+      "path": "/",
+      "pageviews": 300,
+      "visits": 170
     },
     {
-      "path": "/procurement/markets/other/",
-      "pageviews": 5,
-      "visits": 5
+      "path": "/energy/",
+      "pageviews": 290,
+      "visits": 0
+    },
+    {
+      "path": "/business-industry/",
+      "pageviews": 90,
+      "visits": 0
+    },
+    {
+      "path": "/about-data/",
+      "pageviews": 90,
+      "visits": 80
+    },
+    {
+      "path": "/topics/",
+      "pageviews": 60,
+      "visits": 30
+    },
+    {
+      "path": "/realestate/",
+      "pageviews": 60,
+      "visits": 60
+    },
+    {
+      "path": "/unlisted-companies/",
+      "pageviews": 50,
+      "visits": 10
+    },
+    {
+      "path": "/analytics/",
+      "pageviews": 40,
+      "visits": 40
+    },
+    {
+      "path": "/listed-companies/",
+      "pageviews": 30,
+      "visits": 30
+    },
+    {
+      "path": "/procurement/years/2026/markets/admin-bpo/",
+      "pageviews": 30,
+      "visits": 30
+    },
+    {
+      "path": "/regional/",
+      "pageviews": 30,
+      "visits": 0
+    },
+    {
+      "path": "/procurement/markets/",
+      "pageviews": 30,
+      "visits": 0
+    },
+    {
+      "path": "/business-industry/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 20,
+      "visits": 20
+    },
+    {
+      "path": "/procurement/years/2021/markets/outsourcing-staffing/",
+      "pageviews": 10,
+      "visits": 10
+    },
+    {
+      "path": "/economy-prices/indicators/clothing/",
+      "pageviews": 10,
+      "visits": 10
+    },
+    {
+      "path": "/employment-economy/prefectures/%E5%AE%AE%E5%9F%8E%E7%9C%8C/",
+      "pageviews": 10,
+      "visits": 0
+    },
+    {
+      "path": "/regional/projections/",
+      "pageviews": 10,
+      "visits": 0
+    },
+    {
+      "path": "/procurement/organizations/org_5a15751faf3f/",
+      "pageviews": 10,
+      "visits": 10
+    },
+    {
+      "path": "/regional/stays/",
+      "pageviews": 10,
+      "visits": 10
+    },
+    {
+      "path": "/economy-prices/indicators/food/",
+      "pageviews": 10,
+      "visits": 0
+    },
+    {
+      "path": "/listed-companies/industries/%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E6%A5%AD/",
+      "pageviews": 10,
+      "visits": 0
+    },
+    {
+      "path": "/regional/indicators/housing-starts/",
+      "pageviews": 10,
+      "visits": 0
+    },
+    {
+      "path": "/listed-companies/industries/%E6%83%85%E5%A0%B1%E3%83%BB%E9%80%9A%E4%BF%A1%E6%A5%AD/",
+      "pageviews": 10,
+      "visits": 0
     }
   ],
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 2566,
+      "pageviews": 2306,
       "visits": 0
     },
     {
       "host": "www.google.com",
-      "pageviews": 16,
-      "visits": 16
+      "pageviews": 15,
+      "visits": 15
     },
     {
       "host": "www.bing.com",
+      "pageviews": 5,
+      "visits": 5
+    },
+    {
+      "host": "github.com",
       "pageviews": 3,
       "visits": 3
     },
     {
-      "host": "github.com",
+      "host": "search.yahoo.co.jp",
       "pageviews": 2,
       "visits": 2
     },
     {
-      "host": "datlume.pages.dev",
-      "pageviews": 1,
-      "visits": 1
-    },
-    {
-      "host": "search.yahoo.co.jp",
-      "pageviews": 1,
-      "visits": 1
+      "host": "search.google.com",
+      "pageviews": 2,
+      "visits": 2
     },
     {
       "host": "chatgpt.com",
@@ -199,14 +179,9 @@
   ],
   "daily": [
     {
-      "date": "2026-09-28",
-      "pageviews": 742,
-      "visits": 117
-    },
-    {
       "date": "2026-09-29",
-      "pageviews": 599,
-      "visits": 95
+      "pageviews": 559,
+      "visits": 83
     },
     {
       "date": "2026-09-30",
@@ -235,8 +210,13 @@
     },
     {
       "date": "2026-10-05",
-      "pageviews": 1,
-      "visits": 0
+      "pageviews": 463,
+      "visits": 152
+    },
+    {
+      "date": "2026-10-06",
+      "pageviews": 105,
+      "visits": 22
     }
   ],
   "history": [
@@ -267,8 +247,8 @@
     },
     {
       "date": "2026-09-29",
-      "pageviews": 599,
-      "visits": 95
+      "pageviews": 559,
+      "visits": 83
     },
     {
       "date": "2026-09-30",
@@ -297,8 +277,13 @@
     },
     {
       "date": "2026-10-05",
-      "pageviews": 1,
-      "visits": 0
+      "pageviews": 463,
+      "visits": 152
+    },
+    {
+      "date": "2026-10-06",
+      "pageviews": 105,
+      "visits": 22
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
