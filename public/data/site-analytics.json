@@ -1,13 +1,13 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-10-06T21:57:22Z",
+  "generatedAt": "2026-10-06T22:41:51Z",
   "range": {
     "days": 7,
-    "start": "2026-09-29T21:57:22Z",
-    "end": "2026-10-06T21:57:22Z"
+    "start": "2026-09-29T22:41:51Z",
+    "end": "2026-10-06T22:41:51Z"
   },
-  "pageviews": 3075,
-  "visits": 717,
+  "pageviews": 3151,
+  "visits": 733,
   "topPages": [
     {
       "path": "/economy-prices/",
@@ -128,7 +128,7 @@
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 2358,
+      "pageviews": 2418,
       "visits": 0
     },
     {
@@ -200,8 +200,8 @@
     },
     {
       "date": "2026-10-06",
-      "pageviews": 318,
-      "visits": 70
+      "pageviews": 394,
+      "visits": 86
     }
   ],
   "history": [
@@ -267,8 +267,8 @@
     },
     {
       "date": "2026-10-06",
-      "pageviews": 318,
-      "visits": 70
+      "pageviews": 394,
+      "visits": 86
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
