@@ -21,14 +21,14 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 MARKERS = ('last-success-date', 'last-listed-master-refresh', 'last-monthly-refresh',
            'last-monthly-secondary-refresh', 'last-ipss-population-refresh',
-           'last-gbiz-activity-refresh', 'last-lodging-statistics-refresh', 'last-jma-weather-refresh', 'last-reinfolib-check')
+           'last-gbiz-activity-refresh', 'last-lodging-statistics-refresh', 'last-jma-weather-refresh', 'last-public-transport-refresh', 'last-reinfolib-check')
 SUCCESS = {'daily': 'last-success-date', 'topics': 'last-wikipedia-success-date',
            'weekly': 'last-weekly-success-date'}
 LOCKS = {'daily': 'daily-refresh.lock', 'topics': 'wikipedia-topics-refresh.lock',
          'weekly': 'weekly-audit.lock'}
 RUNTIME_PATTERNS = ('data/raw/shokuba/workplace.sqlite', 'data/raw/listed-companies/normalized/**/*',
                     'data/raw/listed-companies/documents-index.json')
-ROUTES = '/,/topics/,/procurement/,/regional/stays/,/regional/weather/,/listed-companies/,/listed-companies/7203/,/unlisted-companies/'
+ROUTES = '/,/topics/,/procurement/,/regional/stays/,/regional/weather/,/transport/,/listed-companies/,/listed-companies/7203/,/unlisted-companies/'
 
 
 def module(root, name):
@@ -375,6 +375,7 @@ class Refresh:
         self.command(['npm', 'run', 'e2e:workplace'], extra_env={'E2E_BASE_URL': base})
         self.command(['npm', 'run', 'e2e:gbiz-activity'], extra_env={'E2E_BASE_URL': base})
         self.command(['npm', 'run', 'e2e:lodging-statistics'], extra_env={'E2E_BASE_URL': base})
+        self.command(['npm', 'run', 'e2e:public-transport'], extra_env={'E2E_BASE_URL': base})
 
     def checks(self):
         self.phase = 'release-check'
@@ -417,6 +418,7 @@ class Refresh:
             self.command(['npm', 'run', 'e2e:workplace'], extra_env={'E2E_BASE_URL': url})
             self.command(['npm', 'run', 'e2e:gbiz-activity'], extra_env={'E2E_BASE_URL': url})
             self.command(['npm', 'run', 'e2e:lodging-statistics'], extra_env={'E2E_BASE_URL': url})
+            self.command(['npm', 'run', 'e2e:public-transport'], extra_env={'E2E_BASE_URL': url})
         finally:
             if preview.poll() is None:
                 try:

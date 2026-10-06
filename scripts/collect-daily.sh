@@ -168,6 +168,14 @@ if [[ ! -f "$LODGING_MARKER" ]] || ! grep -qx "$MONTH" "$LODGING_MARKER"; then
 fi
 
 # Station observations use a separate marker so an existing monthly run does not skip them.
+TRANSPORT_MARKER="$STATE_DIR/last-public-transport-refresh"
+if [[ ! -f "$TRANSPORT_MARKER" ]] || ! grep -qx "$MONTH" "$TRANSPORT_MARKER"; then
+  run_step "monthly-public-transport" npm run collect:public-transport
+  run_step "monthly-public-transport-audit" npm run audit:public-transport
+  run_step "monthly-public-transport-health" python3 collector/check_health.py --source public_transport
+  printf '%s\n' "$MONTH" > "$TRANSPORT_MARKER"
+fi
+
 JMA_MARKER="$STATE_DIR/last-jma-weather-refresh"
 if [[ ! -f "$JMA_MARKER" ]] || ! grep -qx "$MONTH" "$JMA_MARKER"; then
   run_step "monthly-jma-weather" npm run collect:jma-weather

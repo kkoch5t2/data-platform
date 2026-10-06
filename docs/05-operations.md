@@ -175,3 +175,8 @@ cronの呼び出しパス・時刻は従来どおり。日次/トピック/週�
 
 ## 気象庁の観測所データ
 `npm run collect:jma-weather` で全国の観測所マスター・月別履歴・日別366日を更新する。収集器は公式のダウンロード画面のCSV取得エンドポイントを利用し、30観測所ごとに分割、間隔を空けて取得する。画面仕様が変わって列順・品質・日付に相違があれば失敗させ、推測で置き換えない。`npm run audit:jma-weather` と `python3 collector/check_health.py --source jma_weather` を実行する。日次ジョブでは独立した月次マーカー `last-jma-weather-refresh` を使う。観測所一覧に所在地のない地点は市区町村未特定として残す。
+
+
+## 公共交通データ（2026-10-06追加）
+
+`npm run collect:public-transport` → `npm run audit:public-transport` → `collector/check_health.py --source public_transport` の成功後に専用月次marker `last-public-transport-refresh` を更新する。既存の月次markerとは独立して再試行する。ソースIDは `public_transport`、健康判定は840時間・最低12,000レコード。定期更新Git許可リストへ公開JSON4本を登録し、RawはGitに含めない。local/prod E2Eに `e2e:public-transport` を追加。公開検証manifestはJSON4本を全件ハッシュ検証し、`/transport/` をページ確認対象に含める。S12・国勢調査は固定版のため、新版公開時はスキーマ・年度を確認して更新する。

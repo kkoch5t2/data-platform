@@ -106,3 +106,8 @@ Wikimedia Analytics APIの `metrics/pageviews/top/ja.wikipedia/all-access/{year}
 
 ## しょくばらぼ職場情報（2026-10-05追加）
 collector/collect_shokuba.py が公式全件ZIPを保存し、634列の正確なヘッダ名で必要指標を抽出、workplace.sqliteへ原子的に正規化する。既存の上場/未上場詳細shardへworkplaceを追加。Functions共通のfunctions/_shared/workplace.jsとpublic/workplace.cssで描画し、外部APIを実行時に呼ばない。
+
+
+## 公共交通データ（2026-10-06追加）
+
+`collector/collect_public_transport.py` はS12 ZIP、国勢調査Excel、自動車輸送統計年報Excel、鉄道月報Excelを取得し、全表の検証後に `public/data/transport/{stations,commute,usage,index}.json` を書き込む。Rawは `data/raw/transport/`、内容SHA-256別の原本は `archive/` に保持する。`--offline` は保存原本から再生成する。バス・鉄道はe-Statの対象表名・ファイル種別から最新の公開表を選び、単位・ヘッダー・網羅性の変化で停止する。S12の年度・スキーマと国勢調査2020年の表は固定し、改訂時はレビューする。画面の駅選択・検索・年度・比較・地域・バス・月次/年度はクエリパラメータで復元する。
