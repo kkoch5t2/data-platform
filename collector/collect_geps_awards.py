@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import argparse, csv, hashlib, io, json, sqlite3, urllib.parse, urllib.request, zipfile
+import argparse, csv, hashlib, http.client, io, json, sqlite3, time, urllib.error, urllib.parse, urllib.request, zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 try:
@@ -20,8 +20,19 @@ def download_zip(year):
     name=f'successful_bid_record_info_all_{year}.zip'
     url=DOWNLOAD_URL+'?'+urllib.parse.urlencode({'fileversion':'v001','filename':name})
     req=urllib.request.Request(url,headers=UA)
-    with urllib.request.urlopen(req,timeout=60) as r:
-        data=r.read()
+    for attempt in range(1,5):
+        try:
+            with urllib.request.urlopen(req,timeout=60) as r:
+                data=r.read()
+            break
+        except (urllib.error.URLError, TimeoutError, ConnectionError, http.client.IncompleteRead) as exc:
+            if isinstance(exc,urllib.error.HTTPError) and exc.code not in (429,500,502,503,504):
+                raise
+            if attempt==4:
+                raise
+            delay=2**attempt
+            print(f'geps {year}: download retry {attempt}/3 after {type(exc).__name__}; waiting {delay}s',flush=True)
+            time.sleep(delay)
     path=RAW/name;path.write_bytes(data)
     with zipfile.ZipFile(io.BytesIO(data)) as z:
         members=[x for x in z.namelist() if x.lower().endswith('.csv')]
