@@ -180,3 +180,8 @@ cronの呼び出しパス・時刻は従来どおり。日次/トピック/週�
 ## 公共交通データ（2026-10-06追加）
 
 `npm run collect:public-transport` → `npm run audit:public-transport` → `collector/check_health.py --source public_transport` の成功後に専用月次marker `last-public-transport-refresh` を更新する。既存の月次markerとは独立して再試行する。ソースIDは `public_transport`、健康判定は840時間・最低12,000レコード。定期更新Git許可リストへ公開JSON4本を登録し、RawはGitに含めない。local/prod E2Eに `e2e:public-transport` を追加。公開検証manifestはJSON4本を全件ハッシュ検証し、`/transport/` をページ確認対象に含める。S12・国勢調査は固定版のため、新版公開時はスキーマ・年度を確認して更新する。
+
+## Ubuntu Wi-Fi切断の補助監視（2026-10-07）
+5GHzのBEACON-LOSSと認証タイムアウトを確認し、保存済み2.4GHz接続へ復旧した。`scripts/wifi-reconnect-watchdog.py` はwlp1s0の切断が180秒以上続いた場合に限り保存済み2.4GHzプロファイルへ再接続し、再試行間隔を600秒以上にする。正常接続・接続処理中・無線無効時は介入しない。結果はsystemd journalへ記録する。
+
+監視はリポジトリへの追加だけでは有効にならない。管理者がホスト上で `scripts/install-wifi-reconnect-watchdog.sh` を実行する必要がある。有効化後は `systemctl status wifi-reconnect-watchdog.timer` と `journalctl -u wifi-reconnect-watchdog.service` で確認する。保存済み接続のUUIDやインターフェースを変更した場合は監視設定も更新する。
