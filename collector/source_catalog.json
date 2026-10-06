@@ -476,6 +476,21 @@
       ],
       "country": "JP",
       "domain": "regional"
+    },
+    "jma_weather": {
+      "label": "気象庁 過去の気象データ・ダウンロード",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 500000,
+      "acquisition": "official-public-csv",
+      "command": [
+        "python3",
+        "collector/collect_jma_weather.py"
+      ],
+      "country": "JP",
+      "domain": "regional",
+      "note": "観測所ごとの平均気温と降水量。日別直近366日・月別2015年以降。市区町村は公式観測所所在地に一致した場合のみ。品質情報8のみ。"
     }
   }
 }

@@ -73,3 +73,8 @@
 
 ## 宿泊旅行統計（2026-10-05追加）
 `/regional/stays/` — 観光庁の月次推移表。`collector/collect_lodging_statistics.py` → `public/data/lodging-statistics.json` → 地域比較・ランキング。月次独立マーカー、`scripts/audit-lodging-statistics.py`、`scripts/e2e-lodging-statistics.cjs`。
+
+## 気象庁・観測所別気象
+- 収集：`collector/collect_jma_weather.py`（気象庁過去データのCSV、アメダス観測所一覧 ZIP）。
+- 公開：`public/data/weather/index.json` と地方コード別JSON、`/regional/weather/`。
+- 更新・監視：`last-jma-weather-refresh`、`jma_weather` source health、`audit-jma-weather.py`。生CSVは `data/raw/weather/`。

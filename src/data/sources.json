@@ -467,6 +467,20 @@
         "latestMonth": "2026-07"
       },
       "previousRecordCount": 8976
+    },
+    "jma_weather": {
+      "label": "気象庁 過去の気象データ",
+      "status": "ok",
+      "startedAt": "2026-10-05T16:58:29.160109+00:00",
+      "finishedAt": "2026-10-05T16:59:26.793393+00:00",
+      "durationSeconds": 57.63,
+      "metrics": {
+        "records": 652002,
+        "stations": 1286,
+        "mappedStations": 1286,
+        "latestDay": "2026-10-05"
+      },
+      "previousRecordCount": 652002
     }
   }
 }

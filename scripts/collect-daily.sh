@@ -167,6 +167,15 @@ if [[ ! -f "$LODGING_MARKER" ]] || ! grep -qx "$MONTH" "$LODGING_MARKER"; then
   printf '%s\n' "$MONTH" > "$LODGING_MARKER"
 fi
 
+# Station observations use a separate marker so an existing monthly run does not skip them.
+JMA_MARKER="$STATE_DIR/last-jma-weather-refresh"
+if [[ ! -f "$JMA_MARKER" ]] || ! grep -qx "$MONTH" "$JMA_MARKER"; then
+  run_step "monthly-jma-weather" npm run collect:jma-weather
+  run_step "monthly-jma-weather-audit" npm run audit:jma-weather
+  run_step "monthly-jma-weather-health" python3 collector/check_health.py --source jma_weather
+  printf '%s\n' "$MONTH" > "$JMA_MARKER"
+fi
+
 # This marker is separate so a month already refreshed before this source list changed
 # still runs the newly covered collectors once on the next scheduled attempt.
 SECONDARY_MONTH_MARKER="$STATE_DIR/last-monthly-secondary-refresh"
