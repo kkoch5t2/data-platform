@@ -16,8 +16,9 @@ from xml.etree import ElementTree
 MANIFEST = 'data/release-manifest.json'
 REQUIRED = ('data/dashboard-meta.json', 'data/listed-companies/summary.json',
             'data/listed-companies/index.json', 'data/company-registry/summary.json',
-            'data/company-registry/unlisted-index.json', 'data/wikipedia-topics.json', 'sitemap.xml')
-PAGES = ('/', '/topics/', '/procurement/', '/listed-companies/', '/unlisted-companies/')
+            'data/company-registry/unlisted-index.json', 'data/wikipedia-topics.json',
+            'data/weather/index.json', 'data/weather/44.json', 'sitemap.xml')
+PAGES = ('/', '/topics/', '/procurement/', '/regional/weather/', '/listed-companies/', '/unlisted-companies/')
 
 
 def digest(body):
@@ -32,8 +33,9 @@ def write_manifest(dist):
     dashboards = sorted((dist / 'data').glob('dashboard-[0-9]*.json'))
     paths.update(p.relative_to(dist).as_posix() for p in dashboards[-5:])
     paths.update(p.relative_to(dist).as_posix() for p in dist.glob('sitemap-*.xml'))
-    # Sample both ends of all three shard sets on every release.
-    for folder in ('data/company-details', 'data/listed-companies/details', 'data/company-registry/details'):
+    # Sample both ends of each shard set on every release.
+    for folder in ('data/company-details', 'data/listed-companies/details', 'data/company-registry/details',
+                   'data/weather'):
         shards = sorted((dist / folder).glob('*.json'))
         if not shards:
             raise RuntimeError(f'Missing published shards: {folder}')
