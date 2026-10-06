@@ -74,3 +74,8 @@ DATLUMEの独自ドメイン `datlume.com` では、2026-09-27時点で以下を
 - 外部URL検証
 - 新しいCookie/計測タグのprivacy記載
 - Cloudflare権限が必要最小限か
+
+
+## 公共交通追加時の確認（2026-10-06）
+
+公共交通は認証不要の公式ZIP・Excelを使用し、Raw原本をGit・publicに含めない。表示文字列はDOMのtextContentで出力する。既存の依存関係監査で検出したsharpを0.35.5へ更新し、`npm audit --omit=dev` が0件であることを確認した。

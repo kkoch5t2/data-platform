@@ -491,6 +491,21 @@
       "country": "JP",
       "domain": "regional",
       "note": "観測所ごとの平均気温と降水量。日別直近366日・月別2015年以降。市区町村は公式観測所所在地に一致した場合のみ。品質情報8のみ。"
+    },
+    "public_transport": {
+      "label": "国土交通省・総務省 公共交通（駅・通勤通学・バス・鉄道）",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 12000,
+      "acquisition": "official-geojson-xlsx",
+      "command": [
+        "python3",
+        "collector/collect_public_transport.py"
+      ],
+      "country": "JP",
+      "domain": "transport",
+      "note": "駅2011〜2024、国勢調査2020、バス最新年報、鉄道最新月報。出典コード・単位・不詳を保持。"
     }
   }
 }

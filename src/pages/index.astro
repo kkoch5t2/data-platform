@@ -31,7 +31,7 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
 <body>
 <header>
   <div class="wrap">
-    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="#datasets">データを見る</a><a href="/procurement/"><span aria-hidden="true">🏛️</span> 国・自治体の案件</a><a href="/realestate/"><span aria-hidden="true">🏠</span> 不動産・暮らし</a><a href="/regional/"><span aria-hidden="true">🗾</span> 都道府県別推移</a><a href="/employment-economy/"><span aria-hidden="true">💼</span> 雇用・賃金</a><a href="/business-industry/"><span aria-hidden="true">🏭</span> 企業・産業</a><a href="/listed-companies/"><span aria-hidden="true">📈</span> 上場企業</a><a href="/unlisted-companies/"><span aria-hidden="true">🏢</span> 未上場企業</a><a href="/economy-prices/"><span aria-hidden="true">💴</span> 経済・物価</a><a href="/energy/"><span aria-hidden="true">⚡</span> エネルギー</a><a href="/topics/"><span aria-hidden="true">🔥</span> 話題のトピック</a><a href="/analytics/"><span aria-hidden="true">📊</span> サイト統計</a><a href="/about-data/">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></nav>
+    <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="#datasets">データを見る</a><a href="/procurement/"><span aria-hidden="true">🏛️</span> 国・自治体の案件</a><a href="/realestate/"><span aria-hidden="true">🏠</span> 不動産・暮らし</a><a href="/regional/"><span aria-hidden="true">🗾</span> 都道府県別推移</a><a href="/employment-economy/"><span aria-hidden="true">💼</span> 雇用・賃金</a><a href="/business-industry/"><span aria-hidden="true">🏭</span> 企業・産業</a><a href="/listed-companies/"><span aria-hidden="true">📈</span> 上場企業</a><a href="/unlisted-companies/"><span aria-hidden="true">🏢</span> 未上場企業</a><a href="/economy-prices/"><span aria-hidden="true">💴</span> 経済・物価</a><a href="/energy/"><span aria-hidden="true">⚡</span> エネルギー</a><a href="/transport/">公共交通</a><a href="/topics/"><span aria-hidden="true">🔥</span> 話題のトピック</a><a href="/analytics/"><span aria-hidden="true">📊</span> サイト統計</a><a href="/about-data/">データについて</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a></div></nav>
     <section class="hero">
       <div class="eyebrow">Data Explorer / Japan</div>
       <h1>データから、日本を見る。</h1>
@@ -44,7 +44,7 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
   <section class="intro-card" aria-label="収録状況">
     <div class="metric"><div class="metric-label"><span aria-hidden="true">🏛️</span> 国・自治体の案件</div><div class="metric-value">{fmt(summary.records)}件</div><div class="metric-sub">収録レコード</div></div>
     <div class="metric"><div class="metric-label">収録開始</div><div class="metric-value">{startYear}年</div><div class="metric-sub">国・自治体の案件データ</div></div>
-    <div class="metric"><div class="metric-label">現在のデータ領域</div><div class="metric-value">10領域</div><div class="metric-sub">国・自治体の案件 / 不動産・暮らし / 都道府県別推移 / 雇用・賃金 / 企業・産業 / 上場企業 / 未上場企業 / 経済・物価 / エネルギー / 話題のトピック</div></div>
+    <div class="metric"><div class="metric-label">現在のデータ領域</div><div class="metric-value">11領域</div><div class="metric-sub">国・自治体の案件 / 不動産・暮らし / 都道府県別推移 / 雇用・賃金 / 企業・産業 / 上場企業 / 未上場企業 / 経済・物価 / エネルギー / 公共交通 / 話題のトピック</div></div>
   </section>
 
   <section id="datasets" class="section">
@@ -103,6 +103,11 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
         <h3><span aria-hidden="true">⚡</span> エネルギー</h3>
         <p>電気代、ガス代、灯油などの家計負担を地域比較し、価格水準や日本の電力需給・電源構成まで見る。</p>
         <div class="card-meta"><span>47都道府県庁所在市 / 家計2025年</span><span class="open">開く →</span></div>
+      </a>
+      <a class="data-card" href="/transport/">
+        <span class="card-tag">PUBLIC TRANSPORT</span><h3>公共交通</h3>
+        <p>駅別乗降客数の推移、市区町村の通勤・通学手段、都道府県のバス利用、全国の鉄道利用を比較。</p>
+        <div class="card-meta"><span>駅単位 / 市区町村 / 月次・年次</span><span class="open">開く →</span></div>
       </a>
       <a class="data-card" href="/topics/">
         <span class="card-tag">WIKIPEDIA / TRENDING</span>

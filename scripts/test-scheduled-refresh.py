@@ -194,18 +194,23 @@ class Tests(unittest.TestCase):
 
     def test_monthly_secondary_datasets_can_be_published_but_code_changes_cannot(self):
         paths = ('public/data/housing-land-2023.json', 'public/data/municipality-social-indicators.json',
-                 'public/data/retail-prices-city-monthly.json', 'public/data/municipality-population-projections.json')
+                 'public/data/retail-prices-city-monthly.json', 'public/data/municipality-population-projections.json',
+                 'public/data/transport/index.json', 'public/data/transport/stations.json',
+                 'public/data/transport/commute.json', 'public/data/transport/usage.json')
         with tempfile.TemporaryDirectory() as directory:
             fixture = Fixture(directory)
             class Monthly(SmallRefresh):
                 def collect(self):
                     super().collect()
                     for rel in paths:
+                        (self.workspace / rel).parent.mkdir(parents=True, exist_ok=True)
                         (self.workspace / rel).write_text('{"records":1}')
+                    (self.markers / 'last-public-transport-refresh').write_text('new-transport-month\n')
             Monthly(fixture.root, 'daily').run()
             fixture.assert_clean(self)
             for rel in paths:
                 self.assertEqual(json.loads((fixture.root / rel).read_text())['records'], 1)
+            self.assertEqual((fixture.root / 'data/automation/last-public-transport-refresh').read_text(), 'new-transport-month\n')
             tools = refresh.module(fixture.root, 'scheduled-refresh-git')
             self.assertFalse(tools.is_allowed('scripts/collector.py'))
 

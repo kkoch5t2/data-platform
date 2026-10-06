@@ -78,3 +78,14 @@
 - 収集：`collector/collect_jma_weather.py`（気象庁過去データのCSV、アメダス観測所一覧 ZIP）。
 - 公開：`public/data/weather/index.json` と地方コード別JSON、`/regional/weather/`。
 - 更新・監視：`last-jma-weather-refresh`、`jma_weather` source health、`audit-jma-weather.py`。生CSVは `data/raw/weather/`。
+
+
+## 公共交通データ（2026-10-06追加）
+
+| 項目 | 実装 |
+|---|---|
+| 公共交通画面 | `src/pages/transport/index.astro`、`src/scripts/transport.ts` |
+| 公式データ収集 | `collector/collect_public_transport.py`、ソースID `public_transport` |
+| 公開データ | `public/data/transport/index.json`、`stations.json`、`commute.json`、`usage.json` |
+| 数値監査 / E2E | `scripts/audit-public-transport.py`、`scripts/e2e-public-transport.cjs` |
+| 月次更新 | `last-public-transport-refresh`、`scripts/collect-daily.sh` |

@@ -120,3 +120,8 @@ audit:retail-prices-city で2000年1月開始・月の連続・系列長・非�
 
 ## 気象庁観測所データ
 `npm run audit:jma-weather` で観測所の一意性、索引と全地方別シャードの一致、日付軸、正常値の範囲、市区町村コードの既存正本照合、東京の公表値アンカーを検証する。`npm run e2e:jma-weather` でPC/スマートフォンの選択・比較・期間切替・URL復元・横はみ出しを確認する。気象庁の品質情報8のみ公開し、欠損は補完しない。
+
+
+## 公共交通データ（2026-10-06追加）
+
+`npm run audit:public-transport -- --require-raw` は全公開数値と保存原本を照合する（S12の全年度セル、国勢調査33,405セル、バス全地域、鉄道全期間）。Gitだけのチェックアウトでは構造・公表アンカーを検証し、原本不在を明示する。`npm run e2e:public-transport` はPC1440px、モバイル390px・320pxで検索・フィルタ・駅選択・比較・年度変更・CSV・URL復元・地域比較・月次/年度切替・欠損・取得失敗・横はみ出しを検証する。必要に応じて `E2E_BASE_URL` と `E2E_CHROMIUM_EXECUTABLE` を指定する。本番公開後はrelease manifestの4 JSONハッシュとページ確認に加え同E2Eを実行する。

@@ -484,6 +484,19 @@
         "latestDay": "2026-10-05"
       },
       "previousRecordCount": 652002
+    },
+    "public_transport": {
+      "label": "国土交通省・総務省 公共交通",
+      "status": "ok",
+      "startedAt": "2026-10-06T16:59:13.667699+00:00",
+      "finishedAt": "2026-10-06T16:59:16.758831+00:00",
+      "durationSeconds": 3.09,
+      "metrics": {
+        "records": 12458,
+        "stations": 10424,
+        "areas": 1965,
+        "latestMonth": "2026-05"
+      }
     }
   }
 }
