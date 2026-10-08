@@ -15,6 +15,8 @@
     "collect:living": "node scripts/run-python.cjs collector/collect_living_layers.py",
     "collect:housing-land-2023": "node scripts/run-python.cjs collector/collect_housing_land_2023.py",
     "collect:reinfolib-transactions": "node scripts/run-python.cjs collector/collect_reinfolib_transactions.py",
+    "report:update-status": "node scripts/run-python.cjs scripts/report-update-status.py",
+    "test:update-status": "node scripts/run-python.cjs scripts/test-update-status.py",
     "health": "node scripts/run-python.cjs collector/check_health.py",
     "release:check": "npm audit --omit=dev && npm run health && npm run audit:data && npm run build && npm run audit:html",
     "e2e": "node scripts/e2e-smoke.cjs && node scripts/e2e-deep.cjs",

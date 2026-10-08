@@ -188,3 +188,12 @@ cronの呼び出しパス・時刻は従来どおり。日次/トピック/週�
 
 ### 公共交通の収集用Python環境
 公共交通のExcel原典処理にはopenpyxlが必要。Ubuntu正本の `.venv` を `python3 -m venv --system-site-packages .venv` で作成し、`.venv/bin/pip install openpyxl requests beautifulsoup4 lxml pandas` で追加する。scheduled-refreshは正本の `.venv/bin/python3` が存在すると同環境を子処理に継承し、独立worktreeでも同じ依存ライブラリを使う。2026-10-07にホスト環境を作成し、公開前の収集・原典監査を確認した。
+
+
+## 更新状況の横断レポート（2026-10-08追加）
+
+`npm run report:update-status` で有効な全ソースの収集結果・頻度・収集日時（JST）・件数・元データ対象年月、日次/トピックの公開成功日、最後の本番照合記録を一覧化する。`-- --json` は監視用JSON、`-- --check` は異常時に終了コード1。外部通信やデータ変更は行わない。
+
+対象年月はcollectorが記録した値だけを表示し、未記録は推測しない。収集日時を統計の最新年月として扱わない。収集の期限と件数下限はsource catalogに従う。本番照合記録は最新の公開成功履歴のcommitと比較し、後から追加されたコードcommitを未公開データと誤判定しない。記録に基づく確認のため、現在の本番ハッシュ照合は既存の `verify-production.py`、Google公式API確認は `check-gsc-sitemap.py` を別途実行する。
+
+週次ジョブは公開を行わないため、日次/トピックの公開成功日とは区別して監査成功日を表示する。
