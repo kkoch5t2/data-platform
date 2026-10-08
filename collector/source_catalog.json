@@ -194,8 +194,8 @@
       "enabled": true,
       "frequency": "monthly",
       "maxAgeHours": 840,
-      "minRecords": 200,
-      "acquisition": "official-public-xlsx",
+      "minRecords": 1175,
+      "acquisition": "official-public-xls-xlsx",
       "command": [
         "python3",
         "collector/collect_employment_wage_history.py"

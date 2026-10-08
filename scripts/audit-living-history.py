@@ -133,9 +133,9 @@ check(len(regional_current.get("records", [])) == 47 * len(regional_current.get(
 for row in regional_current.get("records", []):
     check(all(value is not None for value in row.values()), f"regional {row.get('prefecture')} {row.get('year')}: null field")
 
-# Wage history: full 47 x 5 grid and formula consistency.
+# Wage history: full 47 x 25 grid and formula consistency.
 wage = load("employment-wage-history.json")
-check(wage.get("years") == [2021, 2022, 2023, 2024, 2025], "wage history: year coverage mismatch")
+check(wage.get("years") == list(range(2001, 2026)), "wage history: year coverage mismatch")
 check(prefectures(wage.get("records", [])) == CANONICAL_PREFS, "wage history: prefecture coverage mismatch")
 for row in wage.get("records", []):
     values = row.get("values", [])

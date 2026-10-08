@@ -19,8 +19,8 @@ REQUIRED = ('data/dashboard-meta.json', 'data/listed-companies/summary.json',
             'data/company-registry/unlisted-index.json', 'data/wikipedia-topics.json',
             'data/weather/index.json', 'data/weather/44.json',
             'data/transport/index.json', 'data/transport/stations.json',
-            'data/transport/commute.json', 'data/transport/usage.json', 'sitemap.xml')
-PAGES = ('/', '/realestate/', '/topics/', '/procurement/', '/procurement/companies/', '/procurement/companies/page/2/', '/regional/weather/', '/transport/', '/listed-companies/', '/unlisted-companies/')
+            'data/transport/commute.json', 'data/transport/usage.json', 'js/hazard-tiles.mjs', 'sitemap.xml')
+PAGES = ('/', '/realestate/', '/employment-economy/', '/topics/', '/procurement/', '/procurement/companies/', '/procurement/companies/page/2/', '/regional/weather/', '/transport/', '/listed-companies/', '/unlisted-companies/')
 
 
 def digest(body):

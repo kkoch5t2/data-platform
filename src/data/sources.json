@@ -127,16 +127,15 @@
     "employment_wage_history": {
       "label": "厚生労働省 賃金構造基本統計 都道府県別時系列",
       "status": "ok",
-      "startedAt": "2026-09-30T21:55:31.449141+00:00",
-      "finishedAt": "2026-09-30T21:55:32.974157+00:00",
-      "durationSeconds": 1.53,
+      "startedAt": "2026-10-08T16:12:54.613660+00:00",
+      "finishedAt": "2026-10-08T16:12:54.741771+00:00",
+      "durationSeconds": 0.13,
       "metrics": {
-        "records": 235,
+        "records": 1175,
         "prefectures": 47,
-        "startYear": 2021,
+        "startYear": 2001,
         "endYear": 2025
-      },
-      "previousRecordCount": 235
+      }
     },
     "business_industry_history": {
       "label": "SSDSE-E / 経済センサス産業構造時系列",

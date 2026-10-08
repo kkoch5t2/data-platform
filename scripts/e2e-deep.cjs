@@ -626,6 +626,11 @@ async function checkTopics(page,label,failures) {
         const lazy=page.locator('button:visible').filter({hasText:/読み込|履歴|長期データ|全47都道府県/});
         for(let i=0;i<Math.min(await lazy.count(),3);i++){await lazy.nth(i).click().catch(()=>{});await page.waitForTimeout(180)}
         await page.waitForTimeout(350);
+        // Map filters can start a new raster viewport after navigation has settled.
+        // Wait through the tile monitor's 15-second request timeout before judging it.
+        if(route==='/realestate/')await page.waitForFunction(()=>
+          [...document.querySelectorAll('[id^="hazard-status-"]')].every(el=>el.dataset.state!=='loading'),
+          null,{timeout:20000}).catch(()=>{});
 
         // Offscreen lazy images have dimensions before their request starts. Load them
         // before judging the decoded result; genuine 404/decoding errors still fail.

@@ -32,6 +32,7 @@ const unitMoney=(v)=>v==null?'—':new Intl.NumberFormat('ja-JP',{maximumFractio
     @media(max-width:900px){.housing-summary,.trade-summary{grid-template-columns:1fr 1fr}.dashboard{grid-template-columns:1fr}.panel{display:grid;grid-template-columns:1fr 1fr;gap:12px}.panel-head{grid-column:1/-1}.group{margin:0;padding:0;border:0}.note{grid-column:1/-1}#map{height:68vh;min-height:500px}}@media(max-width:560px){.housing-card b,.trade-card b{font-size:18px}.trade-head{align-items:flex-start;flex-direction:column}.trade-head p{text-align:left}.wrap{width:calc(100% - 16px)}.nav{align-items:flex-start;flex-direction:column}.navlinks{justify-content:flex-start;margin-left:0}.panel{display:block}.panel-toggle{display:block}.panel.mobile-collapsed>:not(.panel-head){display:none}.panel.mobile-collapsed .panel-head{margin-bottom:0}.group{border-top:1px solid #edf0f4;padding-top:12px;margin-top:12px}.legend{display:none}#map{min-height:520px}.map-card.map-unavailable #map,.map-card.map-unavailable .map-fallback{height:300px;min-height:300px}}
 
 .navlinks,.tabs,.view-tabs{scrollbar-width:none;-ms-overflow-style:none}.navlinks::-webkit-scrollbar,.tabs::-webkit-scrollbar,.view-tabs::-webkit-scrollbar{display:none}
+.hazard-status{padding:10px 14px;border-bottom:1px solid var(--line);background:#f8fafc;font-size:11px;line-height:1.6;overflow-wrap:anywhere}.hazard-status strong{font-size:12px}.hazard-status [data-state="failed"]{color:#b42318}.hazard-status p{margin:5px 0 0;color:var(--muted)}.hazard-status button{margin-top:6px;padding:5px 9px;border:1px solid #d9dee7;border-radius:7px;background:white;font:inherit;cursor:pointer}.hazard-status button:disabled{opacity:.5;cursor:default}
 </style>
 </head>
 <body>
@@ -95,10 +96,18 @@ const unitMoney=(v)=>v==null?'—':new Intl.NumberFormat('ja-JP',{maximumFractio
       </div></div>
       <div class="group"><span id="current-price-label" class="label">表示中の地価公示</span><div class="kpis"><div class="kpi"><small>地点数</small><b id="kpi-count">—</b></div><div class="kpi"><small>中央値</small><b id="kpi-median">—</b></div></div></div>
       <div class="group"><span class="label">地価の推移</span><button id="price-history-load" class="history-btn" type="button">2020〜2026を見る</button><div id="price-history-mini" class="history-mini" hidden><svg id="price-history-svg" viewBox="0 0 280 110" preserveAspectRatio="none" aria-label="地価推移"></svg><div id="price-history-caption" class="history-caption"></div></div></div>
-      <p class="note">洪水・津波・土砂災害は外部配信のタイルです。色が表示されない場所は安全を意味しません。未整備・対象外・通信エラーを画面上で区別できないため、住所ごとの判定には自治体のハザードマップを確認してください。各レイヤーは出典年度が異なります。実取引価格は不動産情報ライブラリの{transactions.periodLabel}を自治体別に集計し、地図では各種類5件以上の地域だけ表示します。住宅指標は令和5年住宅・土地統計調査（2023年10月、1,059自治体）。人口・世帯は2020年、出生・死亡は2023年、転入・転出は2024年。犯罪率は2025年の刑法犯認知件数を2024年人口で割った都道府県単位の参考値。交通事故は2024年の警察庁事故データを約1kmグリッドに集約しています。</p>
+      <p class="note">洪水・津波・土砂災害は外部配信のタイルです。色が表示されない場所は安全を意味しません。「配信データなし」は提供元から画像が返らない状態で、未整備・対象外・一時的な配信欠落の区別はできません。「画像取得済み」も安全を示す判定ではありません。住所ごとの確認は自治体のハザードマップをご覧ください。各レイヤーは出典年度が異なります。実取引価格は不動産情報ライブラリの{transactions.periodLabel}を自治体別に集計し、地図では各種類5件以上の地域だけ表示します。住宅指標は令和5年住宅・土地統計調査（2023年10月、1,059自治体）。人口・世帯は2020年、出生・死亡は2023年、転入・転出は2024年。犯罪率は2025年の刑法犯認知件数を2024年人口で割った都道府県単位の参考値。交通事故は2024年の警察庁事故データを約1kmグリッドに集約しています。</p>
     </aside>
     <div class="map-card">
       <div class="map-toolbar"><strong>全国 不動産・防災・暮らしデータマップ</strong><span id="map-status">データを読み込み中</span></div>
+      <div class="hazard-status" aria-label="表示範囲の防災画像の取得状況">
+        <strong>防災レイヤーの表示状況</strong>
+        <div id="hazard-status-flood" data-state="loading">洪水：読み込み前</div>
+        <div id="hazard-status-tsunami" data-state="off">津波：非表示</div>
+        <div id="hazard-status-sediment" data-state="off">土石流：非表示</div>
+        <button id="hazard-retry" type="button" disabled>表示中の防災画像を再取得</button>
+        <p>表示状況は画像の取得結果です。色がない場所も安全とは判断できません。 <a href="https://disaportal.gsi.go.jp/" target="_blank" rel="noreferrer">公式ハザードマップで確認 ↗</a></p>
+      </div>
       <div id="map"></div><div id="loading" class="loading">全国25,000地点の地価データを読み込み中…</div>
       <div id="legend" class="legend"><strong>地価地点</strong><div><i class="dot" style="background:#1769e0"></i>青：地点をクリックすると価格を表示</div></div>
     </div>
@@ -106,6 +115,7 @@ const unitMoney=(v)=>v==null?'—':new Intl.NumberFormat('ja-JP',{maximumFractio
 </main>
 <script is:inline type="module">
 import * as maplibregl from '/vendor/maplibre-6.11.1/maplibre-gl.mjs';
+import {createHazardMonitor,HAZARD_LAYERS} from '/js/hazard-tiles.mjs';
 maplibregl.setWorkerUrl('/vendor/maplibre-6.11.1/maplibre-gl-worker.mjs');
 const fmt=(v)=>new Intl.NumberFormat('ja-JP').format(Math.round(v||0));
 const fmtMoney=(v)=>v==null?'—':new Intl.NumberFormat('ja-JP',{maximumFractionDigits:1}).format(Number(v)/10000)+'万円';
@@ -115,7 +125,7 @@ function setFiltersOpen(open){filtersPanel.classList.toggle('mobile-collapsed',!
 if(window.matchMedia('(max-width:560px)').matches)setFiltersOpen(false);else setFiltersOpen(true);
 filtersToggle.addEventListener('click',()=>setFiltersOpen(filtersPanel.classList.contains('mobile-collapsed')));
 window.matchMedia('(max-width:560px)').addEventListener?.('change',e=>{if(!e.matches)setFiltersOpen(true)});
-const hazardTiles={flood:'https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/{z}/{x}/{y}.png',tsunami:'https://disaportaldata.gsi.go.jp/raster/04_tsunami_newlegend_data/{z}/{x}/{y}.png',sediment:'https://disaportaldata.gsi.go.jp/raster/05_dosekiryukeikaikuiki/{z}/{x}/{y}.png'};
+
 let map,mapAvailable=true,mapReady=false;
 try{
   map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[137.7,36.2],zoom:4.3,minZoom:3,maxZoom:17});
@@ -128,6 +138,15 @@ try{
   map={on(event,...args){if(event==='load'&&args.length===1)setTimeout(args[0],0)},addControl(){},addSource(){},addLayer(){},getSource(){return null},getLayer(){return null},setLayoutProperty(){},setPaintProperty(){},setFilter(){},fitBounds(){},getZoom(){return 0},queryRenderedFeatures(){return[]},easeTo(){},getCanvas(){return{style:{}}}};
 }
 window.__DATLUME_MAP__=map;
+const hazardMonitor=mapAvailable?createHazardMonitor({map,maplibregl,onUpdate:({id,status,counts})=>{
+ const el=$('hazard-status-'+id);el.dataset.state=status;
+ const detail='画像取得済み '+counts.loaded+' / 配信データなし '+counts.missing+' / 通信・画像取得失敗 '+counts.failed;
+ const text={off:'非表示',loading:'読み込み中',failed:'一部または全部の画像を取得できません',loaded:'画像取得済み',missing:'この表示範囲に配信画像がありません',unknown:'表示範囲の状態を確認できません'};
+ el.textContent=HAZARD_LAYERS[id].label+'：'+text[status]+(status==='off'?'':'（'+detail+(counts.pending?' / 読み込み中 '+counts.pending:'')+'）');
+ $('hazard-retry').disabled=!mapReady;
+}}):null;
+if(!mapAvailable){for(const id of Object.keys(HAZARD_LAYERS)){$('hazard-status-'+id).textContent=HAZARD_LAYERS[id].label+'：地図を表示できないため確認できません';$('hazard-status-'+id).dataset.state='unavailable'}$('hazard-retry').disabled=true}
+$('hazard-retry').addEventListener('click',()=>hazardMonitor?.retry());
 let payload,features=[],currentPriceDataset='landPrice',priceHistory=null;
 function median(values){if(!values.length)return 0;const a=[...values].sort((x,y)=>x-y),m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
 function makeFeatures(rows){return rows.map(r=>({type:'Feature',geometry:{type:'Point',coordinates:[r[1],r[2]]},properties:{id:r[0],price:r[3],yoy:r[4],name:r[5],address:r[6],prefecture:r[7],station:r[8],stationDistance:r[9],use:r[10],area:r[11]}}))}
@@ -135,7 +154,6 @@ function visibleRows(){const pref=$('prefecture').value;return pref?features.fil
 function priceDatasetLabel(){return currentPriceDataset==='landSurvey'?'都道府県地価調査':'地価公示'}function updateStats(rows){$('kpi-count').textContent=fmt(rows.length);$('kpi-median').textContent=rows.length?fmt(median(rows.map(f=>f.properties.price)))+'円':'—';$('current-price-label').textContent='表示中の'+priceDatasetLabel();$('map-status').textContent=rows.length?fmt(rows.length)+'地点 / '+priceDatasetLabel()+' 2026年':'該当地点なし'}
 function setPriceData(rows){if(mapReady){const source=map.getSource('land-prices');if(source)source.setData({type:'FeatureCollection',features:rows})}updateStats(rows)}
 function fitRows(rows){if(!mapReady||!rows.length)return;const b=new maplibregl.LngLatBounds();rows.forEach(f=>b.extend(f.geometry.coordinates));map.fitBounds(b,{padding:45,maxZoom:10,duration:700})}
-function addHazard(id,url,visible){map.addSource(id,{type:'raster',tiles:[url],tileSize:256,maxzoom:17});map.addLayer({id,source:id,type:'raster',layout:{visibility:visible?'visible':'none'},paint:{'raster-opacity':.43}})}
 function setVisible(id,on){if(map.getLayer(id))map.setLayoutProperty(id,'visibility',on?'visible':'none')}
 function priceColor(){return '#1769e0'}
 const fc=(features=[])=>({type:'FeatureCollection',features});
@@ -255,7 +273,7 @@ $('price-dataset').addEventListener('change',e=>loadPriceDataset(e.target.value)
 loadInitialPriceData().catch(()=>{});
 map.on('load',async()=>{
   mapReady=true;
-  addHazard('hazard-flood',hazardTiles.flood,true);addHazard('hazard-tsunami',hazardTiles.tsunami,false);addHazard('hazard-sediment',hazardTiles.sediment,false);
+  hazardMonitor?.addLayer('flood',$('layer-flood').checked);hazardMonitor?.addLayer('tsunami',$('layer-tsunami').checked);hazardMonitor?.addLayer('sediment',$('layer-sediment').checked);
   try{await initRegionalStats()}catch(e){console.error('regional stats',e)}
   try{await loadInitialPriceData();
     map.addSource('land-prices',{type:'geojson',data:{type:'FeatureCollection',features:visibleRows()},cluster:true,clusterMaxZoom:10,clusterRadius:45});
@@ -266,9 +284,9 @@ map.on('load',async()=>{
   }catch(e){console.error(e);$('loading').textContent='地価データを読み込めませんでした';$('map-status').textContent='読み込み失敗'}
 });
 $('prefecture').addEventListener('change',()=>{const rows=visibleRows();setPriceData(rows);fitRows(rows);renderPriceHistory()});
-$('layer-flood').addEventListener('change',e=>setVisible('hazard-flood',e.target.checked));
-$('layer-tsunami').addEventListener('change',e=>setVisible('hazard-tsunami',e.target.checked));
-$('layer-sediment').addEventListener('change',e=>setVisible('hazard-sediment',e.target.checked));
+$('layer-flood').addEventListener('change',e=>{setVisible('hazard-flood',e.target.checked);hazardMonitor?.refresh()});
+$('layer-tsunami').addEventListener('change',e=>{setVisible('hazard-tsunami',e.target.checked);hazardMonitor?.refresh()});
+$('layer-sediment').addEventListener('change',e=>{setVisible('hazard-sediment',e.target.checked);hazardMonitor?.refresh()});
 $('layer-price').addEventListener('change',e=>['price-clusters','cluster-count','price-points'].forEach(id=>setVisible(id,e.target.checked)));
 $('stat-layer').addEventListener('change',updateStatLayer);
 $('layer-hospital').addEventListener('change',e=>togglePoi('hospital',e.target.checked));
