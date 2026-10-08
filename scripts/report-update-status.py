@@ -79,6 +79,30 @@ def build_report(root, now=None):
             issues.append("weekly: 監査成功日が古いまたは未来")
     except (ValueError, TypeError):
         issues.append("weekly: 監査成功日が不正または未記録")
+    # A recent marker must not hide a later failure in the same week/day.
+    failures = state / "weekly-audit-logs/failures.log"
+    if failures.exists():
+        lines = [line for line in failures.read_text().splitlines() if line.strip()]
+        if lines:
+            try:
+                failed_at = timestamp(lines[-1].split("\t", 1)[0])
+                jobs["weekly"]["lastFailureAt"] = failed_at.astimezone(JST).isoformat()
+                successful_at = None
+                marker = jobs["weekly"]["lastVerifiedDate"]
+                log = state / "weekly-audit-logs" / f"{marker}.log"
+                prefix = "=== weekly refresh verified success "
+                if log.exists():
+                    for line in log.read_text().splitlines():
+                        if line.startswith(prefix):
+                            successful_at = timestamp(line[len(prefix):].removesuffix(" ==="))
+                if successful_at:
+                    jobs["weekly"]["lastVerifiedAt"] = successful_at.astimezone(JST).isoformat()
+                    if failed_at > successful_at:
+                        issues.append("weekly: 前回成功後に監査が失敗")
+                elif marker is None or failed_at.astimezone(JST).date().isoformat() >= marker:
+                    issues.append("weekly: 失敗後の監査成功を確認できない")
+            except (ValueError, TypeError, AttributeError):
+                issues.append("weekly: 監査失敗履歴の日時が不正")
     # Read the latest verified history; newer code commits alone do not imply a deployment.
     latest = None
     history = state / "history.jsonl"

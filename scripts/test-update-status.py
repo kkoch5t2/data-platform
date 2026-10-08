@@ -47,6 +47,17 @@ class ReportTests(unittest.TestCase):
         path.unlink()
         self.assertFalse(self.report()["ok"])
 
+    def test_weekly_failure_after_recent_success_is_not_hidden(self):
+        directory = self.root / "data/automation/weekly-audit-logs"
+        directory.mkdir()
+        (directory / "failures.log").write_text("2026-10-08T12:00:00+09:00\tjob=weekly\tstep=collection\n")
+        self.assertFalse(self.report()["ok"])
+        (self.root / "data/automation/last-weekly-success-date").write_text("2026-10-08")
+        (directory / "2026-10-08.log").write_text("=== weekly refresh verified success 2026-10-08T11:00:00+09:00 ===\n")
+        self.assertFalse(self.report()["ok"])
+        (directory / "2026-10-08.log").write_text("=== weekly refresh verified success 2026-10-08T13:00:00+09:00 ===\n")
+        self.assertTrue(self.report()["ok"])
+
     def write(self, path, value):
         target = self.root / path
         target.parent.mkdir(parents=True, exist_ok=True)
