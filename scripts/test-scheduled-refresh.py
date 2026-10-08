@@ -124,6 +124,31 @@ class Tests(unittest.TestCase):
             self.assertEqual((fixture.root / 'data/automation/last-success-date').read_text(), today+'\n')
 
 
+    def test_master_worker_normalizes_before_public_data_and_stops_on_failure(self):
+        for failing in ('', 'normalize:listed-incremental'):
+            with self.subTest(failing=failing), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root/'scripts').mkdir(); (root/'bin').mkdir(); (root/'markers').mkdir()
+                worker = root/'scripts/refresh-listed-master-worker.sh'
+                shutil.copy2(ROOT/'scripts/refresh-listed-master-worker.sh', worker)
+                npm = root/'bin/npm'
+                npm.write_text('#!/bin/sh\nprintf "%s\\n" "$2" >> "$CALL_LOG"\nif [ "$2" = "$FAIL_STEP" ]; then exit 42; fi\n')
+                npm.chmod(0o755)
+                log = root/'calls'
+                result = subprocess.run(['bash', str(worker)], env={**os.environ,
+                    'PATH': str(root/'bin')+':'+os.environ['PATH'], 'CALL_LOG': str(log),
+                    'FAIL_STEP': failing, 'DATLUME_MARKER_DIR': str(root/'markers')}, capture_output=True)
+                calls = log.read_text().splitlines()
+                if failing:
+                    self.assertEqual(result.returncode, 42)
+                    self.assertNotIn('build:listed-data', calls)
+                    self.assertFalse((root/'markers/last-listed-master-refresh').exists())
+                else:
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertLess(calls.index('normalize:listed-incremental'), calls.index('validate:listed-financials'))
+                    self.assertLess(calls.index('validate:listed-financials'), calls.index('build:listed-data'))
+                    self.assertTrue((root/'markers/last-listed-master-refresh').exists())
+
     def test_master_only_cannot_mark_an_unprocessed_daily_update_successful(self):
         with tempfile.TemporaryDirectory() as directory:
             fixture = Fixture(directory)
