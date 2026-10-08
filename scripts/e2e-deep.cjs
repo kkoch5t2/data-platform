@@ -577,7 +577,7 @@ async function checkTopics(page,label,failures) {
     for (const route of activeRoutes) {
       const page=await ctx.newPage();
       const jsErrors=[],badFirstParty=[],badExternal=[];
-      page.on('pageerror',e=>jsErrors.push(e.message));
+      page.on('pageerror',e=>jsErrors.push(e.stack||e.message));
       page.on('console',m=>{
         if(m.type()!=='error'||/^Failed to load resource:/.test(m.text()))return;
         const youtubeEmbed=route==='/topics/'&&page.frames().some(frame=>frame.url().startsWith('https://www.youtube-nocookie.com/embed/'));
@@ -585,7 +585,8 @@ async function checkTopics(page,label,failures) {
           warnings.push(`${vp.name} ${route} YouTube embed: ${m.text()}`);
           return;
         }
-        jsErrors.push(m.text());
+        const location=m.location();
+        jsErrors.push(m.text()+(location.url?` [${location.url}:${location.lineNumber}]`:''));
       });
       page.on('response',r=>{
         if(r.status()<400)return;
