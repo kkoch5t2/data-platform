@@ -43,6 +43,7 @@ PCと幅390px相当のモバイルを両方検証する。
 - JS例外
 - 自サイトHTTPエラー
 - 外部HTTPエラー
+- `/topics/` のYouTube埋め込み中にChromeが出す `compute-pressure` のPermissions Policy違反は、当該iframeが存在する場合だけ外部埋め込みの警告として記録する。自サイトのJS例外や他のconsole errorは引き続き失敗とする。
 - 横はみ出し
 - 読み込み停止
 - canvas/chart生成
