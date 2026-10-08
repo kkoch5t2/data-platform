@@ -14,6 +14,7 @@
 - `06-test-quality.md` — QA・テスト設計。監査、E2E、PC/モバイル、本番確認。
 - `07-monetization-adsense.md` — Google AdSense 導入・審査・広告配信方針。
 - `08-security.md` — シークレット、HTTPヘッダー、外部API、Git運用のセキュリティ設計。
+- `10-data-coverage.md` — 公開JSONで確認した収録期間・地域粒度と追加調査の優先順位。
 - `09-system-inventory.md` — 画面・データソース・collector・運用スクリプトの横断索引。
 - `listed-companies-prd-notes.md` — 上場企業領域のPRD実装判断と会計ルール。
 
