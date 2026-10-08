@@ -136,3 +136,6 @@ audit:retail-prices-city で2000年1月開始・月の連続・系列長・非�
 2026-10-08週次監査の本番topicsにて、単発の `writeEmbed is not defined` を検出。動画再生6回とPC/モバイル再検証では再現せず、原因・発生元は未確定。以後pageerrorのstackとconsole errorの発生元URL/行を失敗ログに保持する。メッセージだけで外部エラーと決めつけず、既存の失敗判定を維持する。
 
 `test:listed-master-refresh` は当月の取得マーカーがあっても古い版なら再取得すること、前月の最終営業日、年跨ぎ、閏年、不正/未来の日付を検証する。全領域audit:dataへ含める。
+
+### 一時的なネットワーク変更
+主要ページE2Eと公共交通E2Eのgoto/reloadは、Chromiumの明示的な `net::ERR_NETWORK_CHANGED` に限り500ms後に1回再試行する。永続する通信障害・JS例外・DOM/数値のassertionは失敗のまま。4件の負例を含む `test:e2e-navigation` で、正常復帰、再発、不関連エラー、JS例外の境界を検証する。2026-10-08のトピック更新でローカルtransport reloadの同エラーを確認。ホストのログには仮想ブリッジの変更があり、監視サービスによるWi-Fi再接続は記録されていない。

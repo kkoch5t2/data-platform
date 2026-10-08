@@ -101,6 +101,7 @@ class Refresh:
         self.manifest = self.transaction / 'manifest.json'
         self.markers = self.workspace / 'tmp/refresh-markers'
         self.phase = 'startup'
+        self.master_only = False
         self.base = None
         self.log = None
         self.env = dict(os.environ, TZ='Asia/Tokyo')
@@ -325,7 +326,8 @@ class Refresh:
     def collect(self):
         self.phase = 'collection'
         if self.job == 'daily':
-            self.command(['bash', 'scripts/collect-daily.sh'], extra_env={'DATLUME_MARKER_DIR': str(self.markers)})
+            worker = 'refresh-listed-master-worker.sh' if self.master_only else 'collect-daily.sh'
+            self.command(['bash', 'scripts/' + worker], extra_env={'DATLUME_MARKER_DIR': str(self.markers)})
         elif self.job == 'topics':
             self.command(['python3', 'collector/collect_wikipedia_topics.py', '--days', '14'])
             self.command(['npm', 'run', 'audit:wikipedia-topics'])
@@ -483,6 +485,10 @@ class Refresh:
     def run(self, scheduled=False):
         self.state.mkdir(parents=True, exist_ok=True)
         today = datetime.now(ZoneInfo('Asia/Tokyo')).date().isoformat()
+        if self.master_only:
+            marker = self.state / SUCCESS['daily']
+            if self.job != 'daily' or not marker.exists() or marker.read_text().strip() != today:
+                raise RuntimeError('Master-only mode requires a fully verified daily update today; run the regular refresh first')
         if scheduled:
             marker = Path.home() / '.config/datlume/allow-scheduled-refresh'
             if socket.gethostname() != 'kota-Intel' or not marker.is_file() or marker.read_text().strip() != 'kota-Intel':
@@ -538,6 +544,10 @@ def main():
     args = parser.parse_args([a if a != '--scheduled' else 'scheduled' for a in sys.argv[1:]])
     scheduled = args.mode == 'scheduled'
     runner = Refresh(ROOT, args.job)
+    if args.mode == 'listed-master':
+        if args.job != 'daily':
+            parser.error('listed-master mode requires the daily safety transaction')
+        runner.master_only = True
     def interrupted(signum, frame):
         raise InterruptedError(f'Refresh interrupted by signal {signum}')
     signal.signal(signal.SIGTERM, interrupted)

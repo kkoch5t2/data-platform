@@ -16,6 +16,7 @@
     "collect:housing-land-2023": "node scripts/run-python.cjs collector/collect_housing_land_2023.py",
     "collect:reinfolib-transactions": "node scripts/run-python.cjs collector/collect_reinfolib_transactions.py",
     "report:update-status": "node scripts/run-python.cjs scripts/report-update-status.py",
+    "test:e2e-navigation": "node scripts/test-e2e-navigation.cjs",
     "test:listed-master-refresh": "node scripts/run-python.cjs scripts/test-listed-master-refresh.py",
     "test:update-status": "node scripts/run-python.cjs scripts/test-update-status.py",
     "health": "node scripts/run-python.cjs collector/check_health.py",

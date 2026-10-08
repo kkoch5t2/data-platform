@@ -103,6 +103,36 @@ class SmallRefresh(refresh.Refresh):
 
 
 class Tests(unittest.TestCase):
+    def test_master_only_keeps_daily_transaction_and_recovery(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Fixture(directory)
+            runner = refresh.Refresh(fixture.root, 'daily')
+            runner.master_only = True
+            today = refresh.datetime.now(refresh.ZoneInfo('Asia/Tokyo')).date().isoformat()
+            (fixture.root / 'data/automation/last-success-date').write_text(today+'\n')
+            seen = []
+            def fail_worker(args, **kwargs):
+                seen.append(args)
+                (fixture.root / 'data/raw/listed-companies/normalized/financials.json').write_text('changed')
+                raise RuntimeError('injected master-only failure')
+            runner.command = fail_worker
+            with self.assertRaises(RuntimeError):
+                runner.run()
+            self.assertEqual(seen, [['bash', 'scripts/refresh-listed-master-worker.sh']])
+            fixture.assert_clean(self)
+            self.assertEqual((fixture.root / 'data/raw/listed-companies/normalized/financials.json').read_text(), 'old-normalized')
+            self.assertEqual((fixture.root / 'data/automation/last-success-date').read_text(), today+'\n')
+
+
+    def test_master_only_cannot_mark_an_unprocessed_daily_update_successful(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Fixture(directory)
+            runner = refresh.Refresh(fixture.root, 'daily'); runner.master_only = True
+            with self.assertRaisesRegex(RuntimeError, 'fully verified daily update'):
+                runner.run()
+            self.assertEqual((fixture.root / 'data/automation/last-success-date').read_text(), '2026-09-01\n')
+            fixture.assert_clean(self)
+
     def test_failed_collect_build_and_local_e2e_restore_all_runtime_and_primary(self):
         for job in ('daily', 'topics', 'weekly'):
             for failure in ('collection', 'release-check', 'local-e2e'):

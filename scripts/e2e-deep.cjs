@@ -1,3 +1,4 @@
+const {goto,reload}=require('./e2e-navigation.cjs');
 const { chromium } = require('playwright');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -594,7 +595,7 @@ async function checkTopics(page,label,failures) {
         (own?badFirstParty:badExternal).push(r.status()+' '+r.url());
       });
       try {
-        const res=await page.goto(base+encodeURI(route),{waitUntil:'networkidle',timeout:60000});
+        const res=await goto(page,base+encodeURI(route),{waitUntil:'networkidle',timeout:60000});
         if(!res||res.status()>=400)failures.push(`${vp.name} ${route} navigation ${res?.status()}`);
         const initialLabel=`${vp.name} ${route}`;
         if(route==='/about-data/')await checkAboutDataAwardCoverage(page,initialLabel,failures);
