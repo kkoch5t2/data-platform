@@ -7,7 +7,7 @@
 | 領域 | 収録範囲・粒度 | 根拠 |
 |---|---|---|
 | 公共調達 | 1988-11-01〜2026-10-07、845,884件。提供元ごとの期間・収録密度は異なる | src/data/summary.json |
-| 上場企業 | 3,887社、財務収録3,690社、33,152年度レコード、64詳細shard。企業一覧のsourceDateは2026-08-31 | public/data/listed-companies/summary.json |
+| 上場企業 | 3,885社、財務収録3,676社、33,020年度レコード、64詳細shard。企業一覧のsourceDateは2026-09-30 | public/data/listed-companies/summary.json |
 | 市区町村の社会・人口指標 | 1,741自治体、5指標。各指標の対象年はそれぞれ確認する | public/data/municipality-social-indicators.json、sources.json |
 | 住宅・土地 | 2023年調査、1,059自治体。公表対象の制約があり、全自治体へ欠損を補完しない | public/data/housing-land-2023.json |
 | 不動産取引 | 2025Q1〜2026Q1。原本321,682件、住宅系公開278,595件 | public/data/realestate-transactions.json |
@@ -32,3 +32,5 @@
 6. ソースによって収集結果へ対象年月が未記録。公開JSONに保持された原典の対象期間をcollectorのmetricsにも記録し、横断レポートの未記録を減らす。
 
 運用状態は `npm run report:update-status -- --check`。本番の現内容は `verify-production.py` によるハッシュ照合、値と粒度は各専用監査で確認する。
+
+2026-10-08追補: JPXの9月30日版へ更新し、本番の53データ/XMLファイル・主要9ページのハッシュ照合と8種類のPC/モバイル操作E2Eが成功。企業一覧の対象変更は追加12社・除外14社。財務132年度レコードの差は一覧対象外となった14社分で、原本と文書索引は保持する。日次・トピック更新・週次監査の再実行はいずれも成功し、34ソースの横断レポートの要確認項目は0件。
