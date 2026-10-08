@@ -4,19 +4,19 @@
     "jetro": {
       "label": "JETRO 政府公共調達データベース",
       "status": "ok",
-      "startedAt": "2026-10-07T23:16:09.064699+00:00",
-      "finishedAt": "2026-10-07T23:17:28.323360+00:00",
-      "durationSeconds": 79.26,
+      "startedAt": "2026-10-08T23:16:08.350740+00:00",
+      "finishedAt": "2026-10-08T23:17:34.535472+00:00",
+      "durationSeconds": 86.18,
       "metrics": {
-        "records": 845747,
-        "itRecords": 93222,
-        "awardRecords": 606104,
-        "companies": 47879,
-        "organizations": 263,
-        "fetched": 646,
+        "records": 845924,
+        "itRecords": 93250,
+        "awardRecords": 606220,
+        "companies": 47885,
+        "organizations": 264,
+        "fetched": 639,
         "enriched": 0
       },
-      "previousRecordCount": 845697
+      "previousRecordCount": 845747
     },
     "land_prices": {
       "label": "国土交通省 地価公示 / 都道府県地価調査",
@@ -34,15 +34,15 @@
     "jetro_local": {
       "label": "JETRO 地方政府公共調達データベース",
       "status": "ok",
-      "startedAt": "2026-10-07T23:17:28.452815+00:00",
-      "finishedAt": "2026-10-07T23:18:47.451369+00:00",
-      "durationSeconds": 79.0,
+      "startedAt": "2026-10-08T23:17:34.682640+00:00",
+      "finishedAt": "2026-10-08T23:18:56.068811+00:00",
+      "durationSeconds": 81.39,
       "metrics": {
-        "records": 907,
+        "records": 914,
         "fetched": 600,
-        "totalRecords": 845767
+        "totalRecords": 845931
       },
-      "previousRecordCount": 887
+      "previousRecordCount": 907
     },
     "regional_trends": {
       "label": "統計センター SSDSE-県別推移",
@@ -168,21 +168,21 @@
     "yokohama_procurement": {
       "label": "横浜市 入札公告・契約結果",
       "status": "ok",
-      "startedAt": "2026-10-07T23:18:47.594482+00:00",
-      "finishedAt": "2026-10-07T23:28:08.232610+00:00",
-      "durationSeconds": 560.64,
+      "startedAt": "2026-10-08T23:18:56.223556+00:00",
+      "finishedAt": "2026-10-08T23:27:44.761248+00:00",
+      "durationSeconds": 528.54,
       "metrics": {
         "records": 4269,
         "added": 0,
         "duplicates": 4269,
         "bulletins": 41,
         "years": 1,
-        "resultRows": 3247,
-        "resultAdded": 32,
-        "resultUpdated": 3215,
-        "resultAmounts": 3247,
+        "resultRows": 3272,
+        "resultAdded": 17,
+        "resultUpdated": 3255,
+        "resultAmounts": 3272,
         "resultPages": 69,
-        "resultNoAward": 168
+        "resultNoAward": 170
       },
       "previousRecordCount": 4269
     },
@@ -203,9 +203,9 @@
     "sapporo_procurement": {
       "label": "札幌市 入札等結果一覧",
       "status": "ok",
-      "startedAt": "2026-10-07T23:28:08.364946+00:00",
-      "finishedAt": "2026-10-07T23:29:10.537843+00:00",
-      "durationSeconds": 62.17,
+      "startedAt": "2026-10-08T23:27:44.898984+00:00",
+      "finishedAt": "2026-10-08T23:28:47.098103+00:00",
+      "durationSeconds": 62.2,
       "metrics": {
         "records": 656,
         "upserted": 656,
@@ -213,17 +213,17 @@
         "startYear": 2026,
         "endYear": 2026
       },
-      "previousRecordCount": 614
+      "previousRecordCount": 656
     },
     "fukuoka_procurement": {
       "label": "福岡市 財政局契約課 入札結果",
       "status": "ok",
-      "startedAt": "2026-10-07T23:30:27.870627+00:00",
-      "finishedAt": "2026-10-07T23:31:49.548128+00:00",
-      "durationSeconds": 81.68,
+      "startedAt": "2026-10-08T23:30:05.468631+00:00",
+      "finishedAt": "2026-10-08T23:31:16.682408+00:00",
+      "durationSeconds": 71.21,
       "metrics": {
-        "records": 3103,
-        "upserted": 3103,
+        "records": 3137,
+        "upserted": 3137,
         "years": 1,
         "startYear": 2026,
         "endYear": 2026
@@ -233,25 +233,25 @@
     "kobe_procurement": {
       "label": "神戸市 入札結果",
       "status": "ok",
-      "startedAt": "2026-10-07T23:29:10.673660+00:00",
-      "finishedAt": "2026-10-07T23:30:27.734323+00:00",
-      "durationSeconds": 77.06,
+      "startedAt": "2026-10-08T23:28:47.235140+00:00",
+      "finishedAt": "2026-10-08T23:30:05.329758+00:00",
+      "durationSeconds": 78.09,
       "metrics": {
-        "records": 1499,
-        "upserted": 1499,
-        "detailsFetched": 6,
+        "records": 1500,
+        "upserted": 1500,
+        "detailsFetched": 0,
         "years": 1,
         "startYear": 2026,
         "endYear": 2026
       },
-      "previousRecordCount": 1493
+      "previousRecordCount": 1499
     },
     "chiba_procurement": {
       "label": "千葉市 入札（見積）結果",
       "status": "ok",
-      "startedAt": "2026-10-07T23:31:49.677020+00:00",
-      "finishedAt": "2026-10-07T23:33:08.568792+00:00",
-      "durationSeconds": 78.89,
+      "startedAt": "2026-10-08T23:31:16.820352+00:00",
+      "finishedAt": "2026-10-08T23:32:21.982899+00:00",
+      "durationSeconds": 65.16,
       "metrics": {
         "records": 398,
         "upserted": 398,
@@ -260,23 +260,23 @@
         "startDate": "2023-10-19",
         "endDate": "2026-10-06"
       },
-      "previousRecordCount": 392
+      "previousRecordCount": 398
     },
     "kyoto_procurement": {
       "label": "京都市 電子入札執行結果",
       "status": "ok",
-      "startedAt": "2026-10-07T23:33:08.695164+00:00",
-      "finishedAt": "2026-10-07T23:34:18.454427+00:00",
-      "durationSeconds": 69.76,
+      "startedAt": "2026-10-08T23:32:22.120838+00:00",
+      "finishedAt": "2026-10-08T23:33:30.096523+00:00",
+      "durationSeconds": 67.98,
       "metrics": {
-        "records": 1538,
-        "upserted": 1538,
+        "records": 1552,
+        "upserted": 1552,
         "pages": 14,
         "unavailablePages": 0,
         "startDate": "2026-01-06",
-        "endDate": "2026-10-06"
+        "endDate": "2026-10-07"
       },
-      "previousRecordCount": 1532
+      "previousRecordCount": 1538
     },
     "social_population": {
       "label": "e-Stat 統計ダッシュボード（社会・人口統計体系）",
@@ -340,9 +340,9 @@
     "geps_awards": {
       "label": "調達ポータル 落札実績オープンデータ",
       "status": "ok",
-      "startedAt": "2026-10-07T23:15:16.350262+00:00",
-      "finishedAt": "2026-10-07T23:16:08.981778+00:00",
-      "durationSeconds": 52.63,
+      "startedAt": "2026-10-08T23:15:14.049913+00:00",
+      "finishedAt": "2026-10-08T23:16:08.266162+00:00",
+      "durationSeconds": 54.22,
       "metrics": {
         "records": 314331,
         "fetched": 49194,
@@ -356,14 +356,14 @@
     "kawasaki_procurement": {
       "label": "川崎市 入札情報・落札結果",
       "status": "ok",
-      "startedAt": "2026-10-07T23:34:18.592431+00:00",
-      "finishedAt": "2026-10-07T23:35:57.825183+00:00",
-      "durationSeconds": 99.23,
+      "startedAt": "2026-10-08T23:33:30.243964+00:00",
+      "finishedAt": "2026-10-08T23:35:07.032593+00:00",
+      "durationSeconds": 96.79,
       "metrics": {
-        "records": 4809,
-        "upserted": 4809,
-        "requests": 687,
-        "trafficRecords": 111,
+        "records": 4834,
+        "upserted": 4834,
+        "requests": 690,
+        "trafficRecords": 112,
         "hospitalRecords": 134,
         "epcUnavailable": 0,
         "epcErrors": [],
@@ -371,24 +371,24 @@
         "startYear": 2026,
         "endYear": 2026
       },
-      "previousRecordCount": 245
+      "previousRecordCount": 4809
     },
     "sendai_procurement": {
       "label": "仙台市 入札・契約結果 / 本庁契約課発注情報",
       "status": "ok",
-      "startedAt": "2026-10-07T23:35:57.965269+00:00",
-      "finishedAt": "2026-10-07T23:37:58.669049+00:00",
-      "durationSeconds": 120.7,
+      "startedAt": "2026-10-08T23:35:07.180166+00:00",
+      "finishedAt": "2026-10-08T23:36:29.630690+00:00",
+      "durationSeconds": 82.45,
       "metrics": {
-        "records": 1642,
-        "upserted": 1642,
+        "records": 1648,
+        "upserted": 1648,
         "cancelled": 1,
         "legacyDeduped": 0,
         "years": 1,
         "startYear": 2026,
         "endYear": 2026
       },
-      "previousRecordCount": 1632
+      "previousRecordCount": 1642
     },
     "wikipedia_topics": {
       "label": "Wikimedia Analytics API 日本語版Wikipedia Pageviews",
@@ -410,16 +410,16 @@
     "shokuba": {
       "label": "厚生労働省 しょくばらぼ",
       "status": "ok",
-      "startedAt": "2026-10-07T23:39:56.694950+00:00",
-      "finishedAt": "2026-10-07T23:40:23.439628+00:00",
-      "durationSeconds": 26.74,
+      "startedAt": "2026-10-08T23:38:26.589769+00:00",
+      "finishedAt": "2026-10-08T23:38:51.475219+00:00",
+      "durationSeconds": 24.89,
       "metrics": {
         "records": 152401,
-        "usableCompanies": 22436,
-        "sourceDate": "2026-10-07",
-        "sha256": "70917bd852eca550e5b033fac34b3f0859e63cd4e5e463e1076b15e7cc592b7c"
+        "usableCompanies": 22437,
+        "sourceDate": "2026-10-08",
+        "sha256": "fc6cbabfdd66351f0d4fe86d42061c33357ab0039c71fa6310da9a903bb4e741"
       },
-      "previousRecordCount": 152399
+      "previousRecordCount": 152401
     },
     "ipss_population": {
       "label": "社人研 地域別将来推計人口（2023年推計）",
