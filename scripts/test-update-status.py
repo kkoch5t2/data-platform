@@ -58,6 +58,20 @@ class ReportTests(unittest.TestCase):
         (directory / "2026-10-08.log").write_text("=== weekly refresh verified success 2026-10-08T13:00:00+09:00 ===\n")
         self.assertTrue(self.report()["ok"])
 
+    def test_daily_failure_after_success_is_detected_and_retry_clears_it(self):
+        directory = self.root / "data/automation/logs"
+        directory.mkdir()
+        (directory / "failures.log").write_text("2026-10-08T12:00:00+09:00\tjob=daily\n")
+        self.assertFalse(self.report()["ok"])
+        with (self.root / "data/automation/history.jsonl").open('a') as f:
+            f.write(json.dumps({"job": "daily", "verified": True, "commit": "published",
+                "finishedAt": "2026-10-08T13:00:00+09:00"})+'\n')
+        self.assertTrue(self.report()["ok"])
+
+    def test_topics_failure_is_reported_without_verified_history(self):
+        (self.root / "data/automation/wikipedia-failures.log").write_text("2026-10-08T12:00:00+09:00\tjob=topics\n")
+        self.assertFalse(self.report()["ok"])
+
     def write(self, path, value):
         target = self.root / path
         target.parent.mkdir(parents=True, exist_ok=True)

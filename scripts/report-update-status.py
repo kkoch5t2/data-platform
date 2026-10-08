@@ -105,16 +105,37 @@ def build_report(root, now=None):
                 issues.append("weekly: 監査失敗履歴の日時が不正")
     # Read the latest verified history; newer code commits alone do not imply a deployment.
     latest = None
+    verified_by_job = {}
     history = state / "history.jsonl"
     if history.exists():
         for line in history.read_text().splitlines():
             try:
                 entry = json.loads(line)
                 if entry.get("verified") is True and entry.get("job") in ("daily", "topics"):
+                    prior = verified_by_job.get(entry["job"])
+                    if prior is None or timestamp(entry["finishedAt"]) > timestamp(prior["finishedAt"]):
+                        verified_by_job[entry["job"]] = entry
                     if latest is None or timestamp(entry["finishedAt"]) > timestamp(latest["finishedAt"]):
                         latest = entry
             except (ValueError, KeyError, TypeError, AttributeError):
                 issues.append("成功履歴に不正な行")
+    for job, filename in (("daily", "logs/failures.log"), ("topics", "wikipedia-failures.log")):
+        path = state / filename
+        if not path.exists():
+            continue
+        lines = [line for line in path.read_text().splitlines() if line.strip()]
+        if not lines:
+            continue
+        try:
+            failed = timestamp(lines[-1].split("\t", 1)[0])
+            jobs[job]["lastFailureAt"] = failed.astimezone(JST).isoformat()
+            success = verified_by_job.get(job)
+            if success:
+                jobs[job]["lastVerifiedAt"] = timestamp(success["finishedAt"]).astimezone(JST).isoformat()
+            if not success or failed > timestamp(success["finishedAt"]):
+                issues.append(f"{job}: 失敗後の公開成功を確認できない")
+        except (ValueError, TypeError, KeyError, AttributeError):
+            issues.append(f"{job}: 更新失敗履歴の日時が不正")
     verification = None
     try:
         verification = load(state / "last-production-verification.json")
