@@ -34,7 +34,7 @@ class Fixture:
         git(self.root, 'config', 'user.name', 'Refresh fixture')
         git(self.root, 'remote', 'add', 'origin', str(self.remote))
         (self.root / 'scripts').mkdir()
-        for name in ('scheduled-refresh.py', 'scheduled-refresh-git.py', 'procurement-refresh-state.py', 'collect-daily.sh'):
+        for name in ('scheduled-refresh.py', 'scheduled-refresh-git.py', 'procurement-refresh-state.py', 'collect-daily.sh', 'listed-master-refresh-needed.py'):
             shutil.copy2(ROOT / 'scripts' / name, self.root / 'scripts' / name)
         (self.root / '.gitignore').write_text('/data\n/node_modules\n/tmp/\n/src/data/summary.json\n__pycache__/\n*.pyc\n')
         for folder in ('src/data', 'public/data/listed-companies', 'data/automation', 'node_modules',

@@ -134,3 +134,5 @@ audit:retail-prices-city で2000年1月開始・月の連続・系列長・非�
 日次公開では `e2e:retail-history`、`e2e:ipss-population`、`e2e:jma-weather` も公開前・公開後の必須ゲートとする。小売価格の円差・2000年開始・順位切替・単位が比較できない品目の注記、市区町村比較、観測所の選択をPC/390pxで確認する。
 
 2026-10-08週次監査の本番topicsにて、単発の `writeEmbed is not defined` を検出。動画再生6回とPC/モバイル再検証では再現せず、原因・発生元は未確定。以後pageerrorのstackとconsole errorの発生元URL/行を失敗ログに保持する。メッセージだけで外部エラーと決めつけず、既存の失敗判定を維持する。
+
+`test:listed-master-refresh` は当月の取得マーカーがあっても古い版なら再取得すること、前月の最終営業日、年跨ぎ、閏年、不正/未来の日付を検証する。全領域audit:dataへ含める。

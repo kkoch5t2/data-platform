@@ -111,9 +111,9 @@ fi
 
 MONTH="$(date +%Y-%m)"
 LISTED_MASTER_MARKER="$STATE_DIR/last-listed-master-refresh"
-if [[ ! -f "$LISTED_MASTER_MARKER" ]] || ! grep -qx "$MONTH" "$LISTED_MASTER_MARKER"; then
+if python3 scripts/listed-master-refresh-needed.py --marker "$LISTED_MASTER_MARKER"; then
   echo "Refreshing JPX / EDINET listed-company master"
-  npm run collect:listed-master
+  run_step "listed-master" npm run collect:listed-master
   printf '%s\n' "$MONTH" > "$LISTED_MASTER_MARKER"
 fi
 
