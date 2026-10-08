@@ -30,12 +30,19 @@ class ReportTests(unittest.TestCase):
         path.write_text(json.dumps({"job": "daily", "verified": True,
             "commit": "published", "finishedAt": "2026-10-08T08:40:00+09:00"}) + "\n")
 
-        for marker in ("last-success-date", "last-wikipedia-success-date"):
+        for marker in ("last-success-date", "last-wikipedia-success-date", "last-weekly-success-date"):
             (self.root / "data/automation" / marker).write_text("2026-10-07")
 
     def test_missing_or_old_publication_date_fails(self):
         path = self.root / "data/automation/last-success-date"
         path.write_text("2026-10-01")
+        self.assertFalse(self.report()["ok"])
+        path.unlink()
+        self.assertFalse(self.report()["ok"])
+
+    def test_weekly_audit_missing_or_stale_fails(self):
+        path = self.root / "data/automation/last-weekly-success-date"
+        path.write_text("2026-09-01")
         self.assertFalse(self.report()["ok"])
         path.unlink()
         self.assertFalse(self.report()["ok"])

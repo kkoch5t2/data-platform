@@ -72,6 +72,13 @@ def build_report(root, now=None):
                 issues.append(f"{job}: 公開成功日が古いまたは未来")
         except (ValueError, TypeError):
             issues.append(f"{job}: 公開成功日が不正または未記録")
+    try:
+        successful = datetime.strptime(jobs["weekly"]["lastVerifiedDate"], "%Y-%m-%d").date()
+        today = now.astimezone(JST).date()
+        if successful > today or successful < today - timedelta(days=8):
+            issues.append("weekly: 監査成功日が古いまたは未来")
+    except (ValueError, TypeError):
+        issues.append("weekly: 監査成功日が不正または未記録")
     # Read the latest verified history; newer code commits alone do not imply a deployment.
     latest = None
     history = state / "history.jsonl"
