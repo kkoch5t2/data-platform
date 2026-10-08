@@ -379,6 +379,9 @@ class Refresh:
         self.command(['npm', 'run', 'e2e:gbiz-activity'], extra_env={'E2E_BASE_URL': base})
         self.command(['npm', 'run', 'e2e:lodging-statistics'], extra_env={'E2E_BASE_URL': base})
         self.command(['npm', 'run', 'e2e:public-transport'], extra_env={'E2E_BASE_URL': base})
+        if self.job == 'daily':
+            for script in ('e2e:retail-history', 'e2e:ipss-population', 'e2e:jma-weather'):
+                self.command(['npm', 'run', script], extra_env={'E2E_BASE_URL': base})
 
     def checks(self):
         self.phase = 'release-check'
@@ -416,12 +419,7 @@ class Refresh:
             else:
                 raise RuntimeError('Preview did not become ready')
             # Wrangler serves the same Pages Functions and assets as production.
-            self.command(['npm', 'run', 'e2e:deep'], extra_env={'E2E_BASE_URL': url,
-                         'E2E_ONLY': ROUTES})
-            self.command(['npm', 'run', 'e2e:workplace'], extra_env={'E2E_BASE_URL': url})
-            self.command(['npm', 'run', 'e2e:gbiz-activity'], extra_env={'E2E_BASE_URL': url})
-            self.command(['npm', 'run', 'e2e:lodging-statistics'], extra_env={'E2E_BASE_URL': url})
-            self.command(['npm', 'run', 'e2e:public-transport'], extra_env={'E2E_BASE_URL': url})
+            self.browser_checks(url)
         finally:
             if preview.poll() is None:
                 try:
