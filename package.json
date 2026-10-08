@@ -24,7 +24,7 @@
     "e2e": "node scripts/e2e-smoke.cjs && node scripts/e2e-deep.cjs",
     "e2e:smoke": "node scripts/e2e-smoke.cjs",
     "e2e:deep": "node scripts/e2e-deep.cjs",
-    "audit:data": "npm run test:listed-master-refresh && npm run test:procurement-quality && npm run audit:wikipedia-topics && node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && npm run audit:housing-land-2023 && npm run audit:reinfolib-transactions && npm run audit:retail-prices-city && npm run audit:procurement-awards && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py && npm run audit:company-registry && npm run test:gbiz-activity && npm run audit:gbiz-activity && npm run test:shokuba && npm run audit:shokuba && npm run audit:ipss-population && npm run audit:lodging-statistics && npm run audit:jma-weather && npm run audit:public-transport",
+    "audit:data": "npm run test:snapshot-date && npm run test:listed-master-refresh && npm run test:procurement-quality && npm run audit:wikipedia-topics && node scripts/run-python.cjs scripts/audit-metric-canonical.py && node scripts/run-python.cjs scripts/audit-social-population.py && npm run audit:housing-land-2023 && npm run audit:reinfolib-transactions && npm run test:reinfolib-history && npm run audit:reinfolib-history && npm run audit:retail-prices-city && npm run audit:procurement-awards && node scripts/run-python.cjs scripts/audit-data-integrity.py && node scripts/run-python.cjs scripts/audit-living-history.py && node scripts/run-python.cjs scripts/audit-listed-normalized.py && node scripts/run-python.cjs scripts/audit-listed-public.py && npm run audit:company-registry && npm run test:gbiz-activity && npm run audit:gbiz-activity && npm run test:shokuba && npm run audit:shokuba && npm run audit:ipss-population && npm run audit:lodging-statistics && npm run audit:jma-weather && npm run audit:public-transport",
     "audit:html": "node scripts/run-python.cjs scripts/audit-generated-html.py",
     "collect:listed-master": "node scripts/run-python.cjs -m collector.listed_companies.collect_master",
     "collect:listed-documents": "node scripts/run-python.cjs -m collector.listed_companies.collect_documents",
@@ -50,7 +50,7 @@
     "audit:housing-land-2023": "node scripts/run-python.cjs scripts/audit-housing-land-2023.py",
     "audit:reinfolib-transactions": "node scripts/run-python.cjs scripts/audit-reinfolib-transactions.py",
     "audit:procurement-awards": "node scripts/run-python.cjs scripts/audit-procurement-awards.py",
-    "collect:company-registry-nta": "node scripts/run-python.cjs -m collector.company_registry.collect_nta --region 全国",
+    "collect:company-registry-nta": "node scripts/run-python.cjs -m collector.company_registry.collect_nta --region \u5168\u56fd",
     "backfill:company-registry-procurement": "node scripts/run-python.cjs -m collector.company_registry.backfill_procurement_links",
     "build:company-registry": "node scripts/run-python.cjs -m collector.company_registry.build_registry",
     "audit:company-registry": "node scripts/run-python.cjs scripts/audit-company-registry.py",
@@ -84,7 +84,12 @@
     "e2e:jma-weather": "node scripts/e2e-jma-weather.cjs",
     "collect:public-transport": "node scripts/run-python.cjs collector/collect_public_transport.py",
     "audit:public-transport": "node scripts/run-python.cjs scripts/audit-public-transport.py",
-    "e2e:public-transport": "node scripts/e2e-public-transport.cjs"
+    "e2e:public-transport": "node scripts/e2e-public-transport.cjs",
+    "collect:reinfolib-history": "node scripts/run-python.cjs collector/backfill_reinfolib_history.py",
+    "audit:reinfolib-history": "node scripts/run-python.cjs scripts/audit-reinfolib-history.py",
+    "e2e:reinfolib-history": "node scripts/e2e-reinfolib-history.cjs",
+    "test:snapshot-date": "node scripts/run-python.cjs scripts/test-snapshot-date.py",
+    "test:reinfolib-history": "node scripts/run-python.cjs scripts/test-reinfolib-history.py"
   },
   "dependencies": {
     "astro": "^7.3.4",

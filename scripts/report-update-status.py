@@ -111,7 +111,7 @@ def build_report(root, now=None):
         for line in history.read_text().splitlines():
             try:
                 entry = json.loads(line)
-                if entry.get("verified") is True and entry.get("job") in ("daily", "topics"):
+                if entry.get("verified") is True and entry.get("job") in ("daily", "topics", "release"):
                     prior = verified_by_job.get(entry["job"])
                     if prior is None or timestamp(entry["finishedAt"]) > timestamp(prior["finishedAt"]):
                         verified_by_job[entry["job"]] = entry

@@ -20,7 +20,7 @@ REQUIRED = ('data/dashboard-meta.json', 'data/listed-companies/summary.json',
             'data/weather/index.json', 'data/weather/44.json',
             'data/transport/index.json', 'data/transport/stations.json',
             'data/transport/commute.json', 'data/transport/usage.json', 'sitemap.xml')
-PAGES = ('/', '/topics/', '/procurement/', '/procurement/companies/', '/procurement/companies/page/2/', '/regional/weather/', '/transport/', '/listed-companies/', '/unlisted-companies/')
+PAGES = ('/', '/realestate/', '/topics/', '/procurement/', '/procurement/companies/', '/procurement/companies/page/2/', '/regional/weather/', '/transport/', '/listed-companies/', '/unlisted-companies/')
 
 
 def digest(body):
@@ -42,6 +42,7 @@ def write_manifest(dist):
         if not shards:
             raise RuntimeError(f'Missing published shards: {folder}')
         paths.update(p.relative_to(dist).as_posix() for p in (shards[0], shards[-1]))
+    paths.update(p.relative_to(dist).as_posix() for p in (dist / 'data/realestate-history').glob('*.json'))
     files = {}
     for rel in sorted(paths):
         body = (dist / rel).read_bytes()

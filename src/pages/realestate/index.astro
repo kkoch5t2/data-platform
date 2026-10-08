@@ -1,4 +1,5 @@
 ---
+import RealestateHistory from '../../components/RealestateHistory.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 const housing2023=JSON.parse(fs.readFileSync(path.join(process.cwd(),'public/data/housing-land-2023.json'),'utf8'));
@@ -50,6 +51,7 @@ const unitMoney=(v)=>v==null?'—':new Intl.NumberFormat('ja-JP',{maximumFractio
     <div class="trade-card"><small>土地+建物の取引価格</small><b>{money(tradeNational.house.medianTradePrice)}</b><span>延床面積中央値 {nf(tradeNational.house.medianFloorArea)}㎡ / {nf(tradeNational.house.count)}件</span></div>
     <div class="trade-card"><small>中古マンション等の取引価格</small><b>{money(tradeNational.condo.medianTradePrice)}</b><span>{unitMoney(tradeNational.condo.medianUnitPrice)} / {nf(tradeNational.condo.count)}件</span></div>
   </section>
+  <RealestateHistory />
   <section class="dashboard">
     <aside id="filters-panel" class="panel">
       <div class="panel-head"><h2>表示条件</h2><button id="filters-toggle" class="panel-toggle" type="button" aria-expanded="true">条件を閉じる</button></div>

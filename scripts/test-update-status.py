@@ -68,6 +68,20 @@ class ReportTests(unittest.TestCase):
                 "finishedAt": "2026-10-08T13:00:00+09:00"})+'\n')
         self.assertTrue(self.report()["ok"])
 
+    def test_manual_release_is_verified_without_hiding_daily_failure(self):
+        self.write("data/automation/last-production-verification.json", {
+            "ok": True, "commit": "manual", "releaseId": "release2",
+            "verifiedAt": "2026-10-08T04:00:00Z"})
+        with (self.root / "data/automation/history.jsonl").open('a') as f:
+            f.write(json.dumps({"job": "release", "verified": True, "commit": "manual",
+                "finishedAt": "2026-10-08T13:00:00+09:00"})+'\n')
+        self.assertTrue(self.report()["ok"])
+        self.assertEqual(self.report()["lastPublication"]["job"], "release")
+        directory = self.root / "data/automation/logs"
+        directory.mkdir()
+        (directory / "failures.log").write_text("2026-10-08T12:00:00+09:00\tjob=daily\n")
+        self.assertFalse(self.report()["ok"])
+
     def test_topics_failure_is_reported_without_verified_history(self):
         (self.root / "data/automation/wikipedia-failures.log").write_text("2026-10-08T12:00:00+09:00\tjob=topics\n")
         self.assertFalse(self.report()["ok"])

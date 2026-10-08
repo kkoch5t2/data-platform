@@ -1,6 +1,6 @@
 # DATLUME システム・機能インベントリ
 
-最終更新: 2026-10-05
+最終更新: 2026-10-09
 
 この文書は、公開領域・主要ソース・collector・更新頻度・主要URLを横断して確認するための索引である。
 詳細なソース定義の正本は `collector/source_catalog.json`。
@@ -8,7 +8,7 @@
 | 領域 | 主な公開URL | 主なソース | 主なcollector | 更新 |
 |---|---|---|---|---|
 | 公共調達 | `/procurement/` | JETRO / GEPS / 自治体公式 | `collect_jetro.py`、各自治体collector | 日次 |
-| 不動産・暮らし | `/realestate/` | 国土数値情報 / ハザードマップ / 警察庁等 | `collect_land_prices.py`、`collect_living_layers.py` | 月次 |
+| 不動産・暮らし | `/realestate/` | 国土数値情報 / ハザードマップ / 警察庁等 | `collect_land_prices.py`、`collect_living_layers.py`、`collect_reinfolib_transactions.py`、`backfill_reinfolib_history.py` | 月次 |
 | 都道府県別推移 | `/regional/` | SSDSE / 人口移動報告 | `collect_regional_trends.py` 等 | 月次 |
 | 市区町村の将来人口 | `/regional/projections/` | 社人研・2023年推計 | `collect_ipss_population.py` | 月次再確認 |
 | 雇用・賃金 | `/employment-economy/` | 賃金構造基本統計 / SSDSE | `collect_employment_economy.py` 等 | 月次 |

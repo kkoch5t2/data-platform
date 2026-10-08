@@ -251,7 +251,8 @@ class Tests(unittest.TestCase):
         paths = ('public/data/housing-land-2023.json', 'public/data/municipality-social-indicators.json',
                  'public/data/retail-prices-city-monthly.json', 'public/data/municipality-population-projections.json',
                  'public/data/transport/index.json', 'public/data/transport/stations.json',
-                 'public/data/transport/commute.json', 'public/data/transport/usage.json')
+                 'public/data/transport/commute.json', 'public/data/transport/usage.json',
+                 'public/data/realestate-history/index.json', 'public/data/realestate-history/13.json')
         with tempfile.TemporaryDirectory() as directory:
             fixture = Fixture(directory)
             class Monthly(SmallRefresh):
@@ -268,6 +269,10 @@ class Tests(unittest.TestCase):
             self.assertEqual((fixture.root / 'data/automation/last-public-transport-refresh').read_text(), 'new-transport-month\n')
             tools = refresh.module(fixture.root, 'scheduled-refresh-git')
             self.assertFalse(tools.is_allowed('scripts/collector.py'))
+            self.assertTrue(tools.is_allowed('public/data/realestate-history/index.json'))
+            self.assertTrue(tools.is_allowed('public/data/realestate-history/13.json'))
+            self.assertFalse(tools.is_allowed('public/data/realestate-history/raw.json'))
+            self.assertFalse(tools.is_allowed('public/data/realestate-history/13.json.bak'))
 
     def test_early_manual_success_does_not_skip_new_ranking_at_1415(self):
         class Clock:

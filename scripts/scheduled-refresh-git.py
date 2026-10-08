@@ -40,6 +40,7 @@ EXACT_PATHS = {
     "public/data/regional-migration-history.json",
     "public/data/regional-trends-2026.json",
     "public/data/realestate-transactions.json",
+    "public/data/realestate-history/index.json",
     "public/data/site-analytics.json",
     "public/data/housing-land-2023.json",
     "public/data/municipality-social-indicators.json",
@@ -77,6 +78,8 @@ def changed_paths():
 
 def is_allowed(path):
     if path in EXACT_PATHS:
+        return True
+    if re.fullmatch(r"public/data/realestate-history/[0-9]{2}\.json", path):
         return True
     if re.fullmatch(r"public/data/weather/[0-9]{2}\.json", path):
         return True

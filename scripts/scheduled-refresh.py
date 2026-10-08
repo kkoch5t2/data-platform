@@ -28,7 +28,7 @@ LOCKS = {'daily': 'daily-refresh.lock', 'topics': 'wikipedia-topics-refresh.lock
          'weekly': 'weekly-audit.lock'}
 RUNTIME_PATTERNS = ('data/raw/shokuba/workplace.sqlite', 'data/raw/listed-companies/normalized/**/*',
                     'data/raw/listed-companies/documents-index.json')
-ROUTES = '/,/topics/,/procurement/,/regional/stays/,/regional/weather/,/transport/,/listed-companies/,/listed-companies/7203/,/unlisted-companies/'
+ROUTES = '/,/realestate/,/topics/,/procurement/,/regional/stays/,/regional/weather/,/transport/,/listed-companies/,/listed-companies/7203/,/unlisted-companies/'
 
 
 def module(root, name):
@@ -382,7 +382,7 @@ class Refresh:
         self.command(['npm', 'run', 'e2e:lodging-statistics'], extra_env={'E2E_BASE_URL': base})
         self.command(['npm', 'run', 'e2e:public-transport'], extra_env={'E2E_BASE_URL': base})
         if self.job == 'daily':
-            for script in ('e2e:retail-history', 'e2e:ipss-population', 'e2e:jma-weather'):
+            for script in ('e2e:retail-history', 'e2e:ipss-population', 'e2e:jma-weather', 'e2e:reinfolib-history'):
                 self.command(['npm', 'run', script], extra_env={'E2E_BASE_URL': base})
 
     def checks(self):

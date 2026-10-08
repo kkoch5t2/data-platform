@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
+from collector.core.snapshot_date import snapshot_date
 from collector.collect_jetro import (DASHBOARD_AWARD_CRITERIA, DASHBOARD_CONTRACT_METHODS,
     canonical_company_name, dashboard_award_criterion, dashboard_contract_method, stable_id)
 DATA=ROOT/'public'/'data'
@@ -393,6 +394,10 @@ def valid_agency_name(name):
 
 # Procurement: source shards, browser shards, summary and aggregate consistency.
 summary=load(SRC/'summary.json'); meta=load(DATA/'dashboard-meta.json')
+try:
+    summary_cutoff=snapshot_date(summary['generatedAt'])
+except (KeyError,ValueError,TypeError,AttributeError):
+    fail('procurement snapshot timestamp missing/invalid/future');summary_cutoff='0000-00-00'
 ok(set(meta['m']) <= DASHBOARD_CONTRACT_METHODS | {''}, 'procurement: contract method dictionary has mixed/unknown labels')
 ok(set(meta['am']) <= DASHBOARD_AWARD_CRITERIA | {''}, 'procurement: award criterion dictionary includes contract methods')
 ok(len(meta['w'])==len(set(meta['w'])), 'procurement: duplicate winner dictionary names')
@@ -427,7 +432,7 @@ for p in shards:
         if nd:
             ok(nd.startswith(str(year)),f'procurement {rid}: event year mismatch {nd}')
             first=nd if first is None or nd<first else first
-            if nd<=date.today().isoformat():
+            if nd<=summary_cutoff:
                 last=nd if last is None or nd>last else last
         ok(bool(r.get('title')) and bool(r.get('agency')) and bool(r.get('sourceUrl')),f'procurement {rid}: missing core fields')
         ok(valid_agency_name(r.get('agency')),f'procurement {rid}: invalid agency {r.get("agency")!r}')

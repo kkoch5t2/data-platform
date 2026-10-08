@@ -1,0 +1,57 @@
+<section class="history" aria-labelledby="trade-history-title">
+  <h2 id="trade-history-title">📉 実取引価格の長期推移</h2>
+  <p>土地・土地と建物・中古マンション等の四半期ごとの中央値を、全国・都道府県・市区町村で見る。</p>
+  <div class="controls">
+    <label>都道府県<select id="trade-history-pref"><option value="">全国</option></select></label>
+    <label>市区町村<select id="trade-history-city" disabled><option value="">都道府県全体</option></select></label>
+    <label>物件の種類<select id="trade-history-segment"><option value="land">土地</option><option value="house">土地と建物</option><option value="condo">中古マンション等</option></select></label>
+    <label>表示期間<select id="trade-history-range"><option value="all">全期間</option><option value="40">直近10年</option><option value="20">直近5年</option></select></label>
+  </div>
+  <p id="trade-history-status" role="status">長期データを読み込み中…</p>
+  <div id="trade-history-chart" aria-label="実取引価格の四半期推移"></div>
+  <p id="trade-history-values"></p>
+  <p class="notice">取引された物件の中央値です。同じ物件の値上がり率や住宅価格指数ではなく、物件構成の変化も影響します。選んだ指標の有効な値が各期5件未満なら表示せず、欠損は補完しません。自治体の合併・境界変更前後は補正していません。名称が異なる地域は別に選びます。</p>
+  <p class="notice"><a href="https://www.reinfolib.mlit.go.jp/help/apiManual/xit001/" target="_blank" rel="noreferrer">出典：国土交通省 不動産情報ライブラリ（取引価格情報）</a>。2005年は第3・第4四半期のみです。2005年度は三大都市圏の政令指定都市等、2006年度は全国の政令指定都市等、2007年度以降はほぼ全国へ対象が拡大しており、初期の全国集計も公表対象だけの値です。</p>
+</section>
+<style>
+.history{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;margin:24px 0}.history h2{font-size:22px;margin:0 0 10px}.history p{line-height:1.8}.controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.controls label{font-size:13px;display:flex;flex-direction:column;gap:6px}.controls select{width:100%;min-width:0;padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:#172033}#trade-history-chart{height:340px;width:100%}.notice{font-size:12px;color:#64748b}#trade-history-values{font-size:14px} @media(max-width:650px){.history{padding:16px}.controls{grid-template-columns:1fr 1fr}.history h2{font-size:20px}#trade-history-chart{height:300px}}
+</style>
+<script>
+import * as echarts from 'echarts';
+const el=(id:string)=>document.getElementById(id)!;
+const pref=el('trade-history-pref') as HTMLSelectElement, city=el('trade-history-city') as HTMLSelectElement, segment=el('trade-history-segment') as HTMLSelectElement, range=el('trade-history-range') as HTMLSelectElement;
+const status=el('trade-history-status'), values=el('trade-history-values');
+const chart=echarts.init(el('trade-history-chart'));let index:any, region:any=null, generation=0;
+const cached=new Map<string,any>();
+const option=(value:string,text:string)=>new Option(text,value);
+function render(){
+ if(!index || (pref.value && !region))return;
+ const selected=city.value?region?.municipalities.find((x:any)=>x.id===city.value):region;
+ const name=city.value?selected?.name:region?.prefecture||'全国';
+ const field=segment.value==='house'?'medianTradePrice':'medianUnitPrice', unit=segment.value==='house'?'円':'円/㎡';
+ const ps=range.value==='all'?index.periods:index.periods.slice(-Number(range.value));
+ const series=(data:any)=>ps.map((p:string)=>{const s=data?.quarterly?.[p]?.[segment.value];return s?.validCounts?.[field]>=index.minSample?s[field]??null:null;});
+ const local=series(selected||index), national=series(index), valid=local.map((v:any,i:number)=>({v,p:ps[i]})).filter((x:any)=>x.v!=null);
+ chart.setOption({animation:false,tooltip:{trigger:'axis',valueFormatter:(v:any)=>v==null?'未掲載':Number(v).toLocaleString('ja-JP')+' '+unit},legend:{top:0,data:selected?[name,'全国']:[name]},grid:{left:65,right:14,top:45,bottom:45},xAxis:{type:'category',data:ps},yAxis:{type:'value',name:unit,axisLabel:{formatter:(v:number)=>v>=10000?(v/10000).toLocaleString('ja-JP')+'万':v.toLocaleString('ja-JP')}},series:[{name,type:'line',data:local,connectNulls:false,showSymbol:false,lineStyle:{color:'#2563eb'},itemStyle:{color:'#2563eb'}},...(selected?[{name:'全国',type:'line',data:national,connectNulls:false,showSymbol:false,lineStyle:{color:'#94a3b8',type:'dashed'},itemStyle:{color:'#94a3b8'}}]:[])]},true);
+ status.textContent=name+' / '+ps[0]+'〜'+ps.at(-1)+' / 各期5件以上の中央値';
+ values.textContent=valid.length?valid[0].p+'：'+valid[0].v.toLocaleString('ja-JP')+unit+' → '+valid.at(-1).p+'：'+valid.at(-1).v.toLocaleString('ja-JP')+unit+'（表示できる '+valid.length+'期）':'選択した地域・物件の種類には5件以上の期がありません。';
+}
+async function loadRegion(){
+ const token=++generation;region=null;city.replaceChildren(option('','都道府県全体'));city.disabled=true;
+ if(!pref.value){render();return;}
+ status.textContent='地域データを読み込み中…';chart.clear();values.textContent='';
+ try{
+  if(!cached.has(pref.value)){const r=await fetch('/data/realestate-history/'+pref.value+'.json');if(!r.ok)throw Error('HTTP');cached.set(pref.value,await r.json());}
+  if(token!==generation)return;
+  region=cached.get(pref.value);for(const m of region.municipalities)city.add(option(m.id,m.name+'（'+m.code+'）'));
+  city.disabled=false;render();
+ }catch{if(token===generation){status.textContent='地域データを取得できませんでした。都道府県を選び直してください。';chart.clear();values.textContent='';}}
+}
+(async()=>{try{
+ const response=await fetch('/data/realestate-history/index.json');if(!response.ok)throw Error('HTTP');index=await response.json();
+ for(const p of index.prefectures)pref.add(option(p.code,p.name));
+ pref.addEventListener('change',loadRegion);city.addEventListener('change',render);segment.addEventListener('change',render);range.addEventListener('change',render);
+ render();
+}catch{status.textContent='長期データを取得できませんでした。時間をおいて再読み込みしてください。';}})();
+new ResizeObserver(()=>chart.resize()).observe(el('trade-history-chart'));
+</script>
