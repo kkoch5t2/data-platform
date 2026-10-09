@@ -1,3 +1,6 @@
+---
+import SiteFooter from '../../../components/SiteFooter.astro';
+---
 <!doctype html><html lang="ja"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width">
 <meta name="description" content="社人研の公式推計で市区町村の2020～2050年の人口と年齢構成を地図とグラフで比較。">
@@ -9,7 +12,7 @@ header{background:var(--nav);color:#fff;padding:19px 0 40px}.top{display:flex;ju
 main{padding:18px 0 64px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:12px}.controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.control label{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-bottom:6px}.control select{width:100%;height:42px;border:1px solid #d9dee7;border-radius:9px;background:#fff;padding:0 9px;font:inherit;font-size:13px}.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.kpi{min-width:0}.kpi small{color:var(--muted)}.kpi strong{display:block;font-size:clamp(21px,2.5vw,28px);margin:6px 0}.kpi span{font-size:12px;color:var(--muted)}
 .grid{display:grid;grid-template-columns:1.15fr 1fr;gap:12px}.grid .card{min-width:0}.card h2{font-size:18px;margin:0 0 6px}.sub{font-size:12px;color:var(--muted);line-height:1.65;margin:0 0 12px}.chart{height:340px}#map{height:500px;border-radius:10px;background:#e7edf3}.legend{font-size:12px;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap;margin:0 0 12px}.legend b{font-size:15px}.note{font-size:12px;color:#475467;line-height:1.75}.maplibregl-popup-content{font:12px/1.6 system-ui,sans-serif;color:#142033}.maplibregl-popup-content button{cursor:pointer;border:0;background:#1769e0;color:white;border-radius:6px;padding:6px 9px;margin-top:5px}.status{font-size:12px;color:#667085;margin:8px 0}footer{font-size:12px;color:var(--muted);padding-bottom:30px}
 @media(max-width:850px){.controls{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}@media(max-width:520px){.wrap{width:calc(100% - 24px)}.controls{grid-template-columns:1fr 1fr;gap:10px}.kpis{grid-template-columns:1fr}.chart{height:290px}#map{height:400px}.card{padding:14px}.hero{margin-top:30px}}
-</style></head><body>
+</style><link rel="stylesheet" href="/brand/footer.css?v=20261010"></head><body>
 <header><div class="wrap"><div class="top"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px"><img src="/favicon.svg" alt="" width="24" height="24" style="filter:brightness(0) invert(1)"><span>DATLUME</span></a><a class="back" href="/regional/">← 都道府県別推移</a></div><div class="hero"><h1>市区町村の将来人口</h1><p>社人研の2023年推計。2020年の国勢調査を基準に、2050年まで5年ごとの人口と年齢構成を比べられます。</p></div></div></header>
 <main class="wrap">
 <section class="card controls" aria-label="比較する地域">
@@ -20,7 +23,7 @@ main{padding:18px 0 64px}.card{background:#fff;border:1px solid var(--line);bord
 <section class="card"><h2>2050年の人口変化を地図で見る</h2><p class="sub">点は市区町村の代表点です。色は2020年比、円の大きさは2050年の人口を表します。点を選ぶと地域 A を切り替えます。区を持つ政令指定都市は市全体の代表点を表示します。</p>
 <div class="legend"><span><b style="color:#1769e0">●</b> 増加・維持</span><span><b style="color:#f59e0b">●</b> 20%未満の減少</span><span><b style="color:#e25a46">●</b> 20%以上の減少</span></div><div id="map"></div><div id="map-status" class="status">地図を読み込み中…</div></section>
 <section class="card note"><strong>出典と読み方</strong><br>国立社会保障・人口問題研究所「日本の地域別将来推計人口（令和5（2023）年推計）」<a href="https://www.ipss.go.jp/pp-shicyoson/j/shicyoson23/2gaiyo_hyo/gaiyo.asp" target="_blank" rel="noreferrer">結果表1、2-1～2-3 ↗</a> を加工して作成。2020年は基準人口、2025～2050年は2023年時点の仮定に基づく将来推計で、各年の実績ではありません。福島県浜通り13市町村には個別推計がなく、「浜通り地域」合計のみを比較候補に載せています。政令指定都市20市の合計行は区と重複するため地域数に加えません。地図の代表点は既存のSSDSE-A収録自治体と名称・コードが一致する地域に限ります。</section>
-</main><footer class="wrap">DATLUME — 日本の公開データを、比較できる形に。</footer>
+</main><SiteFooter>DATLUME — 日本の公開データを、比較できる形に。</SiteFooter>
 <script>
 import * as echarts from 'echarts';
 import * as maplibregl from 'maplibre-gl';

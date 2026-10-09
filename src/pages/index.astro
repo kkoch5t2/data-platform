@@ -1,4 +1,5 @@
 ---
+import SiteFooter from '../components/SiteFooter.astro';
 import summary from '../data/summary';
 const fmt = (v) => new Intl.NumberFormat('ja-JP').format(v || 0);
 const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
@@ -27,7 +28,7 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
     footer{border-top:1px solid var(--line);padding:28px 0 44px;color:var(--muted);font-size:11px;line-height:1.8}.footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px 32px}.footer-description{margin:0;max-width:610px}.footer-links{display:flex;align-items:center;flex-wrap:wrap;gap:10px 18px}.footer-links a{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}.footer-links img{display:block;width:14px;height:14px}.footer-links .utility-icon{border-radius:3px}
     @media(max-width:760px){.wrap{width:min(100% - 24px,1180px)}header{padding-bottom:56px}.nav{align-items:flex-start;flex-direction:column}.navlinks{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:3px;justify-content:flex-start;margin-left:0}.navlinks a{white-space:nowrap;flex:0 0 auto}.hero{padding:54px 0 16px}.hero h1{font-size:46px}.hero p{font-size:14px}.intro-card{grid-template-columns:1fr}.metric,.metric:first-child{padding:14px 0;border-left:0;border-top:1px solid var(--line)}.metric:first-child{border-top:0}.data-grid{grid-template-columns:1fr}.data-card{min-height:260px}.section-head{align-items:flex-start;flex-direction:column;gap:6px}.future{grid-template-columns:1fr}.section{padding-top:38px}}
   </style>
-</head>
+<link rel="stylesheet" href="/brand/footer.css?v=20261010"></head>
 <body>
 <header>
   <div class="wrap">
@@ -120,6 +121,6 @@ const startYear = (summary.firstDate || '2014-03-19').slice(0,4);
 
   <section class="section"><div class="note"><strong>設計方針：</strong> 表側はテーマ別に分け、データ収集・更新・監視は共通基盤で運用します。まず日本のデータを充実させつつ、将来は国や地域を追加できる形にします。</div></section>
 </main>
-<footer><div class="wrap footer-inner"><p class="footer-description">公開データを中心に、各データソースの利用条件と収録範囲を明示しながら可視化します。</p><nav class="footer-links" aria-label="フッターリンク"><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer"><img src="/brand/github.svg" alt="" width="14" height="14">GitHub ↗</a><a href="https://utility-tools-jp.com/" target="_blank" rel="noreferrer"><img class="utility-icon" src="/brand/utility-tools.ico" alt="" width="14" height="14">無料WEB便利ツール集 ↗</a><a href="/privacy/">プライバシーポリシー</a></nav></div></footer>
+<SiteFooter>公開データを中心に、各データソースの利用条件と収録範囲を明示しながら可視化します。</SiteFooter>
 </body>
 </html>

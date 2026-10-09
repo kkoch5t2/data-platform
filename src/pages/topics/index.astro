@@ -1,4 +1,5 @@
 ---
+import SiteFooter from '../../components/SiteFooter.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -58,7 +59,7 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
     @media(max-width:900px){.youtube-grid{grid-template-columns:1fr}.reason-grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.spotlight{grid-template-columns:1fr 1fr}.topic-card:first-child{grid-column:1/-1}.rank-row{grid-template-columns:44px minmax(0,1fr) 88px 74px}.rank-row .avg,.rank-row .spark{display:none}.pulse-grid{overflow-x:auto;grid-template-columns:repeat(14,44px);justify-content:start}.rising-grid{grid-template-columns:1fr}.weekly-row{grid-template-columns:34px minmax(0,1fr) 90px}.weekly-track,.weekly-best{display:none}}
     @media(max-width:640px){.youtube-card{grid-template-columns:1fr}.category-grid{grid-template-columns:1fr 1fr}.category-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}.category-filter{white-space:nowrap;flex:0 0 auto}.wrap{width:min(100% - 24px,1180px)}header{padding-bottom:48px}.nav{align-items:flex-start;flex-direction:column}.navlinks{width:100%;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0;padding-bottom:2px}.navlinks a{white-space:nowrap;flex:0 0 auto}.hero{padding-top:44px}.hero h1{font-size:43px}.kpis{grid-template-columns:1fr 1fr}.kpi{padding:15px}.value{font-size:22px}.spotlight{grid-template-columns:1fr}.topic-card:first-child{grid-column:auto}.topic-card{min-height:156px}.topic-card:first-child .topic-title{font-size:25px}.section{padding:16px}.section-head{align-items:flex-start;flex-direction:column;gap:5px}.tabs{align-items:stretch}.search{order:2;margin-left:0;width:100%}.rank-row{grid-template-columns:34px minmax(0,1fr) 76px;gap:7px;padding:12px 0}.rank-row .rank-delta{display:none}.rank-title a{font-size:12px}.weekly-row{grid-template-columns:30px minmax(0,1fr) 82px}.rising-card{grid-template-columns:40px 1fr auto;padding:13px}.rise-rank{width:34px;height:34px}.rise-value{font-size:14px}}
   </style>
-</head>
+<link rel="stylesheet" href="/brand/footer.css?v=20261010"></head>
 <body>
 <header>
   <div class="wrap">
@@ -178,7 +179,7 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
     <strong>このページの読み方：</strong> 「話題」は日本語版Wikipediaの閲覧動向を指し、日本全体の検索トレンド・SNS投稿量・世論を直接示すものではありません。メインページ、検索などの特殊ページはランキングから除外しています。急上昇は前日に3,000PV以上あった記事の前日比から算出し、週間は直近7日の日別上位データを合算しています。カテゴリはWikipedia/Wikidataの公開メタデータから自動分類します。「なぜ急上昇？」は急上昇日の前後に見つかった関連報道を背景候補として示すもので、ニュースが閲覧増加の原因だと断定するものではありません。「YouTubeでも注目」は急上昇上位10件と直近の埋め込み可能動画を機械的に照合した関連候補で、閲覧増加の原因や内容の正確性、DATLUMEによる推奨を示しません。動画はクリックするまでYouTubeプレーヤーを読み込みません。データ更新にはWikimedia側の集計遅延があるため、取得できた最新日を自動採用します。<br>出典：<a class="source-link" href="https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html" target="_blank" rel="noreferrer">Wikimedia Analytics API - Pageviews ↗</a> / 最終生成 {generated} JST
   </aside>
 </main>
-<footer><div class="wrap">DATLUME · <a href="/">トップへ</a> · <a href="/about-data/">データについて</a> · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px"><img src="/brand/github.svg" alt="" width="14" height="14" style="display:block;width:14px;height:14px">GitHub ↗</a> · <a href="/privacy/">プライバシーポリシー</a></div></footer>
+<SiteFooter>DATLUME · <a href="/">トップへ</a> · <a href="/about-data/">データについて</a></SiteFooter>
 <script>
   const tabs = Array.from(document.querySelectorAll('[data-tab]'));
   const panels = Array.from(document.querySelectorAll('[data-panel]'));

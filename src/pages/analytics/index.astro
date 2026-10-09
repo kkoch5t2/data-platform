@@ -1,4 +1,5 @@
 ---
+import SiteFooter from '../../components/SiteFooter.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 const file=path.join(process.cwd(),'public/data/site-analytics.json');
@@ -29,7 +30,7 @@ const top=data.topPages?.[0];
     @media(max-width:800px){.nav{display:block}.navlinks{margin-top:14px;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0}.navlinks a{white-space:nowrap}.kpis{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.day{grid-template-columns:78px 1fr 60px}}
     @media(max-width:480px){.wrap{width:min(100% - 24px,1120px)}.hero h1{font-size:40px}.kpis{grid-template-columns:1fr 1fr}.value{font-size:24px}.section{padding:15px}}
   </style>
-</head>
+<link rel="stylesheet" href="/brand/footer.css?v=20261010"></head>
 <body>
 <header><div class="wrap">
   <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/">トップ</a><a href="/procurement/"><span aria-hidden="true">🏛️</span> 国・自治体の案件</a><a href="/regional/"><span aria-hidden="true">🗾</span> 都道府県別推移</a><a href="/employment-economy/"><span aria-hidden="true">💼</span> 雇用・賃金</a><a href="/business-industry/"><span aria-hidden="true">🏭</span> 企業・産業</a><a href="/listed-companies/"><span aria-hidden="true">📈</span> 上場企業</a><a href="/topics/"><span aria-hidden="true">🔥</span> 話題のトピック</a><a href="/about-data/">データについて</a></div></nav>
@@ -55,5 +56,5 @@ const top=data.topPages?.[0];
   </section>
   <aside class="card note"><strong>公開方針：</strong> このページには集計済みのアクセス統計だけを掲載します。IPアドレスや個人を識別する情報は公開しません。Cloudflare Web AnalyticsのRUMデータを毎日取得し、履歴を蓄積しています。最終更新: {generated} JST</aside>
 </main>
-<footer><div class="wrap">DATLUME · <a href="/">トップへ</a> · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px"><img src="/brand/github.svg" alt="" width="14" height="14" style="display:block;width:14px;height:14px">GitHub ↗</a> · <a href="https://utility-tools-jp.com/" target="_blank" rel="noreferrer" style="display:inline-flex;align-items:center;gap:5px"><img src="/brand/utility-tools.ico" alt="" width="14" height="14" style="display:block;width:14px;height:14px;border-radius:3px">無料WEB便利ツール集 ↗</a> · <a href="/privacy/">プライバシーポリシー</a></div></footer>
+<SiteFooter>DATLUME · <a href="/">トップへ</a></SiteFooter>
 </body></html>

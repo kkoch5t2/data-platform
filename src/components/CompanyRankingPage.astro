@@ -1,4 +1,5 @@
 ---
+import SiteFooter from './SiteFooter.astro';
 import '../styles/detail.css';
 import { companyPagePath, pageSize } from '../lib/procurement-company-pages';
 import type { ProcurementCompany } from '../data/companies.ts';
@@ -20,7 +21,7 @@ const end = Math.min(page * pageSize, total);
 .ranking-nav a{display:inline-block;padding:9px 12px;border:1px solid #d8e2f0;border-radius:9px;background:#fff;text-decoration:none;color:#175cb8;font-size:13px;font-weight:700}
 .ranking-nav a:hover{text-decoration:underline}.ranking-nav select{font:inherit;font-size:13px;padding:8px;border:1px solid #d8e2f0;border-radius:9px;max-width:200px;background:#fff}
 .ranking-nav .position{color:#526175;font-size:13px}
-</style></head><body>
+</style><link rel="stylesheet" href="/brand/footer.css?v=20261010"></head><body>
 <header><div class="wrap"><div class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><a class="back" href="/procurement/">公共調達へ戻る</a></div><div class="hero"><div class="eyebrow">Vendors</div><h1>受注企業名</h1><p>確認できた公共調達を正規化した社名ベースで集計。同名別法人を区別できない場合があります。</p></div></div></header>
 <main class="wrap">
 <section class="card table-card"><div class="table-head"><h2>社名ベースランキング</h2><div class="note">全{total.toLocaleString('ja-JP')}社名・{start.toLocaleString('ja-JP')}〜{end.toLocaleString('ja-JP')}件</div></div>
@@ -31,6 +32,6 @@ const end = Math.min(page * pageSize, total);
 <span class="position">{page} / {pageCount}</span>
 {page < pageCount ? <a rel="next" href={companyPagePath(page + 1)}>次へ</a> : <span />}
 </nav></main>
-<footer class="wrap">出典：JETRO / 調達ポータル（GEPS） / 各自治体の公式入札・契約情報 ・ <a href="/about-data/#procurement">収録範囲と集計上の注意</a> · <a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noreferrer">GitHub ↗</a> · <a href="/privacy/">プライバシーポリシー</a></footer>
+<SiteFooter>出典：JETRO / 調達ポータル（GEPS） / 各自治体の公式入札・契約情報 ・ <a href="/about-data/#procurement">収録範囲と集計上の注意</a></SiteFooter>
 <script>document.getElementById('ranking-page')?.addEventListener('change', event => { window.location.href = (event.target as HTMLSelectElement).value; });</script>
 </body></html>
