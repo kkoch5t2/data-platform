@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+import re
+import unicodedata
 
 ROOT = Path(__file__).resolve().parents[1]
 PATH = ROOT / "public/data/wikipedia-topics.json"
@@ -124,6 +126,8 @@ def main() -> int:
     youtube = data.get("youtube") or {}
     if youtube.get("source") != "YouTube Data API v3":
         fail("youtube source missing")
+    if youtube.get("selectionVersion") != 4 or youtube.get("minViews") != 10000:
+        fail("YouTube selection policy version or threshold missing")
     yt_enabled = youtube.get("enabled") is True
     yt_items = youtube.get("items") or []
     yt_checked = int(youtube.get("checkedCount") or 0)
@@ -149,8 +153,18 @@ def main() -> int:
             fail(f"noncanonical YouTube thumbnail: {video_id} {item.get('thumbnail')}")
         if not item.get("title") or not item.get("channelTitle"):
             fail(f"missing YouTube metadata: {video_id}")
-        if not isinstance(item.get("views"), int) or item.get("views") < 0:
-            fail(f"invalid YouTube views: {video_id}")
+        if not isinstance(item.get("views"), int) or item.get("views") < 10000:
+            fail(f"YouTube views below display threshold: {video_id}")
+        if str(item.get("channelTitle") or "").strip().lower().endswith(("- topic", "- トピック")):
+            fail(f"automatically generated YouTube channel: {video_id}")
+        title = str(item.get("title") or "").lower()
+        if "lyricsvideo" in title or "lyric video" in title or "lyrics video" in title or "自動生成" in title or "auto-generated" in title:
+            fail(f"automated-style YouTube title: {video_id}")
+        topic = str(item.get("topic") or "")
+        if re.fullmatch(r"[A-Za-z][A-Za-z0-9._-]*", topic):
+            normalize = lambda v: "".join(c for c in unicodedata.normalize("NFKC", v).lower() if c.isalnum())
+            if normalize(topic) not in normalize(str(item.get("channelTitle") or "")):
+                fail(f"ambiguous Roman-letter topic matched unrelated channel: {video_id}")
     if len(video_ids) != len(set(video_ids)):
         fail("duplicate YouTube video id")
     if not yt_enabled and (yt_checked or yt_items):

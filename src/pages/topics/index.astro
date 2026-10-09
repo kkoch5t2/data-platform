@@ -108,7 +108,7 @@ const rankLabel = (x) => x.isNew ? 'NEW' : x.rankChange == null ? '—' : x.rank
   </section>}
 
   {youtubeItems.length > 0 && <section class="section card youtube-section">
-    <div class="section-head"><div><h2>YouTubeでも注目</h2><p>Wikipedia急上昇上位10件をYouTube Data APIで照合。直近7日・日本向け・埋め込み可能で、動画タイトルにトピック名を含む候補から再生数上位を1本表示します。</p></div><span class="label">最終照合 {youtubeUpdated} JST</span></div>
+    <div class="section-head"><div><h2>YouTubeでも注目</h2><p>Wikipedia急上昇上位10件をYouTube Data APIで照合。直近7日・日本向け・埋め込み可能で、動画タイトルにトピック名を含む候補から、再生1万回以上の動画を1本表示します。自動生成チャンネルは除外します。</p></div><span class="label">最終照合 {youtubeUpdated} JST</span></div>
     <div class="youtube-grid">
       {youtubeItems.map((x) => <article class="youtube-card">
         <button class="youtube-thumb" type="button" data-youtube-play data-video-id={x.videoId} aria-label={`${x.title} を再生`}>
