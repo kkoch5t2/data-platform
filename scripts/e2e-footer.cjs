@@ -25,11 +25,16 @@ routes.push('/unlisted-companies/'+unlisted.corporateNumber+'/');
    await footer.scrollIntoViewIfNeeded();
    await page.waitForFunction(()=>{const f=document.querySelector('.datlume-footer');return f&&getComputedStyle(f).paddingTop==='28px'&&[...f.querySelectorAll('img')].every(i=>i.complete&&i.naturalWidth>0)});
    const state=await footer.evaluate(f=>{const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,right:r.right,y:r.y,bottom:r.bottom}};return {width:innerWidth,inner:rect(f.querySelector('.datlume-footer-inner')),description:rect(f.querySelector('.datlume-footer-description')),nav:rect(f.querySelector('nav')),links:[...f.querySelectorAll('nav a')].map(a=>({href:a.getAttribute('href'),...rect(a)})),border:getComputedStyle(f).borderTopWidth}});
-   assert.equal(state.border,'1px');assert.equal(state.links.length,3);
-   assert.deepEqual(state.links.map(a=>a.href),['https://github.com/kkoch5t2/data-platform','https://utility-tools-jp.com/','/privacy/']);
+   assert.equal(state.border,'1px');assert.equal(state.links.length,2);
+   assert.deepEqual(state.links.map(a=>a.href),['https://github.com/kkoch5t2/data-platform','/privacy/']);
    assert(state.inner.x>=0&&state.inner.right<=width+1);
    for(const link of state.links)assert(link.x>=state.inner.x-1&&link.right<=state.inner.right+1,'footer link overflow');
    if(width<=520)assert(state.nav.y>=state.description.bottom+10,'mobile description and navigation overlap');
+   const related=footer.locator('.datlume-related-card');assert.equal(await related.count(),1);assert.equal(await related.getAttribute('href'),'https://utility-tools-jp.com/');
+   assert(await related.locator('strong').textContent());assert(await related.locator('small').textContent());
+   const box=await related.boundingBox();assert(box.x>=state.inner.x-1&&box.x+box.width<=state.inner.right+1,'related card overflow');assert(box.height>=60,'related card tap area too small');assert(box.y>=state.nav.bottom,'related card overlaps navigation');
+   await related.focus();assert.equal(await related.evaluate(e=>e===document.activeElement),true);
+
    if(['/', '/regional/','/realestate/','/listed-companies/7203/'].includes(route))await footer.screenshot({path:'tmp/footer-qa/'+width+'-'+(route.replaceAll('/','_')||'home')+'.png'});
    checks++;console.log('PASS',width,route);
   }catch(e){failures.push(width+' '+route+' '+e.message);console.log('FAIL',failures.at(-1))}
