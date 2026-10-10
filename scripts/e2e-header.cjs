@@ -19,7 +19,7 @@ routes.push('/unlisted-companies/'+unlisted.corporateNumber+'/');
 for(const file of walk('dist').filter(p=>p.endsWith('.html'))){
  const html=fs.readFileSync(file,'utf8');
  assert.equal((html.match(/class="datlume-nav"/g)||[]).length,1,file+' shared navigation count');
- assert(html.includes('/brand/navigation.css?v=20261011-3'),file+' navigation stylesheet');
+ assert(html.includes('/brand/navigation.css?v=20261011-4'),file+' navigation stylesheet');
  assert(html.includes('/brand/navigation.js?v=20261011-3'),file+' navigation dismissal script');
  const headerEnd=html.indexOf('</header>');
  const titleStart=html.indexOf('<h1');
@@ -28,7 +28,7 @@ for(const file of walk('dist').filter(p=>p.endsWith('.html'))){
 (async()=>{
  const browser=await chromium.launch({headless:true});let checks=0;const failures=[];let expected;
  fs.mkdirSync('tmp/header-qa',{recursive:true});
- for(const width of [1440,390,320]){
+ for(const width of [1440,600,414,390,375,320]){
   const page=await browser.newPage({viewport:{width,height:900}});
   for(const route of [...new Set(routes)])try{
    const response=await goto(page,base+encodeURI(route),{waitUntil:'domcontentloaded',timeout:60000});assert.equal(response.status(),200);
@@ -53,6 +53,20 @@ for(const file of walk('dist').filter(p=>p.endsWith('.html'))){
    const links=await nav.locator('a').evaluateAll(as=>as.map(a=>a.getAttribute('href')));
    if(!expected)expected=links;assert.deepEqual(links,expected,'site navigation differs');assert(links.includes('/agriculture/')&&links.includes('/transport/')&&links.includes('/topics/'));
    const actions=nav.locator('.datlume-nav-actions');assert.equal(await actions.locator(':scope > *').count(),2);
+   // On narrow screens, a wrapped menu row starts at the same left edge as the logo.
+   if(width<=600){
+    const alignment=await nav.evaluate(el=>{
+     const logo=el.querySelector('.datlume-brand').getBoundingClientRect();
+     const actions=el.querySelector('.datlume-nav-actions').getBoundingClientRect();
+     return {wrapped:actions.top>=logo.bottom-1,offset:Math.abs(actions.left-logo.left)};
+    });
+    if(alignment.wrapped)assert(alignment.offset<=2,'wrapped mobile menu must align with logo on left');
+   }
+   if(route==='/'){
+    assert.equal(await nav.locator('.datlume-brand').count(),1);
+    assert.equal(await page.locator('header .hero h1 [aria-hidden="true"]').count(),0,'homepage title should have no emoji');
+    assert.equal((await page.locator('header .hero h1').innerText()).trim(),'データから、日本を見る。');
+   }
    assert.equal(await actions.locator(':scope > details').count(),2);
    assert.equal(await actions.locator(':scope > a').count(),0,'topic must not be in top-level navigation');
    assert.equal(await nav.locator('.datlume-data-panel a[href="/topics/"]').count(),1);

@@ -34,10 +34,10 @@ body header:has(.hero){padding-bottom:38px!important}
 @media(max-width:600px){
  .datlume-nav{flex-wrap:wrap;gap:6px;min-height:40px}
  .datlume-brand span{font-size:16px}.datlume-brand img{width:22px;height:22px}
- .datlume-nav-actions{gap:2px}.datlume-nav summary{font-size:12px;padding:8px;min-height:44px}
+ .datlume-nav-actions{gap:2px;margin-left:0}.datlume-nav summary{font-size:12px;padding:8px;min-height:44px}
  .datlume-menu{position:static}.datlume-menu-panel{width:100%;right:0;top:calc(100% + 6px);padding:8px;max-height:65vh}.datlume-info-panel{width:100%}
  body header h1,body main .intro h1{font-size:28px!important;line-height:1.4!important}
  body.datlume-home header .hero h1{font-size:30px!important;line-height:1.35!important}
  body header .hero{margin-top:22px!important}body header:has(.hero){padding-bottom:28px!important}
 }
-@media(max-width:380px){.datlume-nav-actions{flex:1 1 100%;justify-content:flex-end}.datlume-brand{min-height:32px}}
+@media(max-width:380px){.datlume-nav-actions{flex:1 1 100%;justify-content:flex-start}.datlume-brand{min-height:32px}}
