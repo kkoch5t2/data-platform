@@ -1,0 +1,12 @@
+// One navigation definition for Astro pages and Pages Functions.
+export const dataSections = [
+ ['🏛️','国・自治体の案件','/procurement/'],['🏠','不動産・暮らし','/realestate/'],
+ ['🗾','都道府県別推移','/regional/'],['💼','雇用・賃金','/employment-economy/'],
+ ['🏭','企業・産業','/business-industry/'],['🌾','農業・食の産地','/agriculture/'],
+ ['📈','上場企業','/listed-companies/'],['🏢','未上場企業','/unlisted-companies/'],
+ ['💴','経済・物価','/economy-prices/'],['⚡','エネルギー','/energy/'],['🚆','公共交通','/transport/']
+];
+export function renderNavigation(){
+ const links=dataSections.map(([icon,label,url])=>`<a href="${url}"><span aria-hidden="true">${icon}</span>${label}</a>`).join('');
+ return `<nav class="datlume-nav" aria-label="サイト共通メニュー"><a class="datlume-brand" href="/" aria-label="DATLUME トップページ"><img src="/favicon.svg" alt="" width="24" height="24"><span>DATLUME</span></a><div class="datlume-nav-actions"><details class="datlume-menu"><summary>データを探す<span aria-hidden="true">⌄</span></summary><div class="datlume-menu-panel datlume-data-panel"><a class="datlume-menu-home" href="/#datasets">すべてのデータを見る →</a>${links}</div></details><a class="datlume-topic-link" href="/topics/"><span aria-hidden="true">🔥</span> 話題</a><details class="datlume-menu"><summary>サイト情報<span aria-hidden="true">⌄</span></summary><div class="datlume-menu-panel datlume-info-panel"><a href="/about-data/">📚 データについて</a><a href="/analytics/">📊 サイト統計</a><a href="/privacy/">🔒 プライバシー</a><a href="https://github.com/kkoch5t2/data-platform" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></details></div></nav>`;
+}

@@ -1,4 +1,5 @@
 ---
+import SiteNavigation from '../../components/SiteNavigation.astro';
 import SiteFooter from '../../components/SiteFooter.astro';
 import summary from '../../data/summary';
 import { readFileSync } from 'node:fs';
@@ -32,10 +33,10 @@ const ambiguousProcurementNames = companyRegistrySummary.ambiguousNames || 0;
   <link rel="canonical" href="https://datlume.com/about-data/">
   <meta property="og:url" content="https://datlume.com/about-data/">
   <title>データについて | DATLUME</title>
-<link rel="stylesheet" href="/brand/footer.css?v=20261010-2"></head>
+<link rel="stylesheet" href="/brand/footer.css?v=20261010-2"><link rel="stylesheet" href="/brand/navigation.css?v=20261011-1"><script src="/brand/navigation.js?v=20261011-1" defer></script></head>
 <body>
 <header><div class="wrap">
-  <div class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><a class="back" href="/">トップへ戻る</a></div>
+  <SiteNavigation />
   <div class="hero"><div class="eyebrow">About the data</div><h1><span aria-hidden="true">📚</span> データについて</h1><p>収録範囲、分類方法、集計値の意味と限界を明示しています。</p></div>
 </div></header><main class="wrap">
   <div class="stats">

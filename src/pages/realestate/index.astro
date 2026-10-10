@@ -1,4 +1,5 @@
 ---
+import SiteNavigation from '../../components/SiteNavigation.astro';
 import SiteFooter from '../../components/SiteFooter.astro';
 import RealestateHistory from '../../components/RealestateHistory.astro';
 import fs from 'node:fs';
@@ -35,9 +36,9 @@ const unitMoney=(v)=>v==null?'—':new Intl.NumberFormat('ja-JP',{maximumFractio
 .navlinks,.tabs,.view-tabs{scrollbar-width:none;-ms-overflow-style:none}.navlinks::-webkit-scrollbar,.tabs::-webkit-scrollbar,.view-tabs::-webkit-scrollbar{display:none}
 .hazard-status{padding:10px 14px;border-bottom:1px solid var(--line);background:#f8fafc;font-size:11px;line-height:1.6;overflow-wrap:anywhere}.hazard-status strong{font-size:12px}.hazard-status [data-state="failed"]{color:#b42318}.hazard-status p{margin:5px 0 0;color:var(--muted)}.hazard-status button{margin-top:6px;padding:5px 9px;border:1px solid #d9dee7;border-radius:7px;background:white;font:inherit;cursor:pointer}.hazard-status button:disabled{opacity:.5;cursor:default}
 </style>
-<link rel="stylesheet" href="/brand/footer.css?v=20261010-2"></head>
+<link rel="stylesheet" href="/brand/footer.css?v=20261010-2"><link rel="stylesheet" href="/brand/navigation.css?v=20261011-1"><script src="/brand/navigation.js?v=20261011-1" defer></script></head>
 <body>
-<header><div class="wrap nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/procurement/"><span aria-hidden="true">🏛️</span> 国・自治体の案件</a><a href="/realestate/"><span aria-hidden="true">🏠</span> 不動産・暮らし</a><a href="/regional/"><span aria-hidden="true">🗾</span> 都道府県別推移</a><a href="/employment-economy/"><span aria-hidden="true">💼</span> 雇用・賃金</a><a href="/business-industry/"><span aria-hidden="true">🏭</span> 企業・産業</a><a href="/listed-companies/"><span aria-hidden="true">📈</span> 上場企業</a><a href="/economy-prices/"><span aria-hidden="true">💴</span> 経済・物価</a><a href="/energy/"><span aria-hidden="true">⚡</span> エネルギー</a><a href="/topics/"><span aria-hidden="true">🔥</span> 話題のトピック</a><a href="/about-data/">データについて</a></div></div></header>
+<header><div class="wrap"><SiteNavigation /></div></header>
 <main class="wrap">
   <section class="intro"><h1><span aria-hidden="true">🏠</span> 街を、価格だけで選ばない。</h1><p>公示地価だけでなく実際の取引価格、防災、人口、高齢化率、2023年の空き家・持ち家・住宅タイプ、人口移動、治安、交通事故、病院、学校、駅、飲食店を重ねて、街をいろいろな角度から見られます。</p></section>
   <section class="housing-summary" aria-label="2023年住宅ストック全国サマリー">

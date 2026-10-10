@@ -20,7 +20,7 @@ async function noOverflow(page){assert(await page.evaluate(()=>document.document
   assert.equal((await goto(page,base+'/transport/')).status(),200);
   await text(page,'station-value','1,333,618人');
   assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://datlume.com/transport/');
-  assert.equal(await page.locator('.brand').getAttribute('href'),'/');
+  assert.equal(await page.locator('.datlume-brand').getAttribute('href'),'/');
   await noOverflow(page);await page.screenshot({path:path.join(output,'stations-'+width+'.png'),fullPage:true});
   await page.locator('#station-search').fill('新宿');await page.locator('#operator').selectOption('東日本旅客鉄道');
   await page.waitForFunction(()=>document.querySelectorAll('#station-results .result').length===1);

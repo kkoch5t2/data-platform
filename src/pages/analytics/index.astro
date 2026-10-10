@@ -1,4 +1,5 @@
 ---
+import SiteNavigation from '../../components/SiteNavigation.astro';
 import SiteFooter from '../../components/SiteFooter.astro';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -30,10 +31,10 @@ const top=data.topPages?.[0];
     @media(max-width:800px){.nav{display:block}.navlinks{margin-top:14px;overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;margin-left:0}.navlinks a{white-space:nowrap}.kpis{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.day{grid-template-columns:78px 1fr 60px}}
     @media(max-width:480px){.wrap{width:min(100% - 24px,1120px)}.hero h1{font-size:40px}.kpis{grid-template-columns:1fr 1fr}.value{font-size:24px}.section{padding:15px}}
   </style>
-<link rel="stylesheet" href="/brand/footer.css?v=20261010-2"></head>
+<link rel="stylesheet" href="/brand/footer.css?v=20261010-2"><link rel="stylesheet" href="/brand/navigation.css?v=20261011-1"><script src="/brand/navigation.js?v=20261011-1" defer></script></head>
 <body>
 <header><div class="wrap">
-  <nav class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/">トップ</a><a href="/procurement/"><span aria-hidden="true">🏛️</span> 国・自治体の案件</a><a href="/regional/"><span aria-hidden="true">🗾</span> 都道府県別推移</a><a href="/employment-economy/"><span aria-hidden="true">💼</span> 雇用・賃金</a><a href="/business-industry/"><span aria-hidden="true">🏭</span> 企業・産業</a><a href="/listed-companies/"><span aria-hidden="true">📈</span> 上場企業</a><a href="/topics/"><span aria-hidden="true">🔥</span> 話題のトピック</a><a href="/about-data/">データについて</a></div></nav>
+  <SiteNavigation />
   <section class="hero"><h1><span aria-hidden="true">📊</span> サイト統計</h1><p>DATLUME自身のアクセス状況も公開します。Cloudflare Web Analyticsの集計データから、PV・訪問数・人気ページ・流入元を日次で更新しています。</p></section>
 </div></header>
 <main class="wrap">

@@ -503,8 +503,10 @@ async function checkListedCompanyDetail(page,label,failures) {
   let ldTypes=[];
   for(const text of ldTexts){try{const x=JSON.parse(text); const graph=x?.['@graph']||[x]; ldTypes.push(...graph.map(v=>v?.['@type']).filter(Boolean));}catch{}}
   if(!ldTypes.includes('Corporation')||!ldTypes.includes('BreadcrumbList')||!ldTypes.includes('WebPage'))failures.push(label+' structured data missing types: '+ldTypes.join(','));
-  const brandAlt=await page.locator('.brand img').getAttribute('alt').catch(()=>null);
-  if(!brandAlt)failures.push(label+' brand image alt missing');
+  const brandLink=page.locator('.datlume-brand');
+  const brandName=await brandLink.getAttribute('aria-label').catch(()=>null);
+  if(!brandName?.includes('DATLUME'))failures.push(label+' brand accessible name missing');
+  if(await brandLink.locator('img[src="/favicon.svg"]').count()!==1)failures.push(label+' brand image missing');
   const summary=(await page.locator('main .section-card h2').first().textContent().catch(()=>''))||'';
   if(!summary.includes('最新業績')&&!summary.includes('企業概要'))failures.push(label+' SEO summary section missing');
   const values=await page.locator('.kpi-value').allTextContents().catch(()=>[]);
@@ -658,7 +660,7 @@ async function checkTopics(page,label,failures) {
 
         const state=await page.evaluate(()=>{
           const visible=el=>!!(el.offsetWidth||el.offsetHeight||el.getClientRects().length);
-          const brand=document.querySelector('.brand');
+          const brand=document.querySelector('.datlume-brand');
           const brandImg=brand?.querySelector('img[src="/favicon.svg"]');
           const images=[...document.querySelectorAll('img')].filter(visible);
           const text=[...document.body.querySelectorAll('*')].filter(visible)

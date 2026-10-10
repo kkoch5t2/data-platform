@@ -1,4 +1,5 @@
 ---
+import SiteNavigation from '../../components/SiteNavigation.astro';
 import SiteFooter from '../../components/SiteFooter.astro';
 import '../../styles/detail.css';
 ---
@@ -18,10 +19,10 @@ import '../../styles/detail.css';
   <style>
     .policy{max-width:900px}.policy h2{margin-top:0}.policy p,.policy li{line-height:1.9;color:#475467}.policy ul{padding-left:1.3rem}.updated{font-size:12px;color:#667085}.links{display:flex;gap:8px;flex-wrap:wrap}.linkchip{display:inline-flex;padding:9px 12px;border:1px solid #dbe2ea;border-radius:10px;text-decoration:none;background:#fff}
   </style>
-<link rel="stylesheet" href="/brand/footer.css?v=20261010-2"></head>
+<link rel="stylesheet" href="/brand/footer.css?v=20261010-2"><link rel="stylesheet" href="/brand/navigation.css?v=20261011-1"><script src="/brand/navigation.js?v=20261011-1" defer></script></head>
 <body>
 <header><div class="wrap">
-  <div class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><a class="back" href="/">トップへ戻る</a></div>
+  <SiteNavigation />
   <div class="hero"><div class="eyebrow">Privacy</div><h1>プライバシーポリシー</h1><p>DATLUMEにおけるアクセス解析、広告配信、Cookie等の取り扱いを説明します。</p></div>
 </div></header>
 <main class="wrap policy">

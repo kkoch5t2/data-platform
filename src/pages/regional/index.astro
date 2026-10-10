@@ -1,4 +1,5 @@
 ---
+import SiteNavigation from '../../components/SiteNavigation.astro';
 import SiteFooter from '../../components/SiteFooter.astro';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -30,9 +31,9 @@ const latestRows=data.records.filter((r)=>r.year===latest);
 
 .navlinks,.tabs,.view-tabs{scrollbar-width:none;-ms-overflow-style:none}.navlinks::-webkit-scrollbar,.tabs::-webkit-scrollbar,.view-tabs::-webkit-scrollbar{display:none}
 </style>
-<link rel="stylesheet" href="/brand/footer.css?v=20261010-2"></head>
+<link rel="stylesheet" href="/brand/footer.css?v=20261010-2"><link rel="stylesheet" href="/brand/navigation.css?v=20261011-1"><script src="/brand/navigation.js?v=20261011-1" defer></script></head>
 <body>
-<header><div class="wrap"><div class="nav"><a class="brand" href="/" aria-label="DATLUME" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff"><img src="/favicon.svg" alt="" width="24" height="24" style="display:block;width:24px;height:24px;filter:brightness(0) invert(1)"><span style="font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:19px;font-weight:750;letter-spacing:.16em;line-height:1">DATLUME</span></a><div class="navlinks"><a href="/procurement/"><span aria-hidden="true">🏛️</span> 国・自治体の案件</a><a href="/realestate/"><span aria-hidden="true">🏠</span> 不動産・暮らし</a><a href="/regional/"><span aria-hidden="true">🗾</span> 都道府県別推移</a><a href="/employment-economy/"><span aria-hidden="true">💼</span> 雇用・賃金</a><a href="/business-industry/"><span aria-hidden="true">🏭</span> 企業・産業</a><a href="/listed-companies/"><span aria-hidden="true">📈</span> 上場企業</a><a href="/economy-prices/"><span aria-hidden="true">💴</span> 経済・物価</a><a href="/energy/"><span aria-hidden="true">⚡</span> エネルギー</a><a href="/topics/"><span aria-hidden="true">🔥</span> 話題のトピック</a><a href="/about-data/">データについて</a></div></div><div class="hero"><h1><span aria-hidden="true">🗾</span> 都道府県別推移</h1><p>都道府県の長期推移と、市区町村の人口・高齢化・世帯・人口移動を同じページで比較します。</p></div></div></header>
+<header><div class="wrap"><SiteNavigation /><div class="hero"><h1><span aria-hidden="true">🗾</span> 都道府県別推移</h1><p>都道府県の長期推移と、市区町村の人口・高齢化・世帯・人口移動を同じページで比較します。</p></div></div></header>
 <main class="wrap">
   <section class="card controls">
     <div class="control"><label for="pref">都道府県 A</label><select id="pref">{data.prefectures.map((p)=><option value={p}>{p}</option>)}</select></div>

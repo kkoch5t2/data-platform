@@ -1,0 +1,33 @@
+/* Shared compact navigation and page title scale. */
+header:has(.datlume-nav){padding-top:14px!important;overflow:visible}
+.datlume-nav{box-sizing:border-box;position:relative;z-index:30;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between;gap:16px;min-height:44px;width:100%;margin:0;color:#fff}
+.datlume-nav .datlume-brand{display:inline-flex;align-items:center;gap:9px;flex:0 0 auto;color:#fff;text-decoration:none;white-space:nowrap}
+.datlume-brand img{display:block;width:24px;height:24px;filter:brightness(0) invert(1)}
+.datlume-brand span{font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:18px;font-weight:750;letter-spacing:.16em;line-height:1}
+.datlume-nav-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.datlume-menu{position:relative}
+.datlume-nav summary,.datlume-nav .datlume-topic-link{box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:#d9e4f4;font:600 13px/1.4 system-ui,sans-serif;text-decoration:none;cursor:pointer;white-space:nowrap;list-style:none}
+.datlume-nav summary::-webkit-details-marker{display:none}
+.datlume-nav summary:hover,.datlume-nav .datlume-topic-link:hover,.datlume-menu[open]>summary{background:#ffffff12;color:#fff}
+.datlume-nav a:focus-visible,.datlume-nav summary:focus-visible{outline:2px solid #8ebdff;outline-offset:3px}
+.datlume-menu-panel{box-sizing:border-box;position:absolute;right:0;top:calc(100% + 8px);display:grid;gap:4px;padding:12px;border:1px solid #dce5f0;border-radius:14px;background:#fff;color:#142033;box-shadow:0 16px 48px #050e2433;max-height:min(70vh,620px);overflow:auto;width:430px}
+.datlume-data-panel{grid-template-columns:repeat(2,minmax(0,1fr))}
+.datlume-nav .datlume-menu-panel a{display:flex;align-items:center;gap:9px;min-height:44px;padding:9px 10px;border:0;border-radius:8px;background:transparent;color:#142033;font:500 13px/1.5 system-ui,sans-serif;text-decoration:none;white-space:normal;overflow-wrap:anywhere}
+.datlume-menu-panel a:hover{background:#eef5ff;color:#1769e0}
+.datlume-nav .datlume-menu-home{grid-column:1/-1;color:#1769e0;font-weight:700;border-bottom:1px solid #e4e9f0;border-radius:0;margin-bottom:4px}
+.datlume-info-panel{width:230px}
+body header h1,body main .intro h1{font-size:clamp(28px,3.2vw,40px)!important;line-height:1.3!important;letter-spacing:-.035em!important;overflow-wrap:anywhere}
+body header .hero{margin-top:30px!important;padding-top:0!important}
+body header:has(.hero){padding-bottom:38px!important}
+.datlume-context{display:flex;flex-wrap:wrap;gap:6px 18px;margin:14px 0 0}
+.datlume-context a{font-size:12px;color:#c7d3e4;text-decoration:none;padding:5px 0;line-height:1.5}
+.datlume-context a:hover{text-decoration:underline}
+@media(max-width:600px){
+ .datlume-nav{flex-wrap:wrap;gap:6px;min-height:40px}
+ .datlume-brand span{font-size:16px}.datlume-brand img{width:22px;height:22px}
+ .datlume-nav-actions{gap:2px}.datlume-nav summary,.datlume-nav .datlume-topic-link{font-size:12px;padding:8px;min-height:44px}
+ .datlume-menu{position:static}.datlume-menu-panel{width:100%;right:0;top:calc(100% + 6px);padding:8px;max-height:65vh}.datlume-info-panel{width:100%}
+ body header h1,body main .intro h1{font-size:28px!important;line-height:1.4!important}
+ body header .hero{margin-top:22px!important}body header:has(.hero){padding-bottom:28px!important}
+}
+@media(max-width:380px){.datlume-nav-actions{flex:1 1 100%;justify-content:flex-end}.datlume-brand{min-height:32px}}
