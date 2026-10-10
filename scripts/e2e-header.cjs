@@ -14,12 +14,16 @@ for(const file of walk('src/pages').filter(p=>p.endsWith('.astro'))){
 routes.push('/listed-companies/7203/','/procurement/companies/co_f96b284bc087/');
 const unlisted=JSON.parse(fs.readFileSync('public/data/company-registry/unlisted-index.json')).records.find(r=>/^\d{13}$/.test(r.corporateNumber));
 routes.push('/unlisted-companies/'+unlisted.corporateNumber+'/');
+// Every statically generated page must place its title inside the shared navy header.
 // Check every generated page as well as representative browser routes.
 for(const file of walk('dist').filter(p=>p.endsWith('.html'))){
  const html=fs.readFileSync(file,'utf8');
  assert.equal((html.match(/class="datlume-nav"/g)||[]).length,1,file+' shared navigation count');
- assert(html.includes('/brand/navigation.css?v=20261011-2'),file+' navigation stylesheet');
- assert(html.includes('/brand/navigation.js?v=20261011-2'),file+' navigation dismissal script');
+ assert(html.includes('/brand/navigation.css?v=20261011-3'),file+' navigation stylesheet');
+ assert(html.includes('/brand/navigation.js?v=20261011-3'),file+' navigation dismissal script');
+ const headerEnd=html.indexOf('</header>');
+ const titleStart=html.indexOf('<h1');
+ assert(headerEnd!==-1 && titleStart!==-1 && titleStart<headerEnd,file+' title must sit in navy header');
 }
 (async()=>{
  const browser=await chromium.launch({headless:true});let checks=0;const failures=[];let expected;
@@ -29,6 +33,22 @@ for(const file of walk('dist').filter(p=>p.endsWith('.html'))){
   for(const route of [...new Set(routes)])try{
    const response=await goto(page,base+encodeURI(route),{waitUntil:'domcontentloaded',timeout:60000});assert.equal(response.status(),200);
    const nav=page.locator('header .datlume-nav');assert.equal(await nav.count(),1);
+   const header=page.locator('header').first();
+   const headerStyle=await header.evaluate(e=>({bg:getComputedStyle(e).backgroundColor,fg:getComputedStyle(e).color}));
+   assert.equal(headerStyle.bg,'rgb(14, 27, 46)','header must be the standard navy');
+   assert.equal(headerStyle.fg,'rgb(255, 255, 255)','header text must be white');
+   const h1InHeader=header.locator('h1');
+   assert.equal(await h1InHeader.count(),1,'page title must be in navy header');
+   assert.equal(await h1InHeader.evaluate(e=>getComputedStyle(e).color),'rgb(255, 255, 255)','page title must be white');
+   if(route==='/realestate/'){
+    const summary=page.locator('.housing-summary');
+    const gap=await summary.evaluate(e=>e.getBoundingClientRect().top-document.querySelector('header').getBoundingClientRect().bottom);
+    assert(gap>=16 && gap<=22,'real estate cards need comfortable spacing below header');
+   }
+   const innerWidth=await header.locator(':scope > .wrap').evaluate(e=>e.getBoundingClientRect().width);
+   assert(innerWidth<=1181,'header max-width exceeded');
+   if(width===1440)assert(Math.abs(innerWidth-1180)<=2,'desktop header widths must match');
+   if(width===390)assert(Math.abs(innerWidth-358)<=2,'mobile header widths must match');
    await page.waitForFunction(()=>getComputedStyle(document.querySelector('.datlume-menu-panel')).position==='absolute');
    const links=await nav.locator('a').evaluateAll(as=>as.map(a=>a.getAttribute('href')));
    if(!expected)expected=links;assert.deepEqual(links,expected,'site navigation differs');assert(links.includes('/agriculture/')&&links.includes('/transport/')&&links.includes('/topics/'));

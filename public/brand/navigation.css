@@ -1,5 +1,10 @@
 /* Shared compact navigation and page title scale. */
-header:has(.datlume-nav){padding-top:14px!important;overflow:visible}
+/* Every template uses one navy header band, with the same content width and spacing. */
+header:has(.datlume-nav){background:#0e1b2e!important;color:#fff!important;padding-top:14px!important;overflow:visible}
+header:has(.datlume-nav) > .wrap{width:min(1180px,calc(100% - 32px))!important}
+header:has(.datlume-nav) .hero h1{color:#fff!important}
+header:has(.datlume-nav) .hero > p{color:#c7d3e4!important}
+header:has(.datlume-nav) .intro{padding:0!important}
 .datlume-nav{box-sizing:border-box;position:relative;z-index:30;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between;gap:16px;min-height:44px;width:100%;margin:0;color:#fff}
 .datlume-nav .datlume-brand{display:inline-flex;align-items:center;gap:9px;flex:0 0 auto;color:#fff;text-decoration:none;white-space:nowrap}
 .datlume-brand img{display:block;width:24px;height:24px;filter:brightness(0) invert(1)}
