@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -33,6 +34,21 @@ def main():
     check('amount status foreign', jetro.award_amount_status({'awardAmount': None, 'detailFetched': True, 'detailText': 'USD 1,000'}), 'foreignCurrency')
     check('amount status no award', jetro.award_amount_status({'awardAmount': None, 'detailFetched': True, 'detailText': '不調'}), 'noAward')
     check('amount status unpublished', jetro.award_amount_status({'awardAmount': None, 'detailFetched': True, 'detailText': '価格記載なし'}), 'notPublished')
+
+    class TimeoutTwice:
+        def __init__(self):
+            self.calls = 0
+
+        def open(self, request, timeout):
+            self.calls += 1
+            if self.calls < 3:
+                raise TimeoutError('temporary read timeout')
+            return 'response'
+
+    opener = TimeoutTwice()
+    with patch.object(jetro.time, 'sleep'):
+        check('network timeout retry result', jetro.open_with_retry(opener, object()), 'response')
+    check('network timeout retry calls', opener.calls, 3)
 
 if __name__ == '__main__':
     main()

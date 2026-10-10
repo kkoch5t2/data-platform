@@ -872,7 +872,14 @@ def open_with_retry(op, req, timeout=30, attempts=6):
             if e.code not in (403,429,500,502,503,504) or i == attempts-1:
                 raise
             delay=min(30, 2 ** (i + 1))
-            print(f'http_retry status={e.code} delay={delay}s')
+            print(f'http_retry status={e.code} delay={delay}s', flush=True)
+            time.sleep(delay)
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            last=e
+            if i == attempts-1:
+                raise
+            delay=min(30, 2 ** (i + 1))
+            print(f'network_retry error={type(e).__name__} delay={delay}s', flush=True)
             time.sleep(delay)
     raise last
 
