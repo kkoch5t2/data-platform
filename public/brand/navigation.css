@@ -6,9 +6,12 @@ header:has(.datlume-nav){padding-top:14px!important;overflow:visible}
 .datlume-brand span{font-family:'Segoe UI Variable','Avenir Next','Helvetica Neue',system-ui,sans-serif;font-size:18px;font-weight:750;letter-spacing:.16em;line-height:1}
 .datlume-nav-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
 .datlume-menu{position:relative}
-.datlume-nav summary,.datlume-nav .datlume-topic-link{box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:#d9e4f4;font:600 13px/1.4 system-ui,sans-serif;text-decoration:none;cursor:pointer;white-space:nowrap;list-style:none}
+.datlume-nav summary{box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:#d9e4f4;font:600 13px/1.4 system-ui,sans-serif;text-decoration:none;cursor:pointer;white-space:nowrap;list-style:none}
 .datlume-nav summary::-webkit-details-marker{display:none}
-.datlume-nav summary:hover,.datlume-nav .datlume-topic-link:hover,.datlume-menu[open]>summary{background:#ffffff12;color:#fff}
+.datlume-nav .datlume-chevron{display:block;width:14px;height:14px;flex:0 0 14px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;transform-origin:center;transition:transform .18s ease}
+.datlume-nav .datlume-menu[open] .datlume-chevron{transform:rotate(180deg)}
+@media(prefers-reduced-motion:reduce){.datlume-nav .datlume-chevron{transition:none}}
+.datlume-nav summary:hover,.datlume-menu[open]>summary{background:#ffffff12;color:#fff}
 .datlume-nav a:focus-visible,.datlume-nav summary:focus-visible{outline:2px solid #8ebdff;outline-offset:3px}
 .datlume-menu-panel{box-sizing:border-box;position:absolute;right:0;top:calc(100% + 8px);display:grid;gap:4px;padding:12px;border:1px solid #dce5f0;border-radius:14px;background:#fff;color:#142033;box-shadow:0 16px 48px #050e2433;max-height:min(70vh,620px);overflow:auto;width:430px}
 .datlume-data-panel{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -17,6 +20,7 @@ header:has(.datlume-nav){padding-top:14px!important;overflow:visible}
 .datlume-nav .datlume-menu-home{grid-column:1/-1;color:#1769e0;font-weight:700;border-bottom:1px solid #e4e9f0;border-radius:0;margin-bottom:4px}
 .datlume-info-panel{width:230px}
 body header h1,body main .intro h1{font-size:clamp(28px,3.2vw,40px)!important;line-height:1.3!important;letter-spacing:-.035em!important;overflow-wrap:anywhere}
+body.datlume-home header .hero h1{font-size:clamp(34px,3.6vw,44px)!important}
 body header .hero{margin-top:30px!important;padding-top:0!important}
 body header:has(.hero){padding-bottom:38px!important}
 .datlume-context{display:flex;flex-wrap:wrap;gap:6px 18px;margin:14px 0 0}
@@ -25,9 +29,10 @@ body header:has(.hero){padding-bottom:38px!important}
 @media(max-width:600px){
  .datlume-nav{flex-wrap:wrap;gap:6px;min-height:40px}
  .datlume-brand span{font-size:16px}.datlume-brand img{width:22px;height:22px}
- .datlume-nav-actions{gap:2px}.datlume-nav summary,.datlume-nav .datlume-topic-link{font-size:12px;padding:8px;min-height:44px}
+ .datlume-nav-actions{gap:2px}.datlume-nav summary{font-size:12px;padding:8px;min-height:44px}
  .datlume-menu{position:static}.datlume-menu-panel{width:100%;right:0;top:calc(100% + 6px);padding:8px;max-height:65vh}.datlume-info-panel{width:100%}
  body header h1,body main .intro h1{font-size:28px!important;line-height:1.4!important}
+ body.datlume-home header .hero h1{font-size:30px!important;line-height:1.35!important}
  body header .hero{margin-top:22px!important}body header:has(.hero){padding-bottom:28px!important}
 }
 @media(max-width:380px){.datlume-nav-actions{flex:1 1 100%;justify-content:flex-end}.datlume-brand{min-height:32px}}
