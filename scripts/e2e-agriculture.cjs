@@ -71,6 +71,7 @@ const value = n => n===0?'千万円未満':new Intl.NumberFormat('ja-JP',{maximu
     check(expectedRows.slice(0,10).every(r=>aria.includes(r.city+' '+value(r.values[i]))),label+' chart source '+data.products[i].name);
    }
    check(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=1,label+' overflow');
+   check(await page.locator('#public-count').evaluate(el=>el.scrollWidth<=el.clientWidth&&el.offsetHeight<=36),label+' count fits single line');
    await page.close();
   }
   const errorPage=await browser.newPage({viewport:{width:390,height:844}});
