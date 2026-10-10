@@ -19,7 +19,7 @@ routes.push('/unlisted-companies/'+unlisted.corporateNumber+'/');
 for(const file of walk('dist').filter(p=>p.endsWith('.html'))){
  const html=fs.readFileSync(file,'utf8');
  assert.equal((html.match(/class="datlume-nav"/g)||[]).length,1,file+' shared navigation count');
- assert(html.includes('/brand/navigation.css?v=20261011-4'),file+' navigation stylesheet');
+ assert(html.includes('/brand/navigation.css?v=20261011-5'),file+' navigation stylesheet');
  assert(html.includes('/brand/navigation.js?v=20261011-3'),file+' navigation dismissal script');
  const headerEnd=html.indexOf('</header>');
  const titleStart=html.indexOf('<h1');
@@ -53,6 +53,11 @@ for(const file of walk('dist').filter(p=>p.endsWith('.html'))){
    const links=await nav.locator('a').evaluateAll(as=>as.map(a=>a.getAttribute('href')));
    if(!expected)expected=links;assert.deepEqual(links,expected,'site navigation differs');assert(links.includes('/agriculture/')&&links.includes('/transport/')&&links.includes('/topics/'));
    const actions=nav.locator('.datlume-nav-actions');assert.equal(await actions.locator(':scope > *').count(),2);
+   const navVertical=await nav.evaluate(el=>{const brand=el.querySelector('.datlume-brand').getBoundingClientRect(),actions=el.querySelector('.datlume-nav-actions').getBoundingClientRect();return {brandCenter:brand.top+brand.height/2,actionsCenter:actions.top+actions.height/2,wrapped:actions.top>=brand.bottom-1,leftOffset:Math.abs(actions.left-brand.left)}});
+   if(!navVertical.wrapped&&Math.abs(navVertical.brandCenter-navVertical.actionsCenter)>2)throw new Error('brand and navigation actions must be vertically aligned on one row');
+   if(navVertical.wrapped&&navVertical.leftOffset>2)throw new Error('wrapped navigation actions must align to brand left edge');
+   if(route!=='/'){const title=(await page.locator('header h1').innerText()).trim();assert(!/[、。！？!?]$/.test(title),'subpage H1 must not end with punctuation');}
+
    // On narrow screens, a wrapped menu row starts at the same left edge as the logo.
    if(width<=600){
     const alignment=await nav.evaluate(el=>{
