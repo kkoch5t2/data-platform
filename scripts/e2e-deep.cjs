@@ -598,6 +598,17 @@ async function checkTopics(page,label,failures) {
         const res=await goto(page,base+encodeURI(route),{waitUntil:'networkidle',timeout:60000});
         if(!res||res.status()>=400)failures.push(`${vp.name} ${route} navigation ${res?.status()}`);
         const initialLabel=`${vp.name} ${route}`;
+        // Measure the actual first-content clearance, not just main's margin:
+        // some page families use padding on the first section instead of main.
+        const headerClearance=await page.evaluate(()=>{
+          const header=document.querySelector('body > header');
+          const main=document.querySelector('body > main.wrap');
+          const first=main?.firstElementChild;
+          if(!header||!main||!first)return null;
+          const pad=parseFloat(getComputedStyle(first).paddingTop)||0;
+          return Math.round((first.getBoundingClientRect().top+pad-header.getBoundingClientRect().bottom)*10)/10;
+        });
+        if(headerClearance!==null&&headerClearance<16)failures.push(initialLabel+' insufficient header-to-content spacing: '+headerClearance+'px (min 16px)');
         if(route==='/about-data/')await checkAboutDataAwardCoverage(page,initialLabel,failures);
         if(route==='/topics/')await checkTopics(page,initialLabel,failures);
     if(route==='/procurement/')await checkProcurementOverview(page,initialLabel,failures);
