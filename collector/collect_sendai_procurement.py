@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import argparse, hashlib, html, http.cookiejar, json, re, sqlite3, time, urllib.parse, urllib.request
+import argparse, hashlib, html, http.cookiejar, json, re, sqlite3, sys, time, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
@@ -154,6 +154,12 @@ EPI_TYPES = {
     'consulting': ('コンサル', '01', 'KK', 'KFK'),
     'goods-services': ('物品・役務', '11', 'KB', 'KFB'),
 }
+
+
+def probe_epi(timeout=20):
+    req = urllib.request.Request(EPI_ENTRY, headers=HEADERS)
+    with urllib.request.urlopen(req, timeout=timeout) as response:
+        response.read(1)
 
 
 def epi_open(opener, url, data=None):
@@ -377,6 +383,16 @@ if __name__ == '__main__':
     ap.add_argument('--years', default=str(current_fiscal_year))
     ap.add_argument('--workers', type=int, default=6)
     ap.add_argument('--no-export', action='store_true')
-    args = ap.parse_args(); years = parse_years(args.years)
+    ap.add_argument('--probe', action='store_true')
+    args = ap.parse_args()
+    if args.probe:
+        try:
+            probe_epi()
+        except Exception as exc:
+            print(f'Sendai EPI probe failed: {type(exc).__name__}: {exc}', file=sys.stderr, flush=True)
+            raise SystemExit(1)
+        print('Sendai EPI probe ok', flush=True)
+        raise SystemExit(0)
+    years = parse_years(args.years)
     with SourceRun('sendai_procurement', '仙台市 入札・契約結果 / 本庁契約課発注情報') as run:
         run.set_metrics(**main(years, args.workers, not args.no_export))

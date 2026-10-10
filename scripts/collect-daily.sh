@@ -86,8 +86,17 @@ if (( collect_rc == 0 )); then
   collect_rc=$?
 fi
 if (( collect_rc == 0 )); then
-  python3 collector/collect_sendai_procurement.py --years "$fiscal_year" --workers 6
-  collect_rc=$?
+  # Sendai's public EPI endpoint occasionally accepts no TCP connections. Probe it
+  # before the collector so a temporary upstream outage does not roll back every
+  # other healthy daily source. We keep the last verified Sendai rows and source
+  # timestamp unchanged; the normal max-age health check will still fail if the
+  # outage persists long enough to make that snapshot stale.
+  if python3 collector/collect_sendai_procurement.py --probe; then
+    python3 collector/collect_sendai_procurement.py --years "$fiscal_year" --workers 6
+    collect_rc=$?
+  else
+    echo "WARNING: Sendai EPI is unavailable; preserving the last verified Sendai snapshot"
+  fi
 fi
 set -e
 trap 'echo "Collection failed: step=$CURRENT_STEP line=$LINENO rc=$?"' ERR
