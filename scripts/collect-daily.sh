@@ -49,13 +49,23 @@ set +e
 python3 collector/collect_geps_awards.py --years "$previous_fiscal_year,$fiscal_year" --no-export
 collect_rc=$?
 if (( collect_rc == 0 )); then
-  python3 collector/collect_jetro.py --pages 20 --detail-limit 0 \
-    --backfill-from "$CATCHUP_FROM" --backfill-to "$TODAY" --backfill-all-notices-monthly
-  collect_rc=$?
+  # A failed upstream probe does not modify the database or source status. Keep
+  # the last verified snapshot only while check_health still considers it fresh.
+  if python3 collector/collect_jetro.py --probe; then
+    python3 collector/collect_jetro.py --pages 20 --detail-limit 0 \
+      --backfill-from "$CATCHUP_FROM" --backfill-to "$TODAY" --backfill-all-notices-monthly
+    collect_rc=$?
+  else
+    echo "WARNING: JETRO national API unavailable; preserving the last verified national snapshot"
+  fi
 fi
 if (( collect_rc == 0 )); then
-  python3 collector/collect_jetro_local.py --pages 20
-  collect_rc=$?
+  if python3 collector/collect_jetro_local.py --probe; then
+    python3 collector/collect_jetro_local.py --pages 20
+    collect_rc=$?
+  else
+    echo "WARNING: JETRO local API unavailable; preserving the last verified local snapshot"
+  fi
 fi
 if (( collect_rc == 0 )); then
   python3 collector/collect_yokohama_procurement.py --years "$(date +%Y)"

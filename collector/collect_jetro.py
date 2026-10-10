@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import argparse, calendar, hashlib, html, http.cookiejar, json, re, sqlite3, time, unicodedata
+import argparse, calendar, hashlib, html, http.cookiejar, json, re, sqlite3, sys, time, unicodedata
 import urllib.error, urllib.parse, urllib.request
 from datetime import date, datetime, timezone
 from zoneinfo import ZoneInfo
@@ -1628,7 +1628,19 @@ def main():
     p.add_argument('--backfill-all-pages',type=int,default=0,help='全分野バックフィルの月あたり最大ページ数。0は全件')
     p.add_argument('--refresh-details',action='store_true')
     p.add_argument('--reclassify-existing',action='store_true',help='既存全件に最新分類ルールを再適用')
+    p.add_argument('--probe',action='store_true',help='一覧APIの応答のみ確認し、データは変更しない')
     args=p.parse_args()
+    if args.probe:
+        try:
+            op, ref = make_opener({})
+            page = fetch_page(op, ref, 0, {})
+            if not isinstance(page.get('items'), list) or not page['items']:
+                raise ValueError('JETRO national API returned no items')
+        except Exception as exc:
+            print(f'JETRO national probe failed: {type(exc).__name__}: {exc}', file=sys.stderr, flush=True)
+            raise SystemExit(1)
+        print('JETRO national probe ok', flush=True)
+        return
 
     with SourceRun('jetro', 'JETRO 政府公共調達データベース') as run:
         DB_PATH.parent.mkdir(parents=True,exist_ok=True)
