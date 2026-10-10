@@ -89,3 +89,6 @@
 | 公開データ | `public/data/transport/index.json`、`stations.json`、`commute.json`、`usage.json` |
 | 数値監査 / E2E | `scripts/audit-public-transport.py`、`scripts/e2e-public-transport.cjs` |
 | 月次更新 | `last-public-transport-refresh`、`scripts/collect-daily.sh` |
+
+## 農業・食の産地（2026-10-10）
+`/agriculture/`（`src/pages/agriculture/index.astro`）、公開JSON `public/data/agriculture-output.json`、収集 `collector/collect_agriculture_output.py`、台帳 `agriculture_output`。トップページのカードとナビから接続する。

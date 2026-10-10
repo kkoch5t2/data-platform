@@ -497,6 +497,19 @@
         "latestMonth": "2026-05"
       },
       "previousRecordCount": 12458
+    },
+    "agriculture_output": {
+      "label": "農林水産省 市町村別農業産出額（推計）",
+      "status": "ok",
+      "startedAt": "2026-10-09T20:20:42.819025+00:00",
+      "finishedAt": "2026-10-09T20:20:48.602168+00:00",
+      "durationSeconds": 5.78,
+      "metrics": {
+        "records": 1719,
+        "sourceRows": 120330,
+        "products": 70,
+        "sourceYear": 2024
+      }
     }
   }
 }

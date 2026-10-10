@@ -506,6 +506,22 @@
       "country": "JP",
       "domain": "transport",
       "note": "駅2011〜2024、国勢調査2020、バス最新年報、鉄道最新月報。出典コード・単位・不詳を保持。"
+    },
+    "agriculture_output": {
+      "label": "農林水産省 市町村別農業産出額（推計）詳細品目別データ 2024年",
+      "enabled": true,
+      "frequency": "monthly",
+      "maxAgeHours": 840,
+      "minRecords": 1719,
+      "acquisition": "official-public-xlsx",
+      "command": [
+        ".venv/bin/python",
+        "collector/collect_agriculture_output.py",
+        "--refresh"
+      ],
+      "country": "JP",
+      "domain": "agriculture",
+      "note": "1,719市町村×70項目、原典2024年。x/－/…と0を区別。2025年版公開時はcollectorの年度・ソースURLと比較条件を更新。"
     }
   }
 }

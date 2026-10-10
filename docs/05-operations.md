@@ -220,3 +220,6 @@ collect:reinfolib-historyは年×都道府県原本キャッシュから履歴�
 ### 賃金履歴の原本と防災表示（2026-10-09）
 賃金履歴の月次取得は公式25原表を再取得・検証する。XLS読取にはcollector/requirements-wage-history.txt（xlrd 2.0.2）が必要。スケジューラは既存.venvをPATHへ追加する。保存済み原表からの再生成はcollect:wage-history -- --offline、全セル照合はaudit:wage-history -- --require-raw。原本は公開配信せず長期保持する。
 防災タイルの再取得ボタンは現在表示中の洪水/津波/土石流だけを再取得する。データなしと失敗を区別するが配信元404の理由は断定しない。公開確認では防災モジュールのハッシュと雇用ページもrelease manifestで照合する。
+
+## 農業・食の産地（2026-10-10）
+`.venv/bin/python collector/collect_agriculture_output.py --refresh` で農水省2024年版を再取得し、原本を `data/raw/agriculture-output/`、公開用を `public/data/agriculture-output.json` に生成する。source catalog は月次で同じ対象年を再検査する。新しい年が公開されたときはURL・年度・対象市町村・品目のスキーマ、推計の按分基準、訂正の有無を確認してから更新する。新旧年の市町村合併・推計基準変更を無視した連続グラフは作らない。

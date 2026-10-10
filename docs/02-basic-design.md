@@ -46,6 +46,7 @@ public/data + src/data
 - `/regional/` — 都道府県別推移
 - `/employment-economy/` — 雇用・賃金
 - `/business-industry/` — 企業・産業
+- `/agriculture/` — 農業・食の産地（市町村別品目・推計産出額）
 - `/listed-companies/` — 上場企業
 - `/unlisted-companies/` — 未上場企業
 - `/economy-prices/` — 経済・物価
