@@ -124,6 +124,36 @@ class ProcurementQualityTests(unittest.TestCase):
                         check_health.main()
                     self.assertEqual(err.exception.code, 1)
 
+    def test_bounded_stale_upstream_requires_verified_snapshot(self):
+        key = 'jetro'
+        minimum = check_health.CATALOG[key]['minRecords']
+        with tempfile.TemporaryDirectory() as tmp:
+            status = Path(tmp) / 'sources.json'
+            item = {'status': 'ok', 'metrics': {'records': minimum},
+                    'finishedAt': (datetime.now(timezone.utc) - timedelta(hours=50)).isoformat()}
+            with mock.patch.object(check_health, 'STATUS_PATH', status):
+                def run(allow):
+                    status.write_text(json.dumps({'sources': {key: item}}))
+                    argv = ['check_health', '--source', key]
+                    if allow:
+                        argv += ['--allow-stale-upstream', key]
+                    with mock.patch.object(sys, 'argv', argv), contextlib.redirect_stderr(io.StringIO()), contextlib.redirect_stdout(io.StringIO()):
+                        check_health.main()
+                with self.assertRaises(SystemExit):
+                    run(False)
+                run(True)
+                item['finishedAt'] = (datetime.now(timezone.utc) - timedelta(hours=97)).isoformat()
+                with self.assertRaises(SystemExit):
+                    run(True)
+                item['finishedAt'] = (datetime.now(timezone.utc) - timedelta(hours=50)).isoformat()
+                item['status'] = 'error'
+                with self.assertRaises(SystemExit):
+                    run(True)
+                item['status'] = 'ok'
+                item['metrics']['records'] = 0
+                with self.assertRaises(SystemExit):
+                    run(True)
+
 
 if __name__ == '__main__':
     unittest.main()

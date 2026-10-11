@@ -90,7 +90,7 @@ PCと幅390px相当のモバイルを両方検証する。
 日次のDBロック保持中にトピックを公開し、その後の日次公開が新しいトピックとソース状態を保持することを検証する。同じ生成ファイルの競合、収集中のコード変更、既存のユーザー変更は破棄せず公開停止する。
 push後のdeploy/本番E2E失敗ではGitに公開済みの状態を復元せず保持し、成功日を進めないことを確認する。中断した子プロセスはDB復元前に停止する。
 `python3 scripts/test-production-verification.py` はHTTP 200でも古いmanifest・古いJSON・壊れたXML・別ページなら失敗し、キャッシュ伝播による一時不一致の再試行後に一致すれば成功することを確認する。
-`python3 scripts/test-refresh-recovery.py` はSQLiteのWALコミットをバックアップへ含め、hot journalを復元時に除去すること、JETRO既存IDの再分類省略と機関名補完、新規IDの分類、横浜市の通信再試行上限を検査する。
+`python3 scripts/test-refresh-recovery.py` はSQLiteのWALコミットをバックアップへ含め、hot journalを復元時に除去すること、JETRO既存IDの再分類省略と機関名補完、新規IDの分類、横浜市の通信再試行上限を検査する。`python3 scripts/test-procurement-quality.py` は調達ソースの通常48時間鮮度判定と、接続確認失敗ソースに限定した最大96時間の既存正常スナップショット例外を検査する。status=error・件数不足・96時間超は例外でも失敗とする。
 
 ## 11. 公開自動照合
 `deploy-datlume.sh` はupload前にrelease-manifestを作り、本番manifest、主要公開JSON、sitemap、詳細shard両端サンプルをSHA-256とbytesで検証する。古いデータがHTTP 200を返しても成功扱いにしない。

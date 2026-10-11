@@ -18,8 +18,13 @@ def parse_time(value):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", action="append", default=[])
+    parser.add_argument("--allow-stale-upstream", action="append", default=[],
+                        help="source whose upstream probe failed; permit verified snapshot up to 96 hours old")
     args = parser.parse_args()
     selected = args.source or [k for k, v in CATALOG.items() if v.get("enabled")]
+    unknown = set(args.allow_stale_upstream) - set(selected)
+    if unknown:
+        parser.error(f"stale upstream exception not selected: {', '.join(sorted(unknown))}")
     status = json.loads(STATUS_PATH.read_text(encoding="utf-8")) if STATUS_PATH.exists() else {"sources": {}}
     errors = []
     now = datetime.now(timezone.utc)
@@ -37,8 +42,12 @@ def main():
             completed_at = parse_time(finished)
             if completed_at > now + timedelta(minutes=10):
                 errors.append(f"{key}: future run status")
-            if (now - completed_at).total_seconds() > cfg.get("maxAgeHours", 48) * 3600:
-                errors.append(f"{key}: stale run status")
+            age_hours = (now - completed_at).total_seconds() / 3600
+            if age_hours > cfg.get("maxAgeHours", 48):
+                if key in args.allow_stale_upstream and age_hours <= 96 and item.get("status") == "ok":
+                    print(f"WARNING: {key}: upstream unavailable; using verified snapshot {age_hours:.1f}h old (96h limit)")
+                else:
+                    errors.append(f"{key}: stale run status")
             if item.get("startedAt") and parse_time(item["startedAt"]) > completed_at:
                 errors.append(f"{key}: startedAt is after finishedAt")
         except (ValueError, TypeError) as exc:
