@@ -19,6 +19,7 @@ from collector.collect_jetro import canonical_company_name, dashboard_award_crit
 from collector.collect_sapporo_procurement import save
 
 
+@mock.patch.dict(check_health.os.environ, {'DATLUME_STALE_UPSTREAM_MARKER': ''})
 class ProcurementQualityTests(unittest.TestCase):
     def test_calendar_dates_and_company_prefix(self):
         self.assertEqual(parse_date('2026/2/29'), '')
