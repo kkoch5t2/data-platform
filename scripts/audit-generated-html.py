@@ -106,6 +106,15 @@ for file in files:
     try: raw=file.read_text(encoding='utf-8')
     except Exception as e:
         errors.append(f'{route}: read failed {e}');continue
+    for script in re.finditer(r'<script\b[^>]*\btype=["\']application/ld\+json["\'][^>]*>(.*?)</script>', raw, re.I | re.S):
+        try: structured=json.loads(script.group(1))
+        except json.JSONDecodeError: continue
+        nodes=structured if isinstance(structured,list) else [structured]
+        for node in nodes:
+            if isinstance(node,dict) and node.get('@type')=='Dataset':
+                description=node.get('description')
+                check(isinstance(description,str) and 50<=len(description)<=5000,
+                      f'{route}: Dataset description must be 50-5000 characters (got {len(description) if isinstance(description,str) else "missing"})')
     p=PageParser()
     try:p.feed(raw)
     except Exception as e:

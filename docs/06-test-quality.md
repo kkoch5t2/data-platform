@@ -32,6 +32,7 @@ DATLUMEは「画面が開く」だけでなく、数値・出典・リンク・�
 - `undefined` / `NaN` の可視露出
 - 内部リンク切れ
 - sitemapと上場企業indexabilityの一致
+- Dataset構造化データのdescriptionがGoogleの要件（50〜5,000文字）を満たすこと
 - AdSense所有権meta、`ads.txt`、privacyページの存在
 
 ## 5. E2E
