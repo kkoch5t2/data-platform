@@ -142,6 +142,10 @@ class ProcurementQualityTests(unittest.TestCase):
                 with self.assertRaises(SystemExit):
                     run(False)
                 run(True)
+                marker = Path(tmp) / 'stale-upstream-sources.txt'
+                marker.write_text(key + '\n')
+                with mock.patch.dict(check_health.os.environ, {'DATLUME_STALE_UPSTREAM_MARKER': str(marker)}):
+                    run(False)
                 item['finishedAt'] = (datetime.now(timezone.utc) - timedelta(hours=97)).isoformat()
                 with self.assertRaises(SystemExit):
                     run(True)

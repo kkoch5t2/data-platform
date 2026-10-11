@@ -388,6 +388,8 @@ class Refresh:
     def checks(self):
         self.phase = 'release-check'
         env = {'DATLUME_RELEASE_LOCK_HELD': '1'}
+        if self.job == 'daily':
+            env['DATLUME_STALE_UPSTREAM_MARKER'] = str(self.markers / 'stale-upstream-sources.txt')
         self.command(['npm', 'run', 'release:check' if self.job == 'daily' else 'build'], extra_env=env)
         if self.job == 'topics':
             self.command(['npm', 'run', 'audit:wikipedia-topics'])

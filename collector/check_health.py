@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import argparse, json, sys
+import argparse, json, os, sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -22,9 +22,14 @@ def main():
                         help="source whose upstream probe failed; permit verified snapshot up to 96 hours old")
     args = parser.parse_args()
     selected = args.source or [k for k, v in CATALOG.items() if v.get("enabled")]
-    unknown = set(args.allow_stale_upstream) - set(selected)
+    allowed_stale = set(args.allow_stale_upstream)
+    marker = os.environ.get('DATLUME_STALE_UPSTREAM_MARKER')
+    if marker:
+        allowed_stale.update(line.strip() for line in Path(marker).read_text().splitlines() if line.strip())
+    eligible = {'jetro', 'jetro_local', 'sendai_procurement'}
+    unknown = allowed_stale - (set(selected) & eligible)
     if unknown:
-        parser.error(f"stale upstream exception not selected: {', '.join(sorted(unknown))}")
+        parser.error(f"invalid stale upstream exception: {', '.join(sorted(unknown))}")
     status = json.loads(STATUS_PATH.read_text(encoding="utf-8")) if STATUS_PATH.exists() else {"sources": {}}
     errors = []
     now = datetime.now(timezone.utc)
@@ -44,7 +49,7 @@ def main():
                 errors.append(f"{key}: future run status")
             age_hours = (now - completed_at).total_seconds() / 3600
             if age_hours > cfg.get("maxAgeHours", 48):
-                if key in args.allow_stale_upstream and age_hours <= 96 and item.get("status") == "ok":
+                if key in allowed_stale and age_hours <= 96 and item.get("status") == "ok":
                     print(f"WARNING: {key}: upstream unavailable; using verified snapshot {age_hours:.1f}h old (96h limit)")
                 else:
                     errors.append(f"{key}: stale run status")

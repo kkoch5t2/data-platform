@@ -45,6 +45,7 @@ previous_fiscal_year="$((10#$fiscal_year-1))"
 
 CURRENT_STEP="procurement-collection"
 stale_upstream_args=()
+stale_upstream_sources=()
 trap - ERR
 set +e
 python3 collector/collect_geps_awards.py --years "$previous_fiscal_year,$fiscal_year" --no-export
@@ -59,6 +60,7 @@ if (( collect_rc == 0 )); then
   else
     echo "WARNING: JETRO national API unavailable; preserving the last verified national snapshot"
     stale_upstream_args+=(--allow-stale-upstream jetro)
+    stale_upstream_sources+=(jetro)
   fi
 fi
 if (( collect_rc == 0 )); then
@@ -68,6 +70,7 @@ if (( collect_rc == 0 )); then
   else
     echo "WARNING: JETRO local API unavailable; preserving the last verified local snapshot"
     stale_upstream_args+=(--allow-stale-upstream jetro_local)
+    stale_upstream_sources+=(jetro_local)
   fi
 fi
 if (( collect_rc == 0 )); then
@@ -109,6 +112,7 @@ if (( collect_rc == 0 )); then
   else
     echo "WARNING: Sendai EPI is unavailable; preserving the last verified Sendai snapshot"
     stale_upstream_args+=(--allow-stale-upstream sendai_procurement)
+    stale_upstream_sources+=(sendai_procurement)
   fi
 fi
 set -e
@@ -123,6 +127,7 @@ if ! python3 collector/check_health.py --source geps_awards --source jetro --sou
   echo "ERROR: procurement health check failed; restoring database"
   exit 21
 fi
+printf '%s\n' "${stale_upstream_sources[@]}" > "$STATE_DIR/stale-upstream-sources.txt"
 
 CURRENT_STEP="procurement-regression-check"
 if [[ -s "$PREV_SUMMARY" ]] && ! python3 scripts/check-procurement-regression.py --previous "$PREV_SUMMARY" --current "$ROOT/src/data/summary.json"; then
