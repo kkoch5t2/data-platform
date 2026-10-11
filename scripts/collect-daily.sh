@@ -46,19 +46,26 @@ previous_fiscal_year="$((10#$fiscal_year-1))"
 CURRENT_STEP="procurement-collection"
 stale_upstream_args=()
 stale_upstream_sources=()
+record_upstream_failure() {
+  local source="$1"
+  if [[ -n "${DATLUME_UPSTREAM_FAILURE_LOG:-}" ]]; then
+    python3 scripts/log-upstream-failure.py --source "$source" --log "$DATLUME_UPSTREAM_FAILURE_LOG"
+  fi
+}
 trap - ERR
 set +e
 python3 collector/collect_geps_awards.py --years "$previous_fiscal_year,$fiscal_year" --no-export
 collect_rc=$?
 if (( collect_rc == 0 )); then
-  # A failed upstream probe leaves the verified snapshot unchanged. A bounded
-  # 96-hour exception permits other healthy sources to publish during an outage.
+  # A failed upstream probe leaves the verified snapshot unchanged.
+  # Other healthy sources continue even when the upstream outage persists.
   if python3 collector/collect_jetro.py --probe; then
     python3 collector/collect_jetro.py --pages 20 --detail-limit 0 \
       --backfill-from "$CATCHUP_FROM" --backfill-to "$TODAY" --backfill-all-notices-monthly
     collect_rc=$?
   else
     echo "WARNING: JETRO national API unavailable; preserving the last verified national snapshot"
+    record_upstream_failure jetro
     stale_upstream_args+=(--allow-stale-upstream jetro)
     stale_upstream_sources+=(jetro)
   fi
@@ -69,6 +76,7 @@ if (( collect_rc == 0 )); then
     collect_rc=$?
   else
     echo "WARNING: JETRO local API unavailable; preserving the last verified local snapshot"
+    record_upstream_failure jetro_local
     stale_upstream_args+=(--allow-stale-upstream jetro_local)
     stale_upstream_sources+=(jetro_local)
   fi
@@ -105,12 +113,13 @@ if (( collect_rc == 0 )); then
   # Sendai's public EPI endpoint occasionally accepts no TCP connections. Probe it
   # before the collector so a temporary upstream outage does not roll back every
   # other healthy daily source. Keep the last verified rows and timestamp;
-  # the bounded stale exception still fails after 96 hours.
+  # Failed probes are reported separately from healthy-source publication.
   if python3 collector/collect_sendai_procurement.py --probe; then
     python3 collector/collect_sendai_procurement.py --years "$fiscal_year" --workers 6
     collect_rc=$?
   else
     echo "WARNING: Sendai EPI is unavailable; preserving the last verified Sendai snapshot"
+    record_upstream_failure sendai_procurement
     stale_upstream_args+=(--allow-stale-upstream sendai_procurement)
     stale_upstream_sources+=(sendai_procurement)
   fi

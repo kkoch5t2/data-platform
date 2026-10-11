@@ -125,7 +125,7 @@ class ProcurementQualityTests(unittest.TestCase):
                         check_health.main()
                     self.assertEqual(err.exception.code, 1)
 
-    def test_bounded_stale_upstream_requires_verified_snapshot(self):
+    def test_unavailable_upstream_preserves_verified_snapshot_without_expiry(self):
         key = 'jetro'
         minimum = check_health.CATALOG[key]['minRecords']
         with tempfile.TemporaryDirectory() as tmp:
@@ -147,9 +147,10 @@ class ProcurementQualityTests(unittest.TestCase):
                 marker.write_text(key + '\n')
                 with mock.patch.dict(check_health.os.environ, {'DATLUME_STALE_UPSTREAM_MARKER': str(marker)}):
                     run(False)
-                item['finishedAt'] = (datetime.now(timezone.utc) - timedelta(hours=97)).isoformat()
+                item['finishedAt'] = (datetime.now(timezone.utc) - timedelta(hours=200)).isoformat()
                 with self.assertRaises(SystemExit):
-                    run(True)
+                    run(False)
+                run(True)
                 item['finishedAt'] = (datetime.now(timezone.utc) - timedelta(hours=50)).isoformat()
                 item['status'] = 'error'
                 with self.assertRaises(SystemExit):

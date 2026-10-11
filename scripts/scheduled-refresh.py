@@ -327,7 +327,10 @@ class Refresh:
         self.phase = 'collection'
         if self.job == 'daily':
             worker = 'refresh-listed-master-worker.sh' if self.master_only else 'collect-daily.sh'
-            self.command(['bash', 'scripts/' + worker], extra_env={'DATLUME_MARKER_DIR': str(self.markers)})
+            self.command(['bash', 'scripts/' + worker], extra_env={
+                'DATLUME_MARKER_DIR': str(self.markers),
+                'DATLUME_UPSTREAM_FAILURE_LOG': str(self.state / 'logs' / 'upstream-collection-failures.jsonl'),
+            })
         elif self.job == 'topics':
             self.command(['python3', 'collector/collect_wikipedia_topics.py', '--days', '14'])
             self.command(['npm', 'run', 'audit:wikipedia-topics'])

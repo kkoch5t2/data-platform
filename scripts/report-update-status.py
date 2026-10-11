@@ -59,6 +59,23 @@ def build_report(root, now=None):
                      "sourcePeriod": {k: metrics[k] for k in PERIOD_KEYS if k in metrics},
                      "issues": problems})
     state = root / "data/automation"
+    upstream_failures = []
+    upstream_log = state / "logs/upstream-collection-failures.jsonl"
+    if upstream_log.exists():
+        for line in upstream_log.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                event = json.loads(line)
+                occurred_at = timestamp(event["at"])
+                age = now - occurred_at
+                if (event.get("event") == "upstream-probe-failed"
+                        and timedelta(0) <= age <= timedelta(hours=48)):
+                    upstream_failures.append(event)
+            except (ValueError, KeyError, TypeError, AttributeError):
+                issues.append("外部ソース取得失敗ログに不正な記録")
+    for event in upstream_failures:
+        issues.append(f'{event.get("source", "unknown")}: 外部サイトから取得できず前回データを保持 ({event["at"]})')
     jobs = {}
     for job, marker in (("daily", "last-success-date"), ("topics", "last-wikipedia-success-date"),
                         ("weekly", "last-weekly-success-date")):
@@ -152,6 +169,7 @@ def build_report(root, now=None):
         issues.append("本番照合記録が不正または未記録")
     return {"schemaVersion": 1, "checkedAt": now.astimezone(JST).isoformat(),
             "ok": not issues, "sources": rows, "jobs": jobs,
+            "upstreamFailures": upstream_failures,
             "lastPublication": latest, "productionVerification": verification,
             "issues": issues,
             "note": "収集日時・元データの対象年月・公開確認日時は別。対象年月の未記録は推測しない。本番照合は保存記録であり、現在の通信確認ではない。"}

@@ -82,6 +82,18 @@ class ReportTests(unittest.TestCase):
         (directory / "failures.log").write_text("2026-10-08T12:00:00+09:00\tjob=daily\n")
         self.assertFalse(self.report()["ok"])
 
+    def test_upstream_probe_failure_is_reported_even_after_daily_success(self):
+        directory = self.root / 'data/automation/logs'
+        directory.mkdir(exist_ok=True)
+        event = {'at': '2026-10-08T13:15:00+09:00', 'job': 'daily',
+                 'event': 'upstream-probe-failed', 'source': 'jetro',
+                 'action': 'kept-last-verified-snapshot'}
+        (directory / 'upstream-collection-failures.jsonl').write_text(json.dumps(event) + '\n')
+        report = self.report()
+        self.assertFalse(report['ok'])
+        self.assertEqual(report['upstreamFailures'][0]['source'], 'jetro')
+        self.assertTrue(any('jetro' in issue for issue in report['issues']))
+
     def test_topics_failure_is_reported_without_verified_history(self):
         (self.root / "data/automation/wikipedia-failures.log").write_text("2026-10-08T12:00:00+09:00\tjob=topics\n")
         self.assertFalse(self.report()["ok"])

@@ -19,7 +19,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", action="append", default=[])
     parser.add_argument("--allow-stale-upstream", action="append", default=[],
-                        help="source whose upstream probe failed; permit verified snapshot up to 96 hours old")
+                        help="source whose upstream probe failed; keep the last verified snapshot while other sources publish")
     args = parser.parse_args()
     selected = args.source or [k for k, v in CATALOG.items() if v.get("enabled")]
     allowed_stale = set(args.allow_stale_upstream)
@@ -49,8 +49,8 @@ def main():
                 errors.append(f"{key}: future run status")
             age_hours = (now - completed_at).total_seconds() / 3600
             if age_hours > cfg.get("maxAgeHours", 48):
-                if key in allowed_stale and age_hours <= 96 and item.get("status") == "ok":
-                    print(f"WARNING: {key}: upstream unavailable; using verified snapshot {age_hours:.1f}h old (96h limit)")
+                if key in allowed_stale and item.get("status") == "ok":
+                    print(f"WARNING: {key}: upstream unavailable; using last verified snapshot {age_hours:.1f}h old (stale; no fixed expiry)")
                 else:
                     errors.append(f"{key}: stale run status")
             if item.get("startedAt") and parse_time(item["startedAt"]) > completed_at:
