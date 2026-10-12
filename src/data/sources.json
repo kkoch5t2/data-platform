@@ -376,19 +376,19 @@
     "sendai_procurement": {
       "label": "仙台市 入札・契約結果 / 本庁契約課発注情報",
       "status": "ok",
-      "startedAt": "2026-10-08T23:35:07.180166+00:00",
-      "finishedAt": "2026-10-08T23:36:29.630690+00:00",
-      "durationSeconds": 82.45,
+      "startedAt": "2026-10-12T08:17:24.936552+00:00",
+      "finishedAt": "2026-10-12T08:18:51.563073+00:00",
+      "durationSeconds": 86.63,
       "metrics": {
-        "records": 1648,
-        "upserted": 1648,
+        "records": 1650,
+        "upserted": 1650,
         "cancelled": 1,
         "legacyDeduped": 0,
         "years": 1,
         "startYear": 2026,
         "endYear": 2026
       },
-      "previousRecordCount": 1642
+      "previousRecordCount": 1648
     },
     "wikipedia_topics": {
       "label": "Wikimedia Analytics API 日本語版Wikipedia Pageviews",
