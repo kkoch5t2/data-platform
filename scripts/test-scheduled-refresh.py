@@ -178,6 +178,8 @@ class Tests(unittest.TestCase):
     def test_failed_collect_build_and_local_e2e_restore_all_runtime_and_primary(self):
         for job in ('daily', 'topics', 'weekly'):
             for failure in ('collection', 'release-check', 'local-e2e'):
+                if job == 'daily' and failure != 'collection':
+                    continue  # successful source collection is retained for release-only retries
                 if job == 'weekly' and failure != 'collection':
                     continue
                 with self.subTest(job=job, failure=failure), tempfile.TemporaryDirectory() as directory:
@@ -196,6 +198,46 @@ class Tests(unittest.TestCase):
                     self.assertEqual((fixture.root / 'data/automation/last-success-date').read_text(), '2026-09-01\n')
                     self.assertEqual(json.loads((fixture.root / 'src/data/sources.json').read_text()), fixture.sources)
                     self.assertTrue(list((fixture.root / 'data/automation/logs').glob('*failure-sources*')))
+
+    def test_release_failure_retries_only_release_and_preserves_source_results(self):
+        for failure in ('release-check', 'local-e2e'):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
+                fixture=Fixture(directory)
+                first=SmallRefresh(fixture.root,'daily');first.failure=failure
+                with self.assertRaises(RuntimeError): first.run()
+                self.assertEqual(fixture.count(),2)
+                self.assertEqual(json.loads(first.manifest.read_text())['phase'],'collected')
+                self.assertEqual((fixture.root/'data/automation/last-success-date').read_text(),'2026-09-01\n')
+                if failure == 'release-check':
+                    SmallRefresh(fixture.root,'topics').run()  # Generated-only concurrent commit may merge.
+                second=SmallRefresh(fixture.root,'daily')
+                with patch.object(second,'collect',side_effect=AssertionError('successful sources must not rerun')):
+                    second.run()
+                fixture.assert_clean(self)
+                self.assertEqual(fixture.count(),2)
+                self.assertFalse(second.manifest.exists())
+
+    def test_partial_collection_retries_only_unfinished_source_steps(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture=Fixture(directory)
+            class Partial(SmallRefresh):
+                def collect(self):
+                    marker=self.markers/'completed-steps'/'geps'
+                    if marker.exists():
+                        self.phase='collection'
+                        return
+                    super().collect()
+                    marker.parent.mkdir(parents=True)
+                    marker.write_text('success')
+                    raise RuntimeError('injected next-source failure')
+            first=Partial(fixture.root,'daily')
+            with self.assertRaises(RuntimeError):first.run()
+            self.assertEqual(fixture.count(),2)
+            self.assertEqual(json.loads(first.manifest.read_text())['phase'],'collecting')
+            second=Partial(fixture.root,'daily')
+            second.run()
+            self.assertEqual(fixture.count(),2)
+            fixture.assert_clean(self)
 
     def test_topics_publish_while_daily_runtime_lock_is_held_and_daily_preserves_new_topics(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -356,6 +398,18 @@ with sqlite3.connect(p/'data/public_it.db') as db: db.execute('insert into procu
                     runner.run()
                 self.assertEqual(raised.exception.returncode, {'collection':1, 'health':21, 'regression':24, 'listed':1, 'monthly':1}[failure])
                 fixture.assert_clean(self)
+                if failure in ('listed','monthly'):
+                    self.assertEqual(fixture.count(), 2)
+                    self.assertEqual(json.loads(runner.manifest.read_text())['phase'],'collecting')
+                    if failure == 'listed':
+                        npm.write_text('#!/bin/bash\nexit 0\n')
+                        again=refresh.Refresh(root,'daily')
+                        again.env['PATH']=str(binpath)+':'+again.env['PATH']
+                        with self.assertRaises(subprocess.CalledProcessError) as retry:
+                            again.run()  # The next monthly source fails; GEPS must remain at two records.
+                        self.assertEqual(retry.exception.returncode,1)
+                        self.assertEqual(fixture.count(),2)
+                    runner.recover()  # Explicit rollback remains available for abandoned checkpoints.
                 self.assertEqual(fixture.count(), 1)
                 self.assertEqual((root / 'data/raw/listed-companies/normalized/financials.json').read_text(), 'old-normalized')
 

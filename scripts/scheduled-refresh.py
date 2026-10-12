@@ -265,6 +265,7 @@ class Refresh:
             for rel, path in records.items():
                 copy_file(path, self.transaction / 'files' / rel)
         atomic_json(self.manifest, {'phase': 'collecting', 'base': self.base,
+                                   'day': datetime.now(ZoneInfo('Asia/Tokyo')).date().isoformat(),
                                    'workspace': str(self.workspace), 'runtimeFiles': sorted(records),
                                    'databaseExisted': (self.root / 'data/public_it.db').exists(),
                                    'beforeRecords': json.loads((self.root / 'src/data/summary.json').read_text()).get('records')
@@ -274,6 +275,37 @@ class Refresh:
         entry = json.loads(self.manifest.read_text())
         entry.update(phase=phase, **values)
         atomic_json(self.manifest, entry)
+
+    def resumable(self, today):
+        """Keep verified source steps in the isolated daily transaction for same-day retries."""
+        if self.job != 'daily' or self.master_only or not self.manifest.exists():
+            return False
+        entry = json.loads(self.manifest.read_text())
+        if entry.get('phase') not in ('collecting', 'collected') or entry.get('day') != today:
+            return False
+        self.stop_orphan(entry)
+        if (self.markers / 'retry-unsafe').exists():
+            return False
+        if not self.workspace.exists() or not (self.transaction / 'public_it.db').exists():
+            return False
+        if self.git('status', '--porcelain') or self.git('rev-parse', 'HEAD', cwd=self.workspace) != entry['base']:
+            return False
+        latest = self.fetch()
+        if subprocess.run(['git', 'merge-base', '--is-ancestor', entry['base'], latest],
+                          cwd=self.root).returncode:
+            return False
+        allowed = module(self.root, 'scheduled-refresh-git')
+        changed = self.git('diff', '--name-only', entry['base'], latest).splitlines()
+        if any(not allowed.is_allowed(path) for path in changed):
+            return False
+        if self.git('rev-parse', 'HEAD') != latest:
+            self.git('merge', '--ff-only', latest)
+        state = module(self.root, 'procurement-refresh-state')
+        state.check_database(self.root / 'data/public_it.db')
+        self.base = entry['base']
+        self.phase = 'collection' if entry['phase'] == 'collecting' else 'release-check'
+        print(f"Resuming {entry['phase']} for {today}: successful source steps retained", flush=True)
+        return True
 
     def recover(self):
         """Also handles SIGKILL and a push that succeeded before its reply was lost."""
@@ -476,6 +508,11 @@ class Refresh:
             summary = self.workspace / 'src/data/summary.json'
             entry = {'job': self.job, 'finishedAt': datetime.now(ZoneInfo('Asia/Tokyo')).isoformat(),
                      'commit': commit, 'verified': True}
+            if self.job == 'daily':
+                steps = self.markers / 'completed-steps'
+                entry['successfulSourceSteps'] = sorted(p.name for p in steps.iterdir() if p.is_file()) if steps.exists() else []
+                stale = self.markers / 'stale-upstream-sources.txt'
+                entry['staleUpstreamSources'] = stale.read_text().splitlines() if stale.exists() else []
             if summary.exists():
                 data = json.loads(summary.read_text())
                 before = json.loads(self.manifest.read_text()).get('beforeRecords')
@@ -511,8 +548,16 @@ class Refresh:
                     return
                 if self.job != 'topics':
                     other = 'weekly' if self.job == 'daily' else 'daily'
-                    Refresh(self.root, other).recover()
-                self.recover()
+                    other_runner = Refresh(self.root, other)
+                    if self.job == 'weekly' and other_runner.manifest.exists():
+                        pending = json.loads(other_runner.manifest.read_text())
+                        if pending.get('phase') in ('collecting', 'collected'):
+                            print('SKIP: daily source retry has a pending runtime transaction', flush=True)
+                            return
+                    other_runner.recover()
+                resumed = self.resumable(today)
+                if not resumed:
+                    self.recover()
                 marker = self.state / SUCCESS[self.job]
                 fresh = True
                 if self.job == 'topics':
@@ -527,9 +572,12 @@ class Refresh:
                 if shutil.disk_usage(self.root).free < 10 * 1024**3:
                     raise RuntimeError('Less than 10 GiB free')
                 try:
-                    self.prepare()
-                    self.snapshot()
-                    self.collect()
+                    if not resumed:
+                        self.prepare()
+                        self.snapshot()
+                    if not resumed or json.loads(self.manifest.read_text())['phase'] == 'collecting':
+                        self.collect()
+                        self.phase_save('collected')
                     if self.job == 'weekly':
                         shutil.rmtree(self.transaction)
                         (self.state / SUCCESS[self.job]).write_text(today + '\n')
@@ -537,7 +585,19 @@ class Refresh:
                         self.publish(today)
                     print(f'=== {self.job} refresh verified success {datetime.now(ZoneInfo("Asia/Tokyo")).isoformat()} ===', flush=True)
                 except BaseException:
-                    self.recover()
+                    pending = json.loads(self.manifest.read_text()) if self.manifest.exists() else {}
+                    steps = self.markers / 'completed-steps'
+                    retain = (self.job == 'daily' and not self.master_only
+                              and pending.get('phase') in ('collecting', 'collected')
+                              and self.phase in ('collection', 'release-check', 'local-e2e')
+                              and not (self.markers / 'retry-unsafe').exists()
+                              and (pending.get('phase') == 'collected'
+                                   or steps.exists() and any(steps.iterdir())))
+                    if retain:
+                        self.stop_orphan(pending)
+                        print('Daily source checkpoints retained; next attempt retries unfinished work', flush=True)
+                    else:
+                        self.recover()
                     raise
 
 

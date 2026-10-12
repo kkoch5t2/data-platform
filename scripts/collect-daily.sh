@@ -10,7 +10,29 @@ TODAY="$(TZ=Asia/Tokyo date +%F)"
 CURRENT_STEP="startup"
 mkdir -p "$STATE_DIR"
 cd "$ROOT"
-run_step() { CURRENT_STEP="$1"; shift; echo "--- step: $CURRENT_STEP ---"; "$@"; }
+STEP_DIR="$STATE_DIR/completed-steps"
+mkdir -p "$STEP_DIR"
+run_step() {
+  CURRENT_STEP="$1"; shift
+  if [[ -f "$STEP_DIR/$CURRENT_STEP" ]]; then
+    echo "--- already collected: $CURRENT_STEP ---"
+    return 0
+  fi
+  echo "--- step: $CURRENT_STEP ---"
+  "$@" || {
+    local rc=$?
+    case "$CURRENT_STEP" in
+      *-health|*-audit|*-validation) touch "$STATE_DIR/retry-unsafe" ;;
+    esac
+    return "$rc"
+  }
+  case "$CURRENT_STEP" in
+    procurement-*|listed-master|listed-public-data-build)
+      rm -f "$STEP_DIR/company-registry-build" ;;
+  esac
+  printf '%s\n' "$TODAY" > "$STEP_DIR/$CURRENT_STEP.tmp"
+  mv "$STEP_DIR/$CURRENT_STEP.tmp" "$STEP_DIR/$CURRENT_STEP"
+}
 trap 'echo "Collection failed: step=$CURRENT_STEP line=$LINENO rc=$?"' ERR
 before_records="$(python3 - "$DB" <<'PY'
 import sqlite3, sys
@@ -23,7 +45,7 @@ print(c)
 PY
 )"
 
-if [[ -s "$ROOT/src/data/summary.json" ]]; then
+if [[ ! -s "$PREV_SUMMARY" && -s "$ROOT/src/data/summary.json" ]]; then
   cp "$ROOT/src/data/summary.json" "$PREV_SUMMARY"
 fi
 
@@ -54,13 +76,15 @@ record_upstream_failure() {
 }
 trap - ERR
 set +e
-python3 collector/collect_geps_awards.py --years "$previous_fiscal_year,$fiscal_year" --no-export
+run_step "procurement-geps-awards" python3 collector/collect_geps_awards.py --years "$previous_fiscal_year,$fiscal_year" --no-export
 collect_rc=$?
 if (( collect_rc == 0 )); then
   # A failed upstream probe leaves the verified snapshot unchanged.
   # Other healthy sources continue even when the upstream outage persists.
-  if python3 collector/collect_jetro.py --probe; then
-    python3 collector/collect_jetro.py --pages 20 --detail-limit 0 \
+  if [[ -f "$STEP_DIR/procurement-jetro" ]]; then
+    echo "--- already collected: procurement-jetro ---"
+  elif python3 collector/collect_jetro.py --probe; then
+    run_step "procurement-jetro" python3 collector/collect_jetro.py --pages 20 --detail-limit 0 \
       --backfill-from "$CATCHUP_FROM" --backfill-to "$TODAY" --backfill-all-notices-monthly
     collect_rc=$?
   else
@@ -71,8 +95,10 @@ if (( collect_rc == 0 )); then
   fi
 fi
 if (( collect_rc == 0 )); then
-  if python3 collector/collect_jetro_local.py --probe; then
-    python3 collector/collect_jetro_local.py --pages 20
+  if [[ -f "$STEP_DIR/procurement-jetro-local" ]]; then
+    echo "--- already collected: procurement-jetro-local ---"
+  elif python3 collector/collect_jetro_local.py --probe; then
+    run_step "procurement-jetro-local" python3 collector/collect_jetro_local.py --pages 20
     collect_rc=$?
   else
     echo "WARNING: JETRO local API unavailable; preserving the last verified local snapshot"
@@ -82,31 +108,31 @@ if (( collect_rc == 0 )); then
   fi
 fi
 if (( collect_rc == 0 )); then
-  python3 collector/collect_yokohama_procurement.py --years "$(date +%Y)"
+  run_step "procurement-yokohama" python3 collector/collect_yokohama_procurement.py --years "$(date +%Y)"
   collect_rc=$?
 fi
 if (( collect_rc == 0 )); then
-  python3 collector/collect_sapporo_procurement.py --years "$fiscal_year"
+  run_step "procurement-sapporo" python3 collector/collect_sapporo_procurement.py --years "$fiscal_year"
   collect_rc=$?
 fi
 if (( collect_rc == 0 )); then
-  python3 collector/collect_kobe_procurement.py --years "$(date +%Y)" --workers 4
+  run_step "procurement-kobe" python3 collector/collect_kobe_procurement.py --years "$(date +%Y)" --workers 4
   collect_rc=$?
 fi
 if (( collect_rc == 0 )); then
-  python3 collector/collect_fukuoka_procurement.py --years "$(date +%Y)" --workers 4
+  run_step "procurement-fukuoka" python3 collector/collect_fukuoka_procurement.py --years "$(date +%Y)" --workers 4
   collect_rc=$?
 fi
 if (( collect_rc == 0 )); then
-  python3 collector/collect_chiba_procurement.py --years "$fiscal_year"
+  run_step "procurement-chiba" python3 collector/collect_chiba_procurement.py --years "$fiscal_year"
   collect_rc=$?
 fi
 if (( collect_rc == 0 )); then
-  python3 collector/collect_kyoto_procurement.py --years "$(date +%Y)"
+  run_step "procurement-kyoto" python3 collector/collect_kyoto_procurement.py --years "$(date +%Y)"
   collect_rc=$?
 fi
 if (( collect_rc == 0 )); then
-  python3 collector/collect_kawasaki_procurement.py --years "$(date +%Y)" --workers 6
+  run_step "procurement-kawasaki" python3 collector/collect_kawasaki_procurement.py --years "$(date +%Y)" --workers 6
   collect_rc=$?
 fi
 if (( collect_rc == 0 )); then
@@ -114,8 +140,10 @@ if (( collect_rc == 0 )); then
   # before the collector so a temporary upstream outage does not roll back every
   # other healthy daily source. Keep the last verified rows and timestamp;
   # Failed probes are reported separately from healthy-source publication.
-  if python3 collector/collect_sendai_procurement.py --probe; then
-    python3 collector/collect_sendai_procurement.py --years "$fiscal_year" --workers 6
+  if [[ -f "$STEP_DIR/procurement-sendai" ]]; then
+    echo "--- already collected: procurement-sendai ---"
+  elif python3 collector/collect_sendai_procurement.py --probe; then
+    run_step "procurement-sendai" python3 collector/collect_sendai_procurement.py --years "$fiscal_year" --workers 6
     collect_rc=$?
   else
     echo "WARNING: Sendai EPI is unavailable; preserving the last verified Sendai snapshot"
@@ -134,6 +162,7 @@ fi
 CURRENT_STEP="procurement-health-check"
 if ! python3 collector/check_health.py --source geps_awards --source jetro --source jetro_local --source yokohama_procurement --source sapporo_procurement --source kobe_procurement --source fukuoka_procurement --source chiba_procurement --source kyoto_procurement --source kawasaki_procurement --source sendai_procurement "${stale_upstream_args[@]}"; then
   echo "ERROR: procurement health check failed; restoring database"
+  touch "$STATE_DIR/retry-unsafe"
   exit 21
 fi
 printf '%s\n' "${stale_upstream_sources[@]}" > "$STATE_DIR/stale-upstream-sources.txt"
@@ -141,6 +170,7 @@ printf '%s\n' "${stale_upstream_sources[@]}" > "$STATE_DIR/stale-upstream-source
 CURRENT_STEP="procurement-regression-check"
 if [[ -s "$PREV_SUMMARY" ]] && ! python3 scripts/check-procurement-regression.py --previous "$PREV_SUMMARY" --current "$ROOT/src/data/summary.json"; then
   echo "ERROR: procurement coverage regressed; restoring database and previous summary"
+  touch "$STATE_DIR/retry-unsafe"
   exit 24
 fi
 
@@ -179,19 +209,19 @@ MONTH="$(date +%Y-%m)"
 MONTH_MARKER="$STATE_DIR/last-monthly-refresh"
 if [[ ! -f "$MONTH_MARKER" ]] || ! grep -qx "$MONTH" "$MONTH_MARKER"; then
   echo "Running monthly land/living/regional/employment/business-industry/economy-prices/energy refresh"
-  python3 collector/collect_land_prices.py
-  python3 collector/collect_living_layers.py
-  python3 collector/collect_regional_trends.py
-  python3 collector/collect_regional_migration_history.py
-  python3 collector/collect_employment_economy.py
-  python3 collector/collect_employment_wage_history.py
-  python3 collector/collect_business_industry.py
-  python3 collector/collect_business_industry_history.py
-  python3 collector/collect_economy_prices.py
-  python3 collector/collect_economy_prices_history.py
-  python3 collector/collect_energy.py
-  python3 collector/collect_energy_consumption_history.py
-  python3 collector/check_health.py --source land_prices --source regional_trends --source regional_migration --source employment_economy --source employment_wage_history --source business_industry --source business_industry_history --source economy_prices --source economy_prices_history --source energy --source energy_consumption_history
+  run_step "monthly-land-prices" python3 collector/collect_land_prices.py
+  run_step "monthly-living-layers" python3 collector/collect_living_layers.py
+  run_step "monthly-regional-trends" python3 collector/collect_regional_trends.py
+  run_step "monthly-regional-migration" python3 collector/collect_regional_migration_history.py
+  run_step "monthly-employment-economy" python3 collector/collect_employment_economy.py
+  run_step "monthly-employment-wage" python3 collector/collect_employment_wage_history.py
+  run_step "monthly-business-industry" python3 collector/collect_business_industry.py
+  run_step "monthly-business-history" python3 collector/collect_business_industry_history.py
+  run_step "monthly-economy-prices" python3 collector/collect_economy_prices.py
+  run_step "monthly-economy-history" python3 collector/collect_economy_prices_history.py
+  run_step "monthly-energy" python3 collector/collect_energy.py
+  run_step "monthly-energy-history" python3 collector/collect_energy_consumption_history.py
+  run_step "monthly-core-health" python3 collector/check_health.py --source land_prices --source regional_trends --source regional_migration --source employment_economy --source employment_wage_history --source business_industry --source business_industry_history --source economy_prices --source economy_prices_history --source energy --source energy_consumption_history
   printf '%s\n' "$MONTH" > "$MONTH_MARKER"
 fi
 
@@ -243,13 +273,13 @@ REINFOLIB_WEEK="$(date +%G-W%V)"
 REINFOLIB_MARKER="$STATE_DIR/last-reinfolib-check"
 if [[ ! -f "$REINFOLIB_MARKER" ]] || ! grep -qx "$REINFOLIB_WEEK" "$REINFOLIB_MARKER"; then
   echo "Checking MLIT Reinfolib for a newly published transaction quarter"
-  python3 collector/collect_reinfolib_transactions.py --if-new
-  python3 collector/backfill_reinfolib_history.py --refresh-recent
-  python3 collector/check_health.py --source reinfolib_transactions
+  run_step "weekly-reinfolib-transactions" python3 collector/collect_reinfolib_transactions.py --if-new
+  run_step "weekly-reinfolib-history" python3 collector/backfill_reinfolib_history.py --refresh-recent
+  run_step "weekly-reinfolib-health" python3 collector/check_health.py --source reinfolib_transactions
   printf '%s\n' "$REINFOLIB_WEEK" > "$REINFOLIB_MARKER"
 fi
 
-python3 collector/backfill_reinfolib_history.py --if-new
+run_step "reinfolib-history-if-new" python3 collector/backfill_reinfolib_history.py --if-new
 
 after_records="$(python3 - "$DB" <<'PY'
 import sqlite3, sys
