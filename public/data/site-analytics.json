@@ -1,38 +1,38 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-10-11T13:52:37Z",
+  "generatedAt": "2026-10-12T05:23:46Z",
   "range": {
     "days": 7,
-    "start": "2026-10-04T13:52:37Z",
-    "end": "2026-10-11T13:52:37Z"
+    "start": "2026-10-05T05:23:46Z",
+    "end": "2026-10-12T05:23:46Z"
   },
-  "pageviews": 5748,
-  "visits": 1627,
+  "pageviews": 5698,
+  "visits": 1568,
   "topPages": [
     {
       "path": "/transport/",
-      "pageviews": 2026,
-      "visits": 237
+      "pageviews": 2065,
+      "visits": 244
     },
     {
       "path": "/procurement/",
-      "pageviews": 917,
-      "visits": 98
+      "pageviews": 925,
+      "visits": 95
     },
     {
       "path": "/regional/weather/",
-      "pageviews": 364,
-      "visits": 89
+      "pageviews": 386,
+      "visits": 90
     },
     {
       "path": "/regional/stays/",
-      "pageviews": 318,
-      "visits": 106
+      "pageviews": 347,
+      "visits": 116
     },
     {
       "path": "/",
-      "pageviews": 304,
-      "visits": 124
+      "pageviews": 309,
+      "visits": 119
     },
     {
       "path": "/agriculture/",
@@ -41,63 +41,63 @@
     },
     {
       "path": "/economy-prices/",
-      "pageviews": 254,
-      "visits": 39
+      "pageviews": 278,
+      "visits": 32
     },
     {
       "path": "/employment-economy/",
-      "pageviews": 187,
-      "visits": 35
-    },
-    {
-      "path": "/listed-companies/",
-      "pageviews": 106,
-      "visits": 91
+      "pageviews": 118,
+      "visits": 32
     },
     {
       "path": "/unlisted-companies/",
-      "pageviews": 102,
-      "visits": 94
+      "pageviews": 99,
+      "visits": 92
+    },
+    {
+      "path": "/listed-companies/",
+      "pageviews": 97,
+      "visits": 83
     },
     {
       "path": "/regional/",
-      "pageviews": 93,
-      "visits": 46
+      "pageviews": 85,
+      "visits": 44
     },
     {
       "path": "/topics/",
-      "pageviews": 83,
-      "visits": 68
+      "pageviews": 80,
+      "visits": 67
     },
     {
       "path": "/realestate/",
-      "pageviews": 81,
-      "visits": 61
-    },
-    {
-      "path": "/energy/",
-      "pageviews": 68,
-      "visits": 31
-    },
-    {
-      "path": "/listed-companies/compare/",
-      "pageviews": 52,
-      "visits": 26
-    },
-    {
-      "path": "/business-industry/",
-      "pageviews": 49,
-      "visits": 37
+      "pageviews": 76,
+      "visits": 55
     },
     {
       "path": "/about-data/",
+      "pageviews": 46,
+      "visits": 33
+    },
+    {
+      "path": "/listed-companies/compare/",
       "pageviews": 45,
-      "visits": 34
+      "visits": 19
+    },
+    {
+      "path": "/business-industry/",
+      "pageviews": 36,
+      "visits": 31
     },
     {
       "path": "/regional/projections/",
-      "pageviews": 34,
-      "visits": 29
+      "pageviews": 32,
+      "visits": 27
+    },
+    {
+      "path": "/energy/",
+      "pageviews": 31,
+      "visits": 31
     },
     {
       "path": "/procurement/companies/",
@@ -106,8 +106,8 @@
     },
     {
       "path": "/procurement/markets/admin-bpo/",
-      "pageviews": 23,
-      "visits": 23
+      "pageviews": 22,
+      "visits": 22
     },
     {
       "path": "/procurement/organizations/",
@@ -150,20 +150,20 @@
       "visits": 14
     },
     {
-      "path": "/regional/indicators/elderly-rate/",
-      "pageviews": 14,
-      "visits": 13
+      "path": "/privacy/",
+      "pageviews": 13,
+      "visits": 12
     },
     {
-      "path": "/analytics/",
-      "pageviews": 13,
-      "visits": 7
+      "path": "/business-industry/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 12,
+      "visits": 12
     }
   ],
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 4121,
+      "pageviews": 4130,
       "visits": 0
     },
     {
@@ -182,26 +182,21 @@
       "visits": 4
     },
     {
-      "host": "search.yahoo.co.jp",
-      "pageviews": 2,
-      "visits": 2
+      "host": "search.google.com",
+      "pageviews": 3,
+      "visits": 3
     },
     {
-      "host": "search.google.com",
+      "host": "search.yahoo.co.jp",
       "pageviews": 2,
       "visits": 2
     }
   ],
   "daily": [
     {
-      "date": "2026-10-04",
-      "pageviews": 38,
-      "visits": 13
-    },
-    {
       "date": "2026-10-05",
-      "pageviews": 463,
-      "visits": 152
+      "pageviews": 114,
+      "visits": 31
     },
     {
       "date": "2026-10-06",
@@ -230,8 +225,13 @@
     },
     {
       "date": "2026-10-11",
-      "pageviews": 497,
-      "visits": 106
+      "pageviews": 794,
+      "visits": 179
+    },
+    {
+      "date": "2026-10-12",
+      "pageviews": 40,
+      "visits": 2
     }
   ],
   "history": [
@@ -292,8 +292,8 @@
     },
     {
       "date": "2026-10-05",
-      "pageviews": 463,
-      "visits": 152
+      "pageviews": 114,
+      "visits": 31
     },
     {
       "date": "2026-10-06",
@@ -322,8 +322,13 @@
     },
     {
       "date": "2026-10-11",
-      "pageviews": 497,
-      "visits": 106
+      "pageviews": 794,
+      "visits": 179
+    },
+    {
+      "date": "2026-10-12",
+      "pageviews": 40,
+      "visits": 2
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
