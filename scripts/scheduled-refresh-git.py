@@ -111,6 +111,10 @@ def prune_noops():
         path = ROOT / rel
         if not is_allowed(rel) or path.suffix != ".json" or not path.exists():
             continue
+        # ReinfOLib index.json hashes every prefecture shard. Restoring a shard
+        # independently leaves the manifest pointing at bytes that no longer exist.
+        if rel.startswith("public/data/realestate-history/"):
+            continue
         old = run(["git", "show", f"HEAD:{rel}"], check=False)
         if old.returncode != 0:
             continue

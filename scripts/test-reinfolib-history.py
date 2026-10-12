@@ -1,4 +1,5 @@
-import io,json,sys,tempfile,unittest,urllib.error
+import gzip,io,json,sys,tempfile,unittest,urllib.error
+from datetime import datetime,timezone
 from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
@@ -26,6 +27,27 @@ class Tests(unittest.TestCase):
         for changes in ({'Period':'2006年第3四半期'},{'MunicipalityCode':'14101'},{'PriceCategory':'成約価格情報'}):
             with patch.object(history.urllib.request,'urlopen',return_value=Response({'status':'OK','data':[{**good,**changes}]})):
                 with self.assertRaises(ValueError):history.fetch(2005,'13','test')
+    def test_retry_uses_successful_prefecture_cache_only_for_current_day(self):
+        path=history.CACHE/'2026'/'13.json.gz';path.parent.mkdir(parents=True)
+        payload={'fetchedAt':datetime.now(timezone.utc).isoformat(),'data':[]}
+        with gzip.open(path,'wt',encoding='utf-8') as stream:json.dump(payload,stream)
+        with patch.object(history.urllib.request,'urlopen',side_effect=AssertionError('must not refetch successful source')):
+            self.assertEqual(history.fetch(2026,'13','test',refresh=True),payload)
+        payload['fetchedAt']='2026-01-01T00:00:00+00:00'
+        with gzip.open(path,'wt',encoding='utf-8') as stream:json.dump(payload,stream)
+        with patch.object(history.urllib.request,'urlopen',return_value=Response({'status':'OK','data':[]})) as opener:
+            history.fetch(2026,'13','test',refresh=True)
+            opener.assert_called_once()
+
+    def test_unchanged_shard_and_index_preserve_matching_bytes(self):
+        path=history.CACHE/'index.json'
+        history.write(path,{'generatedAt':'old','value':42})
+        before=path.read_bytes()
+        history.write(path,{'generatedAt':'new','value':42})
+        self.assertEqual(path.read_bytes(),before)
+        history.write(path,{'generatedAt':'new','value':43})
+        self.assertNotEqual(path.read_bytes(),before)
+
     def test_median_sample_size_excludes_missing_unit_prices(self):
         rows=[{'segment':'land','tradePrice':v,'unitValue':u,'area':10,'floorArea':None} for v,u in [(100,10),(200,None),(300,30),(400,None),(500,None)]]
         result=history.compact(rows)['land']

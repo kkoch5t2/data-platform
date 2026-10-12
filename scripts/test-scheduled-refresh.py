@@ -103,6 +103,23 @@ class SmallRefresh(refresh.Refresh):
 
 
 class Tests(unittest.TestCase):
+    def test_history_manifest_and_shards_are_not_pruned_separately(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as directory:
+            fixture=Fixture(directory)
+            folder=fixture.root/'public/data/realestate-history'
+            folder.mkdir(parents=True)
+            shard=folder/'13.json';index=folder/'index.json'
+            shard.write_text('{"generatedAt":"old","value":1}')
+            index.write_text(json.dumps({'sha256':hashlib.sha256(shard.read_bytes()).hexdigest()}))
+            git(fixture.root,'add','.');git(fixture.root,'commit','-qm','history baseline')
+            shard.write_text('{"generatedAt":"new","value":1}')
+            index.write_text(json.dumps({'sha256':hashlib.sha256(shard.read_bytes()).hexdigest()}))
+            tools=refresh.module(fixture.root,'scheduled-refresh-git')
+            tools.prune_noops()
+            self.assertEqual(json.loads(index.read_text())['sha256'],hashlib.sha256(shard.read_bytes()).hexdigest())
+            self.assertEqual(set(tools.changed_paths()),{'public/data/realestate-history/13.json','public/data/realestate-history/index.json'})
+
     def test_master_only_keeps_daily_transaction_and_recovery(self):
         with tempfile.TemporaryDirectory() as directory:
             fixture = Fixture(directory)

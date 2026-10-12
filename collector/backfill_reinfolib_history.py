@@ -4,6 +4,7 @@ import argparse, gzip, hashlib, json, os, sys, time, urllib.error, urllib.parse,
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
@@ -12,8 +13,16 @@ CACHE=ROOT/'data/raw/reinfolib-history'
 OUT=ROOT/'public/data/realestate-history'
 def fetch(year,pref,key,refresh=False):
     path=CACHE/str(year)/(pref+'.json.gz')
-    if path.exists() and not refresh:
-        with gzip.open(path,'rt',encoding='utf-8') as f: return json.load(f)
+    cached=None
+    if path.exists():
+        with gzip.open(path,'rt',encoding='utf-8') as f: cached=json.load(f)
+        if not refresh:
+            return cached
+        # A successful prefecture/year response is a reusable checkpoint for
+        # today's retry. Other regions still run after a partial API failure.
+        checked=datetime.fromisoformat(cached['fetchedAt']).astimezone(ZoneInfo('Asia/Tokyo')).date()
+        if checked==datetime.now(ZoneInfo('Asia/Tokyo')).date():
+            return cached
     url=API_URL+'?'+urllib.parse.urlencode(dict(year=year,area=pref,priceClassification='01',language='ja'))
     for attempt in range(4):
         try:
@@ -40,7 +49,9 @@ def fetch(year,pref,key,refresh=False):
             if e.code==404 and message=='検索結果がありません。':
                 result={'url':url,'fetchedAt':datetime.now(timezone.utc).isoformat(),'httpStatus':404,'message':message,'data':[]}
                 path.parent.mkdir(parents=True,exist_ok=True)
-                with gzip.open(path,'wt',encoding='utf-8') as f: json.dump(result,f,ensure_ascii=False,separators=(',',':'))
+                temp=path.with_suffix('.tmp')
+                with gzip.open(temp,'wt',encoding='utf-8') as f: json.dump(result,f,ensure_ascii=False,separators=(',',':'))
+                temp.replace(path)
                 return result
             if attempt==3: raise RuntimeError(f'API HTTP failure: {year}/{pref} status={e.code}') from None
             time.sleep(2**attempt)
@@ -57,6 +68,11 @@ def compact(rows):
 def write(path,payload):
     path.parent.mkdir(parents=True,exist_ok=True)
     temp=path.with_suffix('.tmp')
+    # Do not churn 47 hashed shards when only their generation timestamp changed.
+    if path.exists():
+        previous=json.loads(path.read_text(encoding='utf-8'))
+        if {k:v for k,v in previous.items() if k!='generatedAt'}=={k:v for k,v in payload.items() if k!='generatedAt'}:
+            return
     temp.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
     temp.replace(path)
 def build(start=2005,refresh_recent=False):
