@@ -616,8 +616,17 @@ class Refresh:
                     if not resumed:
                         self.prepare()
                         self.snapshot()
+                    completed = self.markers / 'completed-steps'
+                    before_steps = {p.name for p in completed.iterdir()} if completed.exists() else set()
                     if not resumed or json.loads(self.manifest.read_text())['phase'] == 'collecting':
                         self.collect()
+                        if (retry_pending and marker.exists() and marker.read_text().strip() == today
+                                and ({p.name for p in completed.iterdir()} if completed.exists() else set()) == before_steps
+                                and (self.markers / 'stale-upstream-sources.txt').read_text().strip()
+                                == pending.read_text().strip()):
+                            print('Pending sources still unavailable; retry recorded without republishing unchanged data', flush=True)
+                            self.recover()
+                            return
                         self.phase_save('collected')
                     if self.job == 'weekly':
                         shutil.rmtree(self.transaction)

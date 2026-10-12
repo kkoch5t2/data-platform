@@ -36,7 +36,7 @@ class Fixture:
         git(self.root, 'config', 'user.name', 'Refresh fixture')
         git(self.root, 'remote', 'add', 'origin', str(self.remote))
         (self.root / 'scripts').mkdir()
-        for name in ('scheduled-refresh.py', 'scheduled-refresh-git.py', 'procurement-refresh-state.py', 'collect-daily.sh', 'listed-master-refresh-needed.py'):
+        for name in ('scheduled-refresh.py', 'scheduled-refresh-git.py', 'procurement-refresh-state.py', 'collect-daily.sh', 'listed-master-refresh-needed.py', 'log-upstream-failure.py'):
             shutil.copy2(ROOT / 'scripts' / name, self.root / 'scripts' / name)
         (self.root / '.gitignore').write_text('/data\n/node_modules\n/tmp/\n/src/data/summary.json\n__pycache__/\n*.pyc\n')
         for folder in ('src/data', 'public/data/listed-companies', 'data/automation', 'node_modules',
@@ -372,6 +372,10 @@ exit 0
                     steps.mkdir(exist_ok=True)
                     (steps / 'procurement-yokohama').write_text('2026-10-12')
                     (self.markers / 'stale-upstream-sources.txt').write_text('sendai_procurement\n')
+            class StillFailed(SmallRefresh):
+                def collect(self):
+                    self.phase = 'collection'
+                    (self.markers / 'stale-upstream-sources.txt').write_text('sendai_procurement\n')
             class Recovered(SmallRefresh):
                 def collect(self):
                     self.assert_completed = (self.markers / 'completed-steps/procurement-yokohama').exists()
@@ -383,6 +387,12 @@ exit 0
                 First(fixture.root, 'daily').run()
                 pending = fixture.root / 'data/automation/pending-source-retries.txt'
                 self.assertEqual(pending.read_text(), 'sendai_procurement\n')
+                history = fixture.root / 'data/automation/history.jsonl'
+                before_history = history.read_text()
+                StillFailed(fixture.root, 'daily').run(scheduled=True)
+                self.assertEqual(pending.read_text(), 'sendai_procurement\n')
+                self.assertEqual(history.read_text(), before_history)
+                self.assertEqual(fixture.count(), 2)
                 second = Recovered(fixture.root, 'daily')
                 second.run(scheduled=True)
                 self.assertTrue(second.assert_completed)
