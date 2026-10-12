@@ -217,6 +217,61 @@ class Tests(unittest.TestCase):
                 self.assertEqual(fixture.count(),2)
                 self.assertFalse(second.manifest.exists())
 
+    def test_failed_procurement_source_does_not_block_later_sources_and_only_it_retries(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for folder in ('scripts', 'bin', 'data', 'markers'):
+                (root / folder).mkdir()
+            shutil.copy2(ROOT / 'scripts/collect-daily.sh', root / 'scripts/collect-daily.sh')
+            stub = root / 'bin/python3'
+            stub.write_text("""#!/usr/bin/env bash
+if [[ "$1" == "-" ]]; then echo 1; exit 0; fi
+if [[ "$1" == "scripts/listed-master-refresh-needed.py" ]]; then exit 1; fi
+if [[ "$1" == "collector/collect_sendai_procurement.py" && "$2" == "--probe" ]]; then exit 1; fi
+if [[ "$1" == "collector/collect_yokohama_procurement.py" ]]; then
+  echo yokohama >> "$CALL_LOG"
+  if [[ ! -f "$MARKER_DIR/yokohama-failed-once" ]]; then
+    touch "$MARKER_DIR/yokohama-failed-once"
+    exit 42
+  fi
+fi
+if [[ "$1" == "collector/collect_sapporo_procurement.py" ]]; then echo sapporo >> "$CALL_LOG"; fi
+if [[ "$1" == "collector/collect_kobe_procurement.py" ]]; then echo kobe >> "$CALL_LOG"; fi
+if [[ "$1" == "collector/check_health.py" ]]; then echo health >> "$CALL_LOG"; fi
+exit 0
+""")
+            stub.chmod(0o755)
+            npm = root / 'bin/npm'
+            npm.write_text('#!/bin/sh\nexit 0\n')
+            npm.chmod(0o755)
+            markers = root / 'markers'
+            month = datetime.now().strftime('%Y-%m')
+            week = datetime.now().strftime('%G-W%V')
+            for name in ('last-monthly-refresh', 'last-monthly-secondary-refresh',
+                         'last-ipss-population-refresh', 'last-gbiz-activity-refresh',
+                         'last-lodging-statistics-refresh', 'last-jma-weather-refresh',
+                         'last-public-transport-refresh'):
+                (markers / name).write_text(month + '\n')
+            (markers / 'last-reinfolib-check').write_text(week + '\n')
+            log = root / 'calls'
+            env = {**os.environ, 'PATH': str(root / 'bin') + ':' + os.environ['PATH'],
+                   'DATLUME_MARKER_DIR': str(markers), 'MARKER_DIR': str(markers),
+                   'CALL_LOG': str(log)}
+            first = subprocess.run(['bash', 'scripts/collect-daily.sh'], cwd=root, env=env,
+                                   capture_output=True, text=True)
+            self.assertEqual(first.returncode, 25, first.stdout + first.stderr)
+            self.assertIn('procurement-yokohama', first.stdout)
+            self.assertEqual(log.read_text().splitlines(), ['yokohama', 'sapporo', 'kobe', 'health'])
+            self.assertFalse((markers / 'completed-steps/procurement-yokohama').exists())
+            self.assertTrue((markers / 'completed-steps/procurement-sapporo').exists())
+            self.assertFalse((markers / 'retry-unsafe').exists())
+            second = subprocess.run(['bash', 'scripts/collect-daily.sh'], cwd=root, env=env,
+                                    capture_output=True, text=True)
+            self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
+            self.assertEqual(log.read_text().splitlines(),
+                             ['yokohama', 'sapporo', 'kobe', 'health', 'yokohama', 'health'])
+            self.assertIn('already collected: procurement-sapporo', second.stdout)
+
     def test_partial_collection_retries_only_unfinished_source_steps(self):
         with tempfile.TemporaryDirectory() as directory:
             fixture=Fixture(directory)
@@ -396,9 +451,9 @@ with sqlite3.connect(p/'data/public_it.db') as db: db.execute('insert into procu
                 runner.env['PATH'] = str(binpath) + ':' + runner.env['PATH']
                 with self.assertRaises(subprocess.CalledProcessError) as raised:
                     runner.run()
-                self.assertEqual(raised.exception.returncode, {'collection':1, 'health':21, 'regression':24, 'listed':1, 'monthly':1}[failure])
+                self.assertEqual(raised.exception.returncode, {'collection':25, 'health':21, 'regression':24, 'listed':25, 'monthly':25}[failure])
                 fixture.assert_clean(self)
-                if failure in ('listed','monthly'):
+                if failure in ('collection','listed','monthly'):
                     self.assertEqual(fixture.count(), 2)
                     self.assertEqual(json.loads(runner.manifest.read_text())['phase'],'collecting')
                     if failure == 'listed':
@@ -407,7 +462,7 @@ with sqlite3.connect(p/'data/public_it.db') as db: db.execute('insert into procu
                         again.env['PATH']=str(binpath)+':'+again.env['PATH']
                         with self.assertRaises(subprocess.CalledProcessError) as retry:
                             again.run()  # The next monthly source fails; GEPS must remain at two records.
-                        self.assertEqual(retry.exception.returncode,1)
+                        self.assertEqual(retry.exception.returncode,25)
                         self.assertEqual(fixture.count(),2)
                     runner.recover()  # Explicit rollback remains available for abandoned checkpoints.
                 self.assertEqual(fixture.count(), 1)
