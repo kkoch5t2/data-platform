@@ -156,17 +156,28 @@ EPI_TYPES = {
 }
 
 
+def ensure_epi_available(raw):
+    if 'サービス停止中' in raw or 'サービスを停止' in raw:
+        raise RuntimeError('Sendai EPI information service is stopped')
+    if 'KF001' not in raw and '情報公開' not in raw:
+        raise RuntimeError('Sendai EPI returned an unexpected entry page')
+
+
 def probe_epi(timeout=20):
     req = urllib.request.Request(EPI_ENTRY, headers=HEADERS)
     with urllib.request.urlopen(req, timeout=timeout) as response:
-        response.read(1)
+        raw = response.read().decode('cp932', 'replace')
+    ensure_epi_available(raw)
 
 
 def epi_open(opener, url, data=None):
     payload = urllib.parse.urlencode(data).encode() if data is not None else None
     req = urllib.request.Request(url, data=payload, headers=HEADERS)
     with opener.open(req, timeout=60) as r:
-        return r.read().decode('cp932', 'replace')
+        raw = r.read().decode('cp932', 'replace')
+    if 'サービス停止中' in raw or 'サービスを停止' in raw:
+        raise RuntimeError('Sendai EPI information service is stopped')
+    return raw
 
 
 def epi_session(kind):
