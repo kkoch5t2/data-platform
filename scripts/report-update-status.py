@@ -60,6 +60,17 @@ def build_report(root, now=None):
                      "issues": problems})
     state = root / "data/automation"
     upstream_failures = []
+    latest_daily = None
+    history_path = state / 'history.jsonl'
+    if history_path.exists():
+        for line in history_path.read_text(encoding='utf-8').splitlines():
+            try:
+                entry = json.loads(line)
+                if entry.get('job') == 'daily' and entry.get('verified') is True:
+                    if latest_daily is None or timestamp(entry['finishedAt']) > timestamp(latest_daily['finishedAt']):
+                        latest_daily = entry
+            except (ValueError, KeyError, TypeError, AttributeError):
+                pass  # The history validation below reports malformed rows.
     upstream_log = state / "logs/upstream-collection-failures.jsonl"
     if upstream_log.exists():
         for line in upstream_log.read_text(encoding="utf-8").splitlines():
@@ -71,11 +82,25 @@ def build_report(root, now=None):
                 age = now - occurred_at
                 if (event.get("event") in ("upstream-probe-failed", "source-fallback", "source-fallback-unavailable")
                         and timedelta(0) <= age <= timedelta(hours=48)):
-                    upstream_failures.append(event)
+                    key = event.get('source')
+                    current = statuses.get(key)
+                    resolved = False
+                    if current:
+                        try:
+                            resolved = (current.get('status') == 'ok'
+                                        and timestamp(current['finishedAt']) > occurred_at)
+                        except (KeyError, ValueError, TypeError, AttributeError):
+                            pass
+                    elif latest_daily:
+                        resolved = (timestamp(latest_daily['finishedAt']) > occurred_at
+                                    and key not in latest_daily.get('staleUpstreamSources', []))
+                    if not resolved:
+                        upstream_failures.append(event)
             except (ValueError, KeyError, TypeError, AttributeError):
                 issues.append("外部ソース取得失敗ログに不正な記録")
     for event in upstream_failures:
-        issues.append(f'{event.get("source", "unknown")}: 取得失敗により前回データを保持 ({event["at"]})')
+        action = '復旧用データがなく公開を停止' if event.get('event') == 'source-fallback-unavailable' else '取得失敗により前回データを保持'
+        issues.append(f'{event.get("source", "unknown")}: {action} ({event["at"]})')
     pending = state / 'pending-source-retries.txt'
     if pending.exists():
         for source in sorted(set(pending.read_text(encoding='utf-8').splitlines())):

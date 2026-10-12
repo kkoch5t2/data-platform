@@ -431,7 +431,11 @@ if python3 scripts/cloudflare_web_analytics.py --days 7 --save public/data/site-
 else
   echo "WARNING: analytics refresh failed; continuing with the last saved snapshot"
 fi
-printf '%s\n' "${stale_upstream_sources[@]}" > "$STATE_DIR/stale-upstream-sources.txt"
+if (( ${#stale_upstream_sources[@]} > 0 )); then
+  printf '%s\n' "${stale_upstream_sources[@]}" > "$STATE_DIR/stale-upstream-sources.txt"
+else
+  : > "$STATE_DIR/stale-upstream-sources.txt"
+fi
 python3 - "$STALE_SINCE" "$TODAY" "$STEP_DIR" "$STATE_DIR/stale-upstream-sources.txt" <<'PY_STALE'
 import json,sys
 from pathlib import Path

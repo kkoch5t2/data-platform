@@ -94,6 +94,22 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(report['upstreamFailures'][0]['source'], 'jetro')
         self.assertTrue(any('jetro' in issue for issue in report['issues']))
 
+    def test_resolved_failure_does_not_remain_an_active_alert(self):
+        path = self.root / 'data/automation/logs/upstream-collection-failures.jsonl'
+        path.parent.mkdir(exist_ok=True)
+        path.write_text(json.dumps({'at': '2026-10-07T22:00:00+00:00',
+                                    'event': 'source-fallback', 'source': 'price'}) + '\n')
+        self.assertTrue(self.report()['ok'])  # Source succeeded at 23:00 UTC.
+        self.assertEqual(self.report()['upstreamFailures'], [])
+        path.write_text(json.dumps({'at': '2026-10-08T08:00:00+09:00',
+                                    'event': 'source-fallback', 'source': 'listed_companies'}) + '\n')
+        self.assertTrue(self.report()['ok'])  # Later verified daily publication resolved it.
+        with (self.root / 'data/automation/history.jsonl').open('a') as stream:
+            stream.write(json.dumps({'job':'daily','verified':True,'commit':'published',
+                'finishedAt':'2026-10-08T09:00:00+09:00',
+                'staleUpstreamSources':['listed_companies']})+'\n')
+        self.assertFalse(self.report()['ok'])  # Published fallback is still pending.
+
     def test_pending_source_retry_is_reported_after_partial_publication(self):
         pending = self.root / 'data/automation/pending-source-retries.txt'
         pending.write_text('sendai_procurement\n')

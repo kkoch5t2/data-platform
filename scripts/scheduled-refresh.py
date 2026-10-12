@@ -551,7 +551,7 @@ class Refresh:
                 steps = self.markers / 'completed-steps'
                 entry['successfulSourceSteps'] = sorted(p.name for p in steps.iterdir() if p.is_file()) if steps.exists() else []
                 stale = self.markers / 'stale-upstream-sources.txt'
-                entry['staleUpstreamSources'] = stale.read_text().splitlines() if stale.exists() else []
+                entry['staleUpstreamSources'] = [line for line in stale.read_text().splitlines() if line] if stale.exists() else []
             if summary.exists():
                 data = json.loads(summary.read_text())
                 before = json.loads(self.manifest.read_text()).get('beforeRecords')

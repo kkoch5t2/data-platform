@@ -31,6 +31,8 @@ class UpstreamFailureTests(unittest.TestCase):
             event = failure.record('monthly-land-prices', path, event='source-fallback')
             self.assertEqual(event['source'], 'monthly-land-prices')
             self.assertEqual(event['event'], 'source-fallback')
+            blocked = failure.record('monthly-land-prices', path, event='source-fallback-unavailable')
+            self.assertEqual(blocked['action'], 'publication-blocked')
 
     def test_unexpected_source_does_not_write(self):
         with tempfile.TemporaryDirectory() as directory:

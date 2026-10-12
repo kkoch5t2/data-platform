@@ -16,7 +16,8 @@ def record(source: str, path: Path, now=None, event='upstream-probe-failed'):
     if when.tzinfo is None:
         raise ValueError('timezone required')
     entry = {'at': when.isoformat(), 'job': 'daily', 'event': event,
-             'source': source, 'action': 'kept-last-verified-snapshot'}
+             'source': source, 'action': ('publication-blocked' if event == 'source-fallback-unavailable'
+                                        else 'kept-last-verified-snapshot')}
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open('a', encoding='utf-8') as stream:
         stream.write(json.dumps(entry, ensure_ascii=False) + '\n')
