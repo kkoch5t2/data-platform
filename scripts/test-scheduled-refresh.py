@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 import signal
 import sqlite3
+import sys
 import subprocess
 import tempfile
 import unittest
@@ -14,6 +15,7 @@ from unittest.mock import patch
 from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 spec = importlib.util.spec_from_file_location('refresh', ROOT / 'scripts/scheduled-refresh.py')
 refresh = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(refresh)
@@ -226,6 +228,7 @@ class Tests(unittest.TestCase):
             stub = root / 'bin/python3'
             stub.write_text("""#!/usr/bin/env bash
 if [[ "$1" == "-" ]]; then echo 1; exit 0; fi
+if [[ "$1" == "scripts/restore-failed-source.py" ]]; then echo yokohama_procurement; exit 0; fi
 if [[ "$1" == "scripts/listed-master-refresh-needed.py" ]]; then exit 1; fi
 if [[ "$1" == "collector/collect_sendai_procurement.py" && "$2" == "--probe" ]]; then exit 1; fi
 if [[ "$1" == "collector/collect_yokohama_procurement.py" ]]; then
@@ -259,18 +262,145 @@ exit 0
                    'CALL_LOG': str(log)}
             first = subprocess.run(['bash', 'scripts/collect-daily.sh'], cwd=root, env=env,
                                    capture_output=True, text=True)
-            self.assertEqual(first.returncode, 25, first.stdout + first.stderr)
-            self.assertIn('procurement-yokohama', first.stdout)
-            self.assertEqual(log.read_text().splitlines(), ['yokohama', 'sapporo', 'kobe', 'health'])
+            self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+            self.assertIn('restored previous snapshot for procurement-yokohama', first.stdout)
+            self.assertEqual(log.read_text().splitlines()[:3], ['yokohama', 'sapporo', 'kobe'])
+            self.assertEqual(log.read_text().splitlines().count('health'), 12)
             self.assertFalse((markers / 'completed-steps/procurement-yokohama').exists())
             self.assertTrue((markers / 'completed-steps/procurement-sapporo').exists())
             self.assertFalse((markers / 'retry-unsafe').exists())
             second = subprocess.run(['bash', 'scripts/collect-daily.sh'], cwd=root, env=env,
                                     capture_output=True, text=True)
             self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
-            self.assertEqual(log.read_text().splitlines(),
-                             ['yokohama', 'sapporo', 'kobe', 'health', 'yokohama', 'health'])
+            calls = log.read_text().splitlines()
+            self.assertEqual(calls[:3], ['yokohama', 'sapporo', 'kobe'])
+            self.assertEqual(calls.count('yokohama'), 2)
+            self.assertEqual(calls.count('sapporo'), 1)
+            self.assertEqual(calls.count('kobe'), 1)
+            self.assertEqual(calls.count('health'), 13)
             self.assertIn('already collected: procurement-sapporo', second.stdout)
+
+    def test_failed_sendai_restore_preserves_other_source_rows_and_status(self):
+        spec = importlib.util.spec_from_file_location('source_restore', ROOT / 'scripts/restore-failed-source.py')
+        restore = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(restore)
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Fixture(directory)
+            root = fixture.root
+            status = json.loads((root / 'src/data/sources.json').read_text())
+            status['sources'].update({
+                'sendai_procurement': {'status': 'ok', 'finishedAt': '2026-10-10T00:00:00+00:00'},
+                'yokohama_procurement': {'status': 'ok', 'finishedAt': '2026-10-10T00:00:00+00:00'},
+            })
+            (root / 'src/data/sources.json').write_text(json.dumps(status))
+            git(root, 'add', 'src/data/sources.json'); git(root, 'commit', '-qm', 'verified snapshots')
+            with sqlite3.connect(root / 'data/public_it.db') as db:
+                db.execute('drop table procurements')
+                db.execute('create table procurements(source_id text primary key, title text)')
+                db.execute('create table companies(company_id text primary key)')
+                db.execute('create table organizations(organization_id text primary key)')
+                db.executemany('insert into procurements values(?,?)', [
+                    ('sendai:old', 'previous'), ('yokohama:old', 'previous')])
+            backup = root / 'data/automation/baseline.db'
+            with sqlite3.connect(root / 'data/public_it.db') as db, sqlite3.connect(backup) as old:
+                db.backup(old)
+            with sqlite3.connect(root / 'data/public_it.db') as db:
+                db.execute("update procurements set title='bad' where source_id='sendai:old'")
+                db.execute("insert into procurements values('sendai:new','bad')")
+                db.execute("insert into procurements values('yokohama:new','healthy')")
+            status['sources']['sendai_procurement'] = {'status': 'error'}
+            status['sources']['yokohama_procurement'] = {'status': 'ok', 'finishedAt': '2026-10-12T00:00:00+00:00'}
+            (root / 'src/data/sources.json').write_text(json.dumps(status))
+            with patch.object(restore, 'ROOT', root), patch('collector.collect_jetro.export_json'):
+                self.assertEqual(restore.restore('procurement-sendai', backup), 'sendai_procurement')
+            with sqlite3.connect(root / 'data/public_it.db') as db:
+                self.assertEqual(db.execute('select source_id,title from procurements order by source_id').fetchall(),
+                                 [('sendai:old', 'previous'), ('yokohama:new', 'healthy'),
+                                  ('yokohama:old', 'previous')])
+            after = json.loads((root / 'src/data/sources.json').read_text())['sources']
+            self.assertEqual(after['sendai_procurement'], {'status': 'ok', 'finishedAt': '2026-10-10T00:00:00+00:00'})
+            self.assertEqual(after['yokohama_procurement']['finishedAt'], '2026-10-12T00:00:00+00:00')
+
+    def test_published_source_checkpoints_survive_new_daily_transaction(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Fixture(directory)
+            state = fixture.root / 'data/automation'
+            old = state / 'source-checkpoints'
+            old.mkdir()
+            (old / 'monthly-failed-source').write_text('2026-09\n')
+            month = datetime.now(refresh.ZoneInfo('Asia/Tokyo')).strftime('%Y-%m')
+            week = datetime.now(refresh.ZoneInfo('Asia/Tokyo')).strftime('%G-W%V')
+            class Completed(SmallRefresh):
+                def collect(self):
+                    super().collect()
+                    steps = self.markers / 'completed-steps'
+                    steps.mkdir(exist_ok=True)
+                    (steps / 'monthly-land-prices').write_text(month + '\n')
+                    (steps / 'weekly-reinfolib-history').write_text(week + '\n')
+                    (self.markers / 'source-stale-since.json').write_text('{"sendai_procurement":"2026-10-10"}')
+            Completed(fixture.root, 'daily').run()
+            self.assertEqual((old / 'monthly-land-prices').read_text(), month + '\n')
+            self.assertEqual((old / 'weekly-reinfolib-history').read_text(), week + '\n')
+            self.assertFalse((old / 'monthly-failed-source').exists())
+            next_day = refresh.Refresh(fixture.root, 'daily')
+            next_day.prepare()
+            self.assertTrue((next_day.markers / 'completed-steps/monthly-land-prices').exists())
+            self.assertTrue((next_day.markers / 'completed-steps/weekly-reinfolib-history').exists())
+            self.assertFalse((next_day.markers / 'completed-steps/monthly-failed-source').exists())
+            self.assertEqual(json.loads((next_day.markers / 'source-stale-since.json').read_text()),
+                             {'sendai_procurement': '2026-10-10'})
+
+    def test_source_health_failure_retries_only_that_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for folder in ('scripts', 'bin', 'data', 'markers'):
+                (root / folder).mkdir()
+            shutil.copy2(ROOT / 'scripts/collect-daily.sh', root / 'scripts/collect-daily.sh')
+            stub = root / 'bin/python3'
+            stub.write_text("""#!/usr/bin/env bash
+if [[ "$1" == "-" ]]; then echo 1; exit 0; fi
+if [[ "$1" == "scripts/restore-failed-source.py" ]]; then echo yokohama_procurement; exit 0; fi
+if [[ "$1" == "scripts/listed-master-refresh-needed.py" ]]; then exit 1; fi
+if [[ "$1" == "collector/collect_sendai_procurement.py" && "$2" == "--probe" ]]; then exit 1; fi
+case "$1" in
+  collector/collect_yokohama_procurement.py) echo yokohama >> "$CALL_LOG" ;;
+  collector/collect_sapporo_procurement.py) echo sapporo >> "$CALL_LOG" ;;
+  collector/check_health.py)
+    if [[ "$*" == *"yokohama_procurement"* && ! -f "$MARKER_DIR/failed-once" ]]; then
+      touch "$MARKER_DIR/failed-once"
+      exit 1
+    fi ;;
+esac
+exit 0
+""")
+            stub.chmod(0o755)
+            npm = root / 'bin/npm'
+            npm.write_text('#!/bin/sh\nexit 0\n')
+            npm.chmod(0o755)
+            markers = root / 'markers'
+            month = datetime.now().strftime('%Y-%m')
+            for name in ('last-monthly-refresh', 'last-monthly-secondary-refresh',
+                         'last-ipss-population-refresh', 'last-gbiz-activity-refresh',
+                         'last-lodging-statistics-refresh', 'last-jma-weather-refresh',
+                         'last-public-transport-refresh'):
+                (markers / name).write_text(month + '\n')
+            (markers / 'last-reinfolib-check').write_text(datetime.now().strftime('%G-W%V') + '\n')
+            log = root / 'calls'
+            env = {**os.environ, 'PATH': str(root / 'bin') + ':' + os.environ['PATH'],
+                   'DATLUME_MARKER_DIR': str(markers), 'MARKER_DIR': str(markers), 'CALL_LOG': str(log)}
+            first = subprocess.run(['bash', 'scripts/collect-daily.sh'], cwd=root, env=env,
+                                   capture_output=True, text=True)
+            self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+            self.assertIn('restored previous snapshot for procurement-yokohama', first.stdout)
+            self.assertFalse((markers / 'completed-steps/procurement-yokohama').exists())
+            self.assertTrue((markers / 'completed-steps/procurement-sapporo').exists())
+            self.assertFalse((markers / 'retry-unsafe').exists())
+            second = subprocess.run(['bash', 'scripts/collect-daily.sh'], cwd=root, env=env,
+                                    capture_output=True, text=True)
+            self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
+            calls = log.read_text().splitlines()
+            self.assertEqual(calls.count('yokohama'), 2)
+            self.assertEqual(calls.count('sapporo'), 1)
 
     def test_partial_collection_retries_only_unfinished_source_steps(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -429,6 +559,7 @@ exit 0
                 (root / 'collector').mkdir()
                 mutate = '''from pathlib import Path
 import sqlite3
+import sys
 p=Path.cwd()
 (p/'src/data/sources.json').write_text('{"sources":{"geps":{"error":"injected"}}}')
 (p/'src/data/summary.json').write_text('{"records":2}')
@@ -451,9 +582,9 @@ with sqlite3.connect(p/'data/public_it.db') as db: db.execute('insert into procu
                 runner.env['PATH'] = str(binpath) + ':' + runner.env['PATH']
                 with self.assertRaises(subprocess.CalledProcessError) as raised:
                     runner.run()
-                self.assertEqual(raised.exception.returncode, {'collection':25, 'health':21, 'regression':24, 'listed':25, 'monthly':25}[failure])
+                self.assertEqual(raised.exception.returncode, {'collection':25, 'health':25, 'regression':24, 'listed':25, 'monthly':25}[failure])
                 fixture.assert_clean(self)
-                if failure in ('collection','listed','monthly'):
+                if failure in ('collection','health','regression','listed','monthly'):
                     self.assertEqual(fixture.count(), 2)
                     self.assertEqual(json.loads(runner.manifest.read_text())['phase'],'collecting')
                     if failure == 'listed':

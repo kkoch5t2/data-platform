@@ -27,7 +27,9 @@ SUCCESS = {'daily': 'last-success-date', 'topics': 'last-wikipedia-success-date'
 LOCKS = {'daily': 'daily-refresh.lock', 'topics': 'wikipedia-topics-refresh.lock',
          'weekly': 'weekly-audit.lock'}
 RUNTIME_PATTERNS = ('data/raw/shokuba/workplace.sqlite', 'data/raw/listed-companies/normalized/**/*',
-                    'data/raw/listed-companies/documents-index.json')
+                    'data/raw/listed-companies/documents-index.json',
+                    'data/raw/company-registry/gbiz/Hojokinjoho_UTF-8_*.zip',
+                    'data/raw/company-registry/gbiz/Tokkyojoho_UTF-8_*.zip')
 ROUTES = '/,/realestate/,/topics/,/procurement/,/regional/stays/,/regional/weather/,/transport/,/listed-companies/,/listed-companies/7203/,/unlisted-companies/'
 
 
@@ -235,6 +237,17 @@ class Refresh:
             for name in MARKERS:
                 if (self.state / name).exists():
                     copy_file(self.state / name, self.markers / name)
+            if self.job == 'daily':
+                now = datetime.now(ZoneInfo('Asia/Tokyo'))
+                saved_steps = self.state / 'source-checkpoints'
+                for previous in saved_steps.glob('*') if saved_steps.exists() else ():
+                    scope = now.strftime('%Y-%m') if previous.name.startswith('monthly-') else (
+                        now.strftime('%G-W%V') if previous.name.startswith('weekly-') else None)
+                    if scope and previous.read_text().strip() == scope:
+                        copy_file(previous, self.markers / 'completed-steps' / previous.name)
+                stale_dates = self.state / 'source-stale-since.json'
+                if stale_dates.exists():
+                    copy_file(stale_dates, self.markers / 'source-stale-since.json')
 
     def runtime_files(self):
         return {p.relative_to(self.root).as_posix(): p for pattern in RUNTIME_PATTERNS
@@ -361,6 +374,7 @@ class Refresh:
             worker = 'refresh-listed-master-worker.sh' if self.master_only else 'collect-daily.sh'
             self.command(['bash', 'scripts/' + worker], extra_env={
                 'DATLUME_MARKER_DIR': str(self.markers),
+                'DATLUME_BASELINE_DB': str(self.transaction / 'public_it.db'),
                 'DATLUME_UPSTREAM_FAILURE_LOG': str(self.state / 'logs' / 'upstream-collection-failures.jsonl'),
             })
         elif self.job == 'topics':
@@ -501,6 +515,23 @@ class Refresh:
                 for name in MARKERS[1:]:
                     if (self.markers / name).exists():
                         copy_file(self.markers / name, self.state / name)
+                # Monthly/weekly source checkpoints survive successful daily publications.
+                completed = self.markers / 'completed-steps'
+                persistent = self.state / 'source-checkpoints'
+                persistent.mkdir(parents=True, exist_ok=True)
+                names = {p.name for p in completed.iterdir()} if completed.exists() else set()
+                for old in persistent.iterdir():
+                    if old.is_file() and old.name not in names:
+                        old.unlink()
+                now = datetime.now(ZoneInfo('Asia/Tokyo'))
+                for name in names:
+                    scope = now.strftime('%Y-%m') if name.startswith('monthly-') else (
+                        now.strftime('%G-W%V') if name.startswith('weekly-') else None)
+                    if scope:
+                        (persistent / name).write_text(scope + '\n')
+                stale_dates = self.markers / 'source-stale-since.json'
+                if stale_dates.exists():
+                    copy_file(stale_dates, self.state / 'source-stale-since.json')
             marker = self.state / SUCCESS[self.job]
             temporary = marker.with_suffix('.tmp')
             temporary.write_text(today + '\n')

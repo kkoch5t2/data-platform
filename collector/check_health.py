@@ -25,9 +25,8 @@ def main():
     allowed_stale = set(args.allow_stale_upstream)
     marker = os.environ.get('DATLUME_STALE_UPSTREAM_MARKER')
     if marker:
-        allowed_stale.update(line.strip() for line in Path(marker).read_text().splitlines() if line.strip())
-    eligible = {'jetro', 'jetro_local', 'sendai_procurement'}
-    unknown = allowed_stale - (set(selected) & eligible)
+        allowed_stale.update(line.strip() for line in Path(marker).read_text().splitlines() if line.strip() in selected)
+    unknown = allowed_stale - set(selected)
     if unknown:
         parser.error(f"invalid stale upstream exception: {', '.join(sorted(unknown))}")
     status = json.loads(STATUS_PATH.read_text(encoding="utf-8")) if STATUS_PATH.exists() else {"sources": {}}
