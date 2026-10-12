@@ -58,11 +58,12 @@ fallback_step() {
     key="${result##*$'\n'}"
     echo "$result"
     stale_upstream_sources+=("$key")
-    record_upstream_failure "$key"
+    record_upstream_failure "$key" source-fallback
     echo "WARNING: $reason; restored previous snapshot for $source"
   else
     echo "$result" >&2
     UNRESTORED_STEPS+=("$source")
+    record_upstream_failure "$source" source-fallback-unavailable
     echo "ERROR: $source has no safe source-level fallback; publication blocked" >&2
   fi
 }
@@ -133,9 +134,9 @@ previous_fiscal_year="$((10#$fiscal_year-1))"
 CURRENT_STEP="procurement-collection"
 stale_upstream_sources=()
 record_upstream_failure() {
-  local source="$1"
+  local source="$1" event="${2:-upstream-probe-failed}"
   if [[ -n "${DATLUME_UPSTREAM_FAILURE_LOG:-}" ]]; then
-    python3 scripts/log-upstream-failure.py --source "$source" --log "$DATLUME_UPSTREAM_FAILURE_LOG"
+    python3 scripts/log-upstream-failure.py --source "$source" --event "$event" --log "$DATLUME_UPSTREAM_FAILURE_LOG"
   fi
 }
 try_step "procurement-geps-awards" python3 collector/collect_geps_awards.py --years "$previous_fiscal_year,$fiscal_year" --no-export

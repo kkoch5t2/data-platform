@@ -336,19 +336,60 @@ exit 0
                     steps = self.markers / 'completed-steps'
                     steps.mkdir(exist_ok=True)
                     (steps / 'monthly-land-prices').write_text(month + '\n')
+                    (steps / 'procurement-yokohama').write_text('completed')
                     (steps / 'weekly-reinfolib-history').write_text(week + '\n')
                     (self.markers / 'source-stale-since.json').write_text('{"sendai_procurement":"2026-10-10"}')
             Completed(fixture.root, 'daily').run()
             self.assertEqual((old / 'monthly-land-prices').read_text(), month + '\n')
+            self.assertTrue((old / 'procurement-yokohama').exists())
+            self.assertEqual((state / 'pending-source-retries.txt').read_text(), '')
             self.assertEqual((old / 'weekly-reinfolib-history').read_text(), week + '\n')
             self.assertFalse((old / 'monthly-failed-source').exists())
             next_day = refresh.Refresh(fixture.root, 'daily')
             next_day.prepare()
             self.assertTrue((next_day.markers / 'completed-steps/monthly-land-prices').exists())
+            self.assertTrue((next_day.markers / 'completed-steps/procurement-yokohama').exists())
             self.assertTrue((next_day.markers / 'completed-steps/weekly-reinfolib-history').exists())
             self.assertFalse((next_day.markers / 'completed-steps/monthly-failed-source').exists())
             self.assertEqual(json.loads((next_day.markers / 'source-stale-since.json').read_text()),
                              {'sendai_procurement': '2026-10-10'})
+
+    def test_pending_source_retries_after_publication_and_then_scheduled_run_skips(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Fixture(directory)
+            home = Path(directory) / 'home'
+            permission = home / '.config/datlume/allow-scheduled-refresh'
+            permission.parent.mkdir(parents=True)
+            permission.write_text('kota-Intel')
+            class Clock(datetime):
+                @classmethod
+                def now(cls, tz=None):
+                    return datetime(2026, 10, 12, 12, tzinfo=tz)
+            class First(SmallRefresh):
+                def collect(self):
+                    super().collect()
+                    steps = self.markers / 'completed-steps'
+                    steps.mkdir(exist_ok=True)
+                    (steps / 'procurement-yokohama').write_text('2026-10-12')
+                    (self.markers / 'stale-upstream-sources.txt').write_text('sendai_procurement\n')
+            class Recovered(SmallRefresh):
+                def collect(self):
+                    self.assert_completed = (self.markers / 'completed-steps/procurement-yokohama').exists()
+                    super().collect()
+                    (self.markers / 'stale-upstream-sources.txt').write_text('')
+            with patch.object(refresh, 'datetime', Clock), \
+                 patch.object(refresh.Path, 'home', return_value=home), \
+                 patch.object(refresh.socket, 'gethostname', return_value='kota-Intel'):
+                First(fixture.root, 'daily').run()
+                pending = fixture.root / 'data/automation/pending-source-retries.txt'
+                self.assertEqual(pending.read_text(), 'sendai_procurement\n')
+                second = Recovered(fixture.root, 'daily')
+                second.run(scheduled=True)
+                self.assertTrue(second.assert_completed)
+                self.assertEqual(pending.read_text(), '')
+                third = Recovered(fixture.root, 'daily')
+                with patch.object(third, 'collect', side_effect=AssertionError('resolved sources should skip')):
+                    third.run(scheduled=True)
 
     def test_source_health_failure_retries_only_that_source(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -94,6 +94,16 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(report['upstreamFailures'][0]['source'], 'jetro')
         self.assertTrue(any('jetro' in issue for issue in report['issues']))
 
+    def test_pending_source_retry_is_reported_after_partial_publication(self):
+        pending = self.root / 'data/automation/pending-source-retries.txt'
+        pending.write_text('sendai_procurement\n')
+        report = self.report()
+        self.assertFalse(report['ok'])
+        self.assertTrue(any('sendai_procurement' in issue and '再試行待ち' in issue
+                            for issue in report['issues']))
+        pending.write_text('')
+        self.assertTrue(self.report()['ok'])
+
     def test_topics_failure_is_reported_without_verified_history(self):
         (self.root / "data/automation/wikipedia-failures.log").write_text("2026-10-08T12:00:00+09:00\tjob=topics\n")
         self.assertFalse(self.report()["ok"])

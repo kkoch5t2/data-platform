@@ -3,19 +3,19 @@
 import argparse
 from datetime import datetime
 import json
+import re
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-SOURCES = {'jetro', 'jetro_local', 'sendai_procurement'}
-
-
-def record(source: str, path: Path, now=None):
-    if source not in SOURCES:
-        raise ValueError(f'Unsupported upstream source: {source}')
+def record(source: str, path: Path, now=None, event='upstream-probe-failed'):
+    if not re.fullmatch(r'[a-z][a-z0-9_-]{0,79}', source):
+        raise ValueError(f'Invalid source identifier: {source}')
+    if event not in ('upstream-probe-failed', 'source-fallback', 'source-fallback-unavailable'):
+        raise ValueError(f'Invalid failure event: {event}')
     when = now or datetime.now(ZoneInfo('Asia/Tokyo'))
     if when.tzinfo is None:
         raise ValueError('timezone required')
-    entry = {'at': when.isoformat(), 'job': 'daily', 'event': 'upstream-probe-failed',
+    entry = {'at': when.isoformat(), 'job': 'daily', 'event': event,
              'source': source, 'action': 'kept-last-verified-snapshot'}
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open('a', encoding='utf-8') as stream:
@@ -25,10 +25,11 @@ def record(source: str, path: Path, now=None):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source', required=True, choices=sorted(SOURCES))
+    parser.add_argument('--source', required=True)
+    parser.add_argument('--event', default='upstream-probe-failed', choices=('upstream-probe-failed', 'source-fallback', 'source-fallback-unavailable'))
     parser.add_argument('--log', type=Path, required=True)
     args = parser.parse_args()
-    print(json.dumps(record(args.source, args.log), ensure_ascii=False))
+    print(json.dumps(record(args.source, args.log, event=args.event), ensure_ascii=False))
 
 
 if __name__ == '__main__':

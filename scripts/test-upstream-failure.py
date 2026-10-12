@@ -21,15 +21,22 @@ class UpstreamFailureTests(unittest.TestCase):
             for source in ('jetro', 'jetro_local', 'sendai_procurement'):
                 failure.record(source, path, now=now)
             lines = [json.loads(line) for line in path.read_text().splitlines()]
-            self.assertEqual([item['source'] for item in lines], sorted(failure.SOURCES))
+            self.assertEqual([item['source'] for item in lines], ['jetro', 'jetro_local', 'sendai_procurement'])
             self.assertEqual(len(lines), 3)
             self.assertTrue(all(item['event'] == 'upstream-probe-failed' for item in lines))
+
+    def test_source_fallback_is_logged_for_any_dataset(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'failures.jsonl'
+            event = failure.record('monthly-land-prices', path, event='source-fallback')
+            self.assertEqual(event['source'], 'monthly-land-prices')
+            self.assertEqual(event['event'], 'source-fallback')
 
     def test_unexpected_source_does_not_write(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'failures.jsonl'
             with self.assertRaises(ValueError):
-                failure.record('geps_awards', path)
+                failure.record('../unsafe', path)
             self.assertFalse(path.exists())
 
 

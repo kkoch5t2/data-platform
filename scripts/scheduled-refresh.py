@@ -242,7 +242,8 @@ class Refresh:
                 saved_steps = self.state / 'source-checkpoints'
                 for previous in saved_steps.glob('*') if saved_steps.exists() else ():
                     scope = now.strftime('%Y-%m') if previous.name.startswith('monthly-') else (
-                        now.strftime('%G-W%V') if previous.name.startswith('weekly-') else None)
+                        now.strftime('%G-W%V') if previous.name.startswith('weekly-') else
+                        now.date().isoformat())
                     if scope and previous.read_text().strip() == scope:
                         copy_file(previous, self.markers / 'completed-steps' / previous.name)
                 stale_dates = self.state / 'source-stale-since.json'
@@ -526,12 +527,19 @@ class Refresh:
                 now = datetime.now(ZoneInfo('Asia/Tokyo'))
                 for name in names:
                     scope = now.strftime('%Y-%m') if name.startswith('monthly-') else (
-                        now.strftime('%G-W%V') if name.startswith('weekly-') else None)
+                        now.strftime('%G-W%V') if name.startswith('weekly-') else
+                        now.date().isoformat())
                     if scope:
                         (persistent / name).write_text(scope + '\n')
                 stale_dates = self.markers / 'source-stale-since.json'
                 if stale_dates.exists():
                     copy_file(stale_dates, self.state / 'source-stale-since.json')
+                # A partial publication remains pending until those sources acquire successfully.
+                pending = self.markers / 'stale-upstream-sources.txt'
+                target = self.state / 'pending-source-retries.txt'
+                temporary = target.with_suffix('.tmp')
+                temporary.write_text(pending.read_text() if pending.exists() else '')
+                temporary.replace(target)
             marker = self.state / SUCCESS[self.job]
             temporary = marker.with_suffix('.tmp')
             temporary.write_text(today + '\n')
@@ -597,7 +605,9 @@ class Refresh:
                         fresh = latest >= (datetime.now(timezone.utc).date() - timedelta(days=1)).isoformat()
                     except (OSError, KeyError, ValueError):
                         fresh = False
-                if scheduled and fresh and marker.exists() and marker.read_text().strip() == today:
+                pending = self.state / 'pending-source-retries.txt'
+                retry_pending = (self.job == 'daily' and pending.exists() and bool(pending.read_text().strip()))
+                if scheduled and fresh and marker.exists() and marker.read_text().strip() == today and not retry_pending:
                     print(f'SKIP: {self.job} already verified for {today}', flush=True)
                     return
                 if shutil.disk_usage(self.root).free < 10 * 1024**3:

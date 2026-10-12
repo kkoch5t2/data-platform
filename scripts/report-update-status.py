@@ -69,13 +69,18 @@ def build_report(root, now=None):
                 event = json.loads(line)
                 occurred_at = timestamp(event["at"])
                 age = now - occurred_at
-                if (event.get("event") == "upstream-probe-failed"
+                if (event.get("event") in ("upstream-probe-failed", "source-fallback", "source-fallback-unavailable")
                         and timedelta(0) <= age <= timedelta(hours=48)):
                     upstream_failures.append(event)
             except (ValueError, KeyError, TypeError, AttributeError):
                 issues.append("外部ソース取得失敗ログに不正な記録")
     for event in upstream_failures:
-        issues.append(f'{event.get("source", "unknown")}: 外部サイトから取得できず前回データを保持 ({event["at"]})')
+        issues.append(f'{event.get("source", "unknown")}: 取得失敗により前回データを保持 ({event["at"]})')
+    pending = state / 'pending-source-retries.txt'
+    if pending.exists():
+        for source in sorted(set(pending.read_text(encoding='utf-8').splitlines())):
+            if source:
+                issues.append(f'{source}: 前回データを保持して再試行待ち')
     jobs = {}
     for job, marker in (("daily", "last-success-date"), ("topics", "last-wikipedia-success-date"),
                         ("weekly", "last-weekly-success-date")):
