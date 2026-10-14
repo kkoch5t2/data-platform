@@ -1,33 +1,38 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-10-12T22:18:07Z",
+  "generatedAt": "2026-10-14T00:18:11Z",
   "range": {
     "days": 7,
-    "start": "2026-10-05T22:18:07Z",
-    "end": "2026-10-12T22:18:07Z"
+    "start": "2026-10-07T00:18:11Z",
+    "end": "2026-10-14T00:18:11Z"
   },
-  "pageviews": 6266,
-  "visits": 1717,
+  "pageviews": 6190,
+  "visits": 1705,
   "topPages": [
     {
       "path": "/transport/",
-      "pageviews": 2444,
-      "visits": 308
+      "pageviews": 2453,
+      "visits": 316
     },
     {
       "path": "/procurement/",
-      "pageviews": 968,
-      "visits": 100
+      "pageviews": 901,
+      "visits": 79
     },
     {
       "path": "/regional/weather/",
-      "pageviews": 463,
-      "visits": 104
+      "pageviews": 422,
+      "visits": 94
     },
     {
       "path": "/regional/stays/",
-      "pageviews": 390,
-      "visits": 134
+      "pageviews": 363,
+      "visits": 119
+    },
+    {
+      "path": "/",
+      "pageviews": 306,
+      "visits": 127
     },
     {
       "path": "/agriculture/",
@@ -35,14 +40,9 @@
       "visits": 39
     },
     {
-      "path": "/",
-      "pageviews": 300,
-      "visits": 121
-    },
-    {
       "path": "/economy-prices/",
-      "pageviews": 265,
-      "visits": 25
+      "pageviews": 280,
+      "visits": 28
     },
     {
       "path": "/employment-economy/",
@@ -51,33 +51,33 @@
     },
     {
       "path": "/unlisted-companies/",
-      "pageviews": 109,
-      "visits": 103
-    },
-    {
-      "path": "/listed-companies/",
-      "pageviews": 99,
-      "visits": 90
-    },
-    {
-      "path": "/topics/",
-      "pageviews": 92,
-      "visits": 80
+      "pageviews": 112,
+      "visits": 106
     },
     {
       "path": "/realestate/",
-      "pageviews": 90,
-      "visits": 68
+      "pageviews": 98,
+      "visits": 74
+    },
+    {
+      "path": "/listed-companies/",
+      "pageviews": 97,
+      "visits": 91
+    },
+    {
+      "path": "/topics/",
+      "pageviews": 89,
+      "visits": 78
     },
     {
       "path": "/regional/",
-      "pageviews": 88,
-      "visits": 48
+      "pageviews": 87,
+      "visits": 50
     },
     {
       "path": "/about-data/",
-      "pageviews": 46,
-      "visits": 33
+      "pageviews": 49,
+      "visits": 36
     },
     {
       "path": "/listed-companies/compare/",
@@ -86,13 +86,13 @@
     },
     {
       "path": "/business-industry/",
-      "pageviews": 36,
+      "pageviews": 38,
       "visits": 32
     },
     {
       "path": "/regional/projections/",
-      "pageviews": 35,
-      "visits": 31
+      "pageviews": 37,
+      "visits": 33
     },
     {
       "path": "/energy/",
@@ -110,14 +110,14 @@
       "visits": 22
     },
     {
+      "path": "/procurement/technologies/",
+      "pageviews": 20,
+      "visits": 19
+    },
+    {
       "path": "/procurement/organizations/",
       "pageviews": 20,
       "visits": 20
-    },
-    {
-      "path": "/procurement/technologies/",
-      "pageviews": 19,
-      "visits": 19
     },
     {
       "path": "/employment-economy/prefectures/%E4%B8%89%E9%87%8D%E7%9C%8C/",
@@ -125,14 +125,19 @@
       "visits": 18
     },
     {
+      "path": "/regional/prefectures/%E4%B8%89%E9%87%8D%E7%9C%8C/",
+      "pageviews": 17,
+      "visits": 17
+    },
+    {
       "path": "/procurement/years/1988/markets/construction/",
       "pageviews": 17,
       "visits": 17
     },
     {
-      "path": "/regional/prefectures/%E4%B8%89%E9%87%8D%E7%9C%8C/",
-      "pageviews": 17,
-      "visits": 17
+      "path": "/privacy/",
+      "pageviews": 16,
+      "visits": 15
     },
     {
       "path": "/employment-economy/indicators/annual-pay/",
@@ -150,11 +155,6 @@
       "visits": 14
     },
     {
-      "path": "/privacy/",
-      "pageviews": 13,
-      "visits": 12
-    },
-    {
       "path": "/business-industry/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
       "pageviews": 12,
       "visits": 12
@@ -163,13 +163,13 @@
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 4549,
+      "pageviews": 4485,
       "visits": 0
     },
     {
       "host": "www.google.com",
-      "pageviews": 13,
-      "visits": 13
+      "pageviews": 11,
+      "visits": 11
     },
     {
       "host": "github.com",
@@ -178,8 +178,8 @@
     },
     {
       "host": "search.google.com",
-      "pageviews": 3,
-      "visits": 3
+      "pageviews": 2,
+      "visits": 2
     },
     {
       "host": "www.bing.com",
@@ -188,11 +188,6 @@
     }
   ],
   "daily": [
-    {
-      "date": "2026-10-06",
-      "pageviews": 596,
-      "visits": 126
-    },
     {
       "date": "2026-10-07",
       "pageviews": 476,
@@ -220,8 +215,13 @@
     },
     {
       "date": "2026-10-12",
-      "pageviews": 722,
-      "visits": 182
+      "pageviews": 975,
+      "visits": 233
+    },
+    {
+      "date": "2026-10-13",
+      "pageviews": 267,
+      "visits": 63
     }
   ],
   "history": [
@@ -287,13 +287,13 @@
     },
     {
       "date": "2026-10-06",
-      "pageviews": 596,
-      "visits": 126
+      "pageviews": 170,
+      "visits": 20
     },
     {
       "date": "2026-10-07",
-      "pageviews": 476,
-      "visits": 70
+      "pageviews": 450,
+      "visits": 20
     },
     {
       "date": "2026-10-08",
@@ -317,8 +317,13 @@
     },
     {
       "date": "2026-10-12",
-      "pageviews": 722,
-      "visits": 182
+      "pageviews": 975,
+      "visits": 233
+    },
+    {
+      "date": "2026-10-13",
+      "pageviews": 267,
+      "visits": 63
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
