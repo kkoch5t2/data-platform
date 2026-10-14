@@ -1,197 +1,166 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-10-14T00:18:11Z",
+  "generatedAt": "2026-10-14T22:00:52Z",
   "range": {
     "days": 7,
-    "start": "2026-10-07T00:18:11Z",
-    "end": "2026-10-14T00:18:11Z"
+    "start": "2026-10-07T22:00:52Z",
+    "end": "2026-10-14T22:00:52Z"
   },
-  "pageviews": 6190,
-  "visits": 1705,
+  "pageviews": 6395,
+  "visits": 1778,
   "topPages": [
     {
       "path": "/transport/",
-      "pageviews": 2453,
-      "visits": 316
+      "pageviews": 2290,
+      "visits": 360
     },
     {
       "path": "/procurement/",
-      "pageviews": 901,
-      "visits": 79
+      "pageviews": 870,
+      "visits": 40
     },
     {
       "path": "/regional/weather/",
-      "pageviews": 422,
-      "visits": 94
-    },
-    {
-      "path": "/regional/stays/",
-      "pageviews": 363,
-      "visits": 119
+      "pageviews": 340,
+      "visits": 70
     },
     {
       "path": "/",
-      "pageviews": 306,
-      "visits": 127
+      "pageviews": 320,
+      "visits": 100
     },
     {
-      "path": "/agriculture/",
-      "pageviews": 304,
-      "visits": 39
+      "path": "/regional/stays/",
+      "pageviews": 280,
+      "visits": 150
     },
     {
       "path": "/economy-prices/",
-      "pageviews": 280,
-      "visits": 28
+      "pageviews": 230,
+      "visits": 20
     },
     {
       "path": "/employment-economy/",
-      "pageviews": 118,
-      "visits": 32
-    },
-    {
-      "path": "/unlisted-companies/",
-      "pageviews": 112,
-      "visits": 106
+      "pageviews": 190,
+      "visits": 0
     },
     {
       "path": "/realestate/",
-      "pageviews": 98,
-      "visits": 74
+      "pageviews": 190,
+      "visits": 170
     },
     {
-      "path": "/listed-companies/",
-      "pageviews": 97,
-      "visits": 91
-    },
-    {
-      "path": "/topics/",
-      "pageviews": 89,
-      "visits": 78
+      "path": "/agriculture/",
+      "pageviews": 130,
+      "visits": 40
     },
     {
       "path": "/regional/",
-      "pageviews": 87,
+      "pageviews": 130,
+      "visits": 90
+    },
+    {
+      "path": "/unlisted-companies/",
+      "pageviews": 110,
+      "visits": 90
+    },
+    {
+      "path": "/topics/",
+      "pageviews": 80,
+      "visits": 80
+    },
+    {
+      "path": "/employment-economy/prefectures/%E4%B8%89%E9%87%8D%E7%9C%8C/",
+      "pageviews": 60,
+      "visits": 60
+    },
+    {
+      "path": "/procurement/companies/",
+      "pageviews": 60,
+      "visits": 60
+    },
+    {
+      "path": "/procurement/years/1989/technologies/it-hardware/",
+      "pageviews": 50,
+      "visits": 50
+    },
+    {
+      "path": "/procurement/years/1988/",
+      "pageviews": 50,
+      "visits": 50
+    },
+    {
+      "path": "/listed-companies/compare/",
+      "pageviews": 50,
+      "visits": 0
+    },
+    {
+      "path": "/procurement/companies/page/10/",
+      "pageviews": 50,
       "visits": 50
     },
     {
       "path": "/about-data/",
-      "pageviews": 49,
-      "visits": 36
-    },
-    {
-      "path": "/listed-companies/compare/",
-      "pageviews": 45,
-      "visits": 19
-    },
-    {
-      "path": "/business-industry/",
-      "pageviews": 38,
-      "visits": 32
-    },
-    {
-      "path": "/regional/projections/",
-      "pageviews": 37,
-      "visits": 33
-    },
-    {
-      "path": "/energy/",
-      "pageviews": 31,
-      "visits": 31
-    },
-    {
-      "path": "/procurement/companies/",
-      "pageviews": 24,
-      "visits": 23
-    },
-    {
-      "path": "/procurement/markets/admin-bpo/",
-      "pageviews": 22,
-      "visits": 22
-    },
-    {
-      "path": "/procurement/technologies/",
-      "pageviews": 20,
-      "visits": 19
-    },
-    {
-      "path": "/procurement/organizations/",
-      "pageviews": 20,
+      "pageviews": 40,
       "visits": 20
     },
     {
-      "path": "/employment-economy/prefectures/%E4%B8%89%E9%87%8D%E7%9C%8C/",
-      "pageviews": 18,
-      "visits": 18
-    },
-    {
-      "path": "/regional/prefectures/%E4%B8%89%E9%87%8D%E7%9C%8C/",
-      "pageviews": 17,
-      "visits": 17
-    },
-    {
-      "path": "/procurement/years/1988/markets/construction/",
-      "pageviews": 17,
-      "visits": 17
-    },
-    {
-      "path": "/privacy/",
-      "pageviews": 16,
-      "visits": 15
-    },
-    {
-      "path": "/employment-economy/indicators/annual-pay/",
-      "pageviews": 16,
-      "visits": 15
-    },
-    {
-      "path": "/economy-prices/indicators/clothing/",
-      "pageviews": 15,
-      "visits": 15
-    },
-    {
-      "path": "/economy-prices/prefectures/%E4%B8%89%E9%87%8D%E7%9C%8C/",
-      "pageviews": 14,
-      "visits": 14
-    },
-    {
-      "path": "/business-industry/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
-      "pageviews": 12,
-      "visits": 12
-    }
-  ],
-  "topReferrers": [
-    {
-      "host": "datlume.com",
-      "pageviews": 4485,
+      "path": "/regional/projections/",
+      "pageviews": 30,
       "visits": 0
     },
     {
-      "host": "www.google.com",
-      "pageviews": 11,
-      "visits": 11
+      "path": "/listed-companies/",
+      "pageviews": 30,
+      "visits": 20
     },
     {
-      "host": "github.com",
-      "pageviews": 3,
-      "visits": 3
+      "path": "/energy/",
+      "pageviews": 30,
+      "visits": 30
     },
     {
-      "host": "search.google.com",
-      "pageviews": 2,
-      "visits": 2
+      "path": "/business-industry/indicators/employees/",
+      "pageviews": 30,
+      "visits": 30
     },
     {
-      "host": "www.bing.com",
-      "pageviews": 2,
-      "visits": 2
+      "path": "/business-industry/",
+      "pageviews": 30,
+      "visits": 30
+    },
+    {
+      "path": "/privacy/",
+      "pageviews": 10,
+      "visits": 0
+    },
+    {
+      "path": "/procurement/years/2021/technologies/network/",
+      "pageviews": 10,
+      "visits": 10
+    },
+    {
+      "path": "/analytics/",
+      "pageviews": 10,
+      "visits": 0
+    },
+    {
+      "path": "/economy-prices/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 10,
+      "visits": 10
+    },
+    {
+      "path": "/procurement/technologies/it-hardware/",
+      "pageviews": 10,
+      "visits": 0
     }
   ],
+  "topReferrers": [],
   "daily": [
     {
       "date": "2026-10-07",
-      "pageviews": 476,
-      "visits": 70
+      "pageviews": 210,
+      "visits": 41
     },
     {
       "date": "2026-10-08",
@@ -222,6 +191,11 @@
       "date": "2026-10-13",
       "pageviews": 267,
       "visits": 63
+    },
+    {
+      "date": "2026-10-14",
+      "pageviews": 471,
+      "visits": 102
     }
   ],
   "history": [
@@ -324,6 +298,11 @@
       "date": "2026-10-13",
       "pageviews": 267,
       "visits": 63
+    },
+    {
+      "date": "2026-10-14",
+      "pageviews": 471,
+      "visits": 102
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
