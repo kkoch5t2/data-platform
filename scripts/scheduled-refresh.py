@@ -573,7 +573,7 @@ class Refresh:
         if scheduled:
             marker = Path.home() / '.config/datlume/allow-scheduled-refresh'
             hostname = socket.gethostname()
-            if hostname not in ('kota-Intel', 'bmax') or not marker.is_file() or marker.read_text().strip() != hostname:
+            if hostname not in ('kota-Intel', 'bmax', 'bmax-ubuntu') or not marker.is_file() or marker.read_text().strip() != hostname:
                 raise RuntimeError('Scheduled updates are authorized only on the production Ubuntu host')
             if self.job == 'daily' and datetime.now(ZoneInfo('Asia/Tokyo')).hour < 6:
                 return

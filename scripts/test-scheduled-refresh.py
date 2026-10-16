@@ -117,7 +117,10 @@ class Tests(unittest.TestCase):
         cases = [('kota-Intel', 'kota-Intel', True), ('bmax', 'bmax', True),
                  ('bmax', 'kota-Intel', False), ('kota-Intel', 'bmax', False),
                  ('chuwi', 'chuwi', False), ('bmax', None, False),
-                 ('bmax', '', False)]
+                 ('bmax', '', False), ('bmax-ubuntu', 'bmax-ubuntu', True),
+                 ('bmax-ubuntu', 'bmax', False), ('bmax', 'bmax-ubuntu', False),
+                 ('bmax-ubuntu', None, False), ('bmax-ubuntu', '', False),
+                 ('chuwi-ubuntu', 'chuwi-ubuntu', False)]
         for hostname, permission, allowed in cases:
             with self.subTest(hostname=hostname, permission=permission), tempfile.TemporaryDirectory() as directory:
                 home = Path(directory) / 'home'
