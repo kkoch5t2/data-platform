@@ -105,6 +105,38 @@ class SmallRefresh(refresh.Refresh):
 
 
 class Tests(unittest.TestCase):
+    def test_scheduled_host_rename_requires_matching_permission(self):
+        class GuardPassed(Exception):
+            pass
+
+        class Clock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return datetime(2026, 10, 16, 12, tzinfo=tz)
+
+        cases = [('kota-Intel', 'kota-Intel', True), ('bmax', 'bmax', True),
+                 ('bmax', 'kota-Intel', False), ('kota-Intel', 'bmax', False),
+                 ('chuwi', 'chuwi', False), ('bmax', None, False),
+                 ('bmax', '', False)]
+        for hostname, permission, allowed in cases:
+            with self.subTest(hostname=hostname, permission=permission), tempfile.TemporaryDirectory() as directory:
+                home = Path(directory) / 'home'
+                marker = home / '.config/datlume/allow-scheduled-refresh'
+                marker.parent.mkdir(parents=True)
+                if permission is not None:
+                    marker.write_text(permission + '\n')
+                runner = refresh.Refresh(Path(directory) / 'repo', 'daily')
+                with patch.object(refresh.Path, 'home', return_value=home), \
+                     patch.object(refresh.socket, 'gethostname', return_value=hostname), \
+                     patch.object(refresh, 'datetime', Clock), \
+                     patch.object(refresh, 'lock', side_effect=GuardPassed):
+                    if allowed:
+                        with self.assertRaises(GuardPassed):
+                            runner.run(scheduled=True)
+                    else:
+                        with self.assertRaisesRegex(RuntimeError, 'authorized only'):
+                            runner.run(scheduled=True)
+
     def test_history_manifest_and_shards_are_not_pruned_separately(self):
         import hashlib
         with tempfile.TemporaryDirectory() as directory:

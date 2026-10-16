@@ -11,6 +11,11 @@
 - Raw/運用データ正本: Ubuntuローカル
 
 ## 2. 日次更新
+
+### 本番UbuntuのPC名変更（2026-10-16）
+既存機はBMAX B4 Turbo。ホスト名を `kota-Intel` から `bmax` へ変更する際も、スケジューラは旧名・新名のいずれかに限定し、`~/.config/datlume/allow-scheduled-refresh` の内容が実際のホスト名と一致することを必須とする。CHUWIなど別ホストは許可しない。
+先にこの互換対応を正本へ反映し、管理者が `/etc/hostname`・`/etc/hosts` と実行中のホスト名を更新した後、kotaユーザーで許可マーカーを `bmax` に更新する。ユーザー名・ホームディレクトリ・cronパスは変更しない。`/etc/hosts` の旧名はローカル互換エイリアスとして残せるが、LAN上の旧 `.local` 名の維持にはならない。変更前の設定を退避し、変更後はホスト名・名前解決・マーカー一致とredeco接続を確認する。
+
 `scripts/daily-refresh.sh --scheduled` を06:15 JST以降に毎時起動し、その日の成功後はスキップする設計。話題のトピックはWikimediaの日次集計公開時刻に合わせ、通常更新から分離して14:15〜23:15 JSTに毎時 `scripts/refresh-wikipedia-topics.sh --scheduled` を実行する。
 ホスト側cronはリポジトリ外設定のため、変更時はサーバ上のcrontabも確認する。
 

@@ -572,7 +572,8 @@ class Refresh:
                 raise RuntimeError('Master-only mode requires a fully verified daily update today; run the regular refresh first')
         if scheduled:
             marker = Path.home() / '.config/datlume/allow-scheduled-refresh'
-            if socket.gethostname() != 'kota-Intel' or not marker.is_file() or marker.read_text().strip() != 'kota-Intel':
+            hostname = socket.gethostname()
+            if hostname not in ('kota-Intel', 'bmax') or not marker.is_file() or marker.read_text().strip() != hostname:
                 raise RuntimeError('Scheduled updates are authorized only on the production Ubuntu host')
             if self.job == 'daily' and datetime.now(ZoneInfo('Asia/Tokyo')).hour < 6:
                 return
