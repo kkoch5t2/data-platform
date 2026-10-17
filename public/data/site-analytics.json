@@ -1,149 +1,169 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-10-16T22:10:13Z",
+  "generatedAt": "2026-10-17T21:48:24Z",
   "range": {
     "days": 7,
-    "start": "2026-10-09T22:10:13Z",
-    "end": "2026-10-16T22:10:13Z"
+    "start": "2026-10-10T21:48:24Z",
+    "end": "2026-10-17T21:48:24Z"
   },
-  "pageviews": 5248,
-  "visits": 1410,
+  "pageviews": 3712,
+  "visits": 840,
   "topPages": [
     {
       "path": "/transport/",
-      "pageviews": 1880,
-      "visits": 350
+      "pageviews": 1827,
+      "visits": 260
     },
     {
       "path": "/procurement/",
-      "pageviews": 600,
-      "visits": 0
-    },
-    {
-      "path": "/",
-      "pageviews": 340,
-      "visits": 130
-    },
-    {
-      "path": "/regional/stays/",
-      "pageviews": 290,
-      "visits": 140
+      "pageviews": 554,
+      "visits": 44
     },
     {
       "path": "/regional/weather/",
-      "pageviews": 250,
-      "visits": 40
+      "pageviews": 331,
+      "visits": 59
+    },
+    {
+      "path": "/regional/stays/",
+      "pageviews": 322,
+      "visits": 84
     },
     {
       "path": "/economy-prices/",
-      "pageviews": 200,
-      "visits": 20
+      "pageviews": 188,
+      "visits": 17
     },
     {
-      "path": "/realestate/",
-      "pageviews": 160,
-      "visits": 140
-    },
-    {
-      "path": "/agriculture/",
-      "pageviews": 140,
-      "visits": 40
+      "path": "/",
+      "pageviews": 129,
+      "visits": 80
     },
     {
       "path": "/unlisted-companies/",
-      "pageviews": 140,
-      "visits": 120
+      "pageviews": 94,
+      "visits": 93
     },
     {
-      "path": "/regional/",
-      "pageviews": 70,
+      "path": "/realestate/",
+      "pageviews": 67,
       "visits": 60
-    },
-    {
-      "path": "/procurement/companies/",
-      "pageviews": 60,
-      "visits": 60
-    },
-    {
-      "path": "/procurement/companies/page/10/",
-      "pageviews": 50,
-      "visits": 50
     },
     {
       "path": "/topics/",
-      "pageviews": 50,
-      "visits": 50
-    },
-    {
-      "path": "/procurement/years/1989/technologies/it-hardware/",
-      "pageviews": 50,
-      "visits": 50
-    },
-    {
-      "path": "/procurement/years/1988/",
-      "pageviews": 50,
-      "visits": 50
-    },
-    {
-      "path": "/regional/projections/",
-      "pageviews": 40,
-      "visits": 10
-    },
-    {
-      "path": "/business-industry/",
-      "pageviews": 30,
-      "visits": 30
-    },
-    {
-      "path": "/about-data/",
-      "pageviews": 30,
-      "visits": 20
+      "pageviews": 39,
+      "visits": 38
     },
     {
       "path": "/listed-companies/",
-      "pageviews": 30,
-      "visits": 30
+      "pageviews": 23,
+      "visits": 23
     },
     {
-      "path": "/business-industry/indicators/employees/",
-      "pageviews": 30,
-      "visits": 30
+      "path": "/regional/",
+      "pageviews": 21,
+      "visits": 16
+    },
+    {
+      "path": "/regional/projections/",
+      "pageviews": 16,
+      "visits": 16
+    },
+    {
+      "path": "/about-data/",
+      "pageviews": 15,
+      "visits": 9
+    },
+    {
+      "path": "/business-industry/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 12,
+      "visits": 12
+    },
+    {
+      "path": "/business-industry/",
+      "pageviews": 8,
+      "visits": 5
     },
     {
       "path": "/privacy/",
-      "pageviews": 10,
+      "pageviews": 8,
+      "visits": 8
+    },
+    {
+      "path": "/procurement/technologies/network/",
+      "pageviews": 8,
       "visits": 0
     },
     {
       "path": "/listed-companies/compare/",
-      "pageviews": 10,
+      "pageviews": 6,
+      "visits": 2
+    },
+    {
+      "path": "/agriculture/",
+      "pageviews": 6,
+      "visits": 0
+    },
+    {
+      "path": "/analytics/",
+      "pageviews": 5,
       "visits": 0
     },
     {
       "path": "/procurement/years/2021/technologies/network/",
-      "pageviews": 10,
-      "visits": 10
+      "pageviews": 4,
+      "visits": 1
     },
     {
-      "path": "/analytics/",
-      "pageviews": 10,
+      "path": "/procurement/years/2024/technologies/network/",
+      "pageviews": 3,
       "visits": 0
     },
     {
-      "path": "/economy-prices/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
-      "pageviews": 10,
-      "visits": 10
+      "path": "/procurement",
+      "pageviews": 2,
+      "visits": 1
     },
     {
-      "path": "/procurement/technologies/it-hardware/",
-      "pageviews": 10,
+      "path": "/energy/prefectures/%E7%A6%8F%E5%B2%A1%E7%9C%8C/",
+      "pageviews": 2,
+      "visits": 1
+    },
+    {
+      "path": "/procurement/years/2026/technologies/network/",
+      "pageviews": 2,
+      "visits": 1
+    },
+    {
+      "path": "/regional/indicators/housing-starts/",
+      "pageviews": 2,
+      "visits": 2
+    },
+    {
+      "path": "/economy-prices/prefectures/%E5%8C%97%E6%B5%B7%E9%81%93/",
+      "pageviews": 2,
+      "visits": 1
+    },
+    {
+      "path": "/procurement/technologies/security/",
+      "pageviews": 1,
+      "visits": 0
+    },
+    {
+      "path": "/economy-prices/indicators/household/",
+      "pageviews": 1,
+      "visits": 0
+    },
+    {
+      "path": "/procurement/technologies/cloud/",
+      "pageviews": 1,
       "visits": 0
     }
   ],
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 3838,
+      "pageviews": 2872,
       "visits": 0
     },
     {
@@ -164,14 +184,9 @@
   ],
   "daily": [
     {
-      "date": "2026-10-09",
-      "pageviews": 1,
-      "visits": 1
-    },
-    {
       "date": "2026-10-10",
-      "pageviews": 1794,
-      "visits": 612
+      "pageviews": 7,
+      "visits": 1
     },
     {
       "date": "2026-10-11",
@@ -200,8 +215,13 @@
     },
     {
       "date": "2026-10-16",
-      "pageviews": 275,
-      "visits": 71
+      "pageviews": 476,
+      "visits": 98
+    },
+    {
+      "date": "2026-10-17",
+      "pageviews": 51,
+      "visits": 15
     }
   ],
   "history": [
@@ -317,8 +337,13 @@
     },
     {
       "date": "2026-10-16",
-      "pageviews": 275,
-      "visits": 71
+      "pageviews": 476,
+      "visits": 98
+    },
+    {
+      "date": "2026-10-17",
+      "pageviews": 51,
+      "visits": 15
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
