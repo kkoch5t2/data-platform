@@ -1,88 +1,88 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-10-18T22:10:58Z",
+  "generatedAt": "2026-10-19T22:10:47Z",
   "range": {
     "days": 7,
-    "start": "2026-10-11T22:10:58Z",
-    "end": "2026-10-18T22:10:58Z"
+    "start": "2026-10-12T22:10:47Z",
+    "end": "2026-10-19T22:10:47Z"
   },
-  "pageviews": 3118,
-  "visits": 716,
+  "pageviews": 2785,
+  "visits": 645,
   "topPages": [
     {
       "path": "/transport/",
-      "pageviews": 1634,
-      "visits": 241
+      "pageviews": 1442,
+      "visits": 215
     },
     {
       "path": "/procurement/",
-      "pageviews": 418,
-      "visits": 34
+      "pageviews": 394,
+      "visits": 32
     },
     {
       "path": "/regional/weather/",
-      "pageviews": 307,
-      "visits": 52
+      "pageviews": 270,
+      "visits": 47
     },
     {
       "path": "/regional/stays/",
-      "pageviews": 273,
-      "visits": 72
-    },
-    {
-      "path": "/economy-prices/",
-      "pageviews": 113,
-      "visits": 14
+      "pageviews": 250,
+      "visits": 59
     },
     {
       "path": "/",
-      "pageviews": 94,
-      "visits": 71
+      "pageviews": 93,
+      "visits": 73
+    },
+    {
+      "path": "/economy-prices/",
+      "pageviews": 91,
+      "visits": 16
     },
     {
       "path": "/unlisted-companies/",
-      "pageviews": 68,
-      "visits": 68
+      "pageviews": 61,
+      "visits": 61
     },
     {
       "path": "/realestate/",
-      "pageviews": 60,
-      "visits": 57
+      "pageviews": 52,
+      "visits": 50
     },
     {
       "path": "/topics/",
-      "pageviews": 33,
-      "visits": 33
-    },
-    {
-      "path": "/listed-companies/",
-      "pageviews": 17,
-      "visits": 17
+      "pageviews": 23,
+      "visits": 23
     },
     {
       "path": "/regional/",
-      "pageviews": 17,
-      "visits": 16
+      "pageviews": 15,
+      "visits": 14
+    },
+    {
+      "path": "/listed-companies/",
+      "pageviews": 14,
+      "visits": 14
     },
     {
       "path": "/regional/projections/",
-      "pageviews": 16,
-      "visits": 16
-    },
-    {
-      "path": "/about-data/",
-      "pageviews": 9,
-      "visits": 6
-    },
-    {
-      "path": "/procurement/technologies/network/",
-      "pageviews": 8,
-      "visits": 0
+      "pageviews": 14,
+      "visits": 14
     },
     {
       "path": "/business-industry/",
       "pageviews": 7,
       "visits": 4
+    },
+    {
+      "path": "/about-data/",
+      "pageviews": 7,
+      "visits": 5
+    },
+    {
+      "path": "/procurement/technologies/network/",
+      "pageviews": 7,
+      "visits": 0
     },
     {
       "path": "/listed-companies/compare/",
@@ -95,24 +95,24 @@
       "visits": 0
     },
     {
-      "path": "/privacy/",
+      "path": "/procurement/technologies/generative-ai/",
       "pageviews": 5,
       "visits": 5
     },
     {
-      "path": "/procurement/years/2021/technologies/network/",
-      "pageviews": 4,
-      "visits": 1
-    },
-    {
       "path": "/procurement/years/2024/technologies/network/",
-      "pageviews": 4,
+      "pageviews": 5,
       "visits": 0
     },
     {
       "path": "/analytics/",
-      "pageviews": 3,
+      "pageviews": 4,
       "visits": 0
+    },
+    {
+      "path": "/privacy/",
+      "pageviews": 4,
+      "visits": 4
     },
     {
       "path": "/procurement/years/2026/technologies/network/",
@@ -121,11 +121,6 @@
     },
     {
       "path": "/procurement",
-      "pageviews": 2,
-      "visits": 1
-    },
-    {
-      "path": "/energy/prefectures/%E7%A6%8F%E5%B2%A1%E7%9C%8C/",
       "pageviews": 2,
       "visits": 1
     },
@@ -140,9 +135,14 @@
       "visits": 1
     },
     {
-      "path": "/business-industry/indicators/medical-welfare-share/",
+      "path": "/procurement/years/2022/technologies/it-hardware/",
       "pageviews": 1,
       "visits": 1
+    },
+    {
+      "path": "/procurement/years/2021/technologies/network/",
+      "pageviews": 1,
+      "visits": 0
     },
     {
       "path": "/procurement/technologies/",
@@ -155,43 +155,38 @@
       "visits": 0
     },
     {
-      "path": "/procurement/years/2021/",
+      "path": "/business-industry/indicators/medical-welfare-share/",
       "pageviews": 1,
-      "visits": 0
+      "visits": 1
     }
   ],
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 2402,
+      "pageviews": 2140,
       "visits": 0
     },
     {
       "host": "www.google.com",
-      "pageviews": 4,
-      "visits": 4
-    },
-    {
-      "host": "search.google.com",
-      "pageviews": 3,
-      "visits": 3
+      "pageviews": 5,
+      "visits": 5
     },
     {
       "host": "www.bing.com",
       "pageviews": 3,
       "visits": 3
+    },
+    {
+      "host": "search.google.com",
+      "pageviews": 2,
+      "visits": 2
     }
   ],
   "daily": [
     {
-      "date": "2026-10-11",
-      "pageviews": 3,
-      "visits": 3
-    },
-    {
       "date": "2026-10-12",
-      "pageviews": 975,
-      "visits": 233
+      "pageviews": 253,
+      "visits": 51
     },
     {
       "date": "2026-10-13",
@@ -220,8 +215,13 @@
     },
     {
       "date": "2026-10-18",
-      "pageviews": 2,
-      "visits": 1
+      "pageviews": 204,
+      "visits": 57
+    },
+    {
+      "date": "2026-10-19",
+      "pageviews": 190,
+      "visits": 58
     }
   ],
   "history": [
@@ -347,8 +347,13 @@
     },
     {
       "date": "2026-10-18",
-      "pageviews": 2,
-      "visits": 1
+      "pageviews": 204,
+      "visits": 57
+    },
+    {
+      "date": "2026-10-19",
+      "pageviews": 190,
+      "visits": 58
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
