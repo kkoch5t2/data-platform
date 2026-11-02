@@ -393,9 +393,9 @@
     "wikipedia_topics": {
       "label": "Wikimedia Analytics API 日本語版Wikipedia Pageviews",
       "status": "ok",
-      "startedAt": "2026-11-02T05:15:05.890611+00:00",
-      "finishedAt": "2026-11-02T05:15:43.994284+00:00",
-      "durationSeconds": 38.1,
+      "startedAt": "2026-11-02T06:15:06.116986+00:00",
+      "finishedAt": "2026-11-02T06:15:06.211657+00:00",
+      "durationSeconds": 0.09,
       "metrics": {
         "records": 100,
         "sourceArticles": 995,
