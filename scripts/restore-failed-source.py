@@ -10,6 +10,10 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+# Direct script execution prepends scripts/ (not the project root) to sys.path.
+# Procurement fallback needs the collector namespace to restore the verified DB.
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 PROCUREMENT = {
     'procurement-geps-awards': ('geps_awards', 'geps:'),
     'procurement-jetro': ('jetro', 'jetro:'),

@@ -563,6 +563,32 @@ class Refresh:
                 handle.write(json.dumps(entry, ensure_ascii=False) + '\n')
             shutil.rmtree(self.transaction)
 
+    def pending_upstreams_still_down(self, pending_path):
+        """Probe previously failed upstreams without rebuilding all published data.
+
+        This runs only after today's complete publication; unresolved/unknown
+        sources keep the normal full retry path to avoid missing new data.
+        """
+        probes = {
+            'jetro': ['python3', 'collector/collect_jetro.py', '--probe'],
+            'jetro_local': ['python3', 'collector/collect_jetro_local.py', '--probe'],
+        }
+        sources = set(pending_path.read_text().splitlines()) - {''}
+        if not sources or not sources.issubset(probes):
+            return False
+        for source in sorted(sources):
+            try:
+                result = subprocess.run(probes[source], cwd=self.root,
+                                        env=self.env, capture_output=True, timeout=25)
+            except subprocess.TimeoutExpired:
+                print(f'Upstream {source} probe timed out; checking again next scheduled run', flush=True)
+                continue
+            if result.returncode == 0:
+                print(f'Upstream {source} recovered; full refresh required', flush=True)
+                return False
+        print('SKIP: unresolved upstreams still unavailable; avoiding redundant full refresh', flush=True)
+        return True
+
     def run(self, scheduled=False):
         self.state.mkdir(parents=True, exist_ok=True)
         today = datetime.now(ZoneInfo('Asia/Tokyo')).date().isoformat()
@@ -608,6 +634,11 @@ class Refresh:
                         fresh = False
                 pending = self.state / 'pending-source-retries.txt'
                 retry_pending = (self.job == 'daily' and pending.exists() and bool(pending.read_text().strip()))
+                if (scheduled and self.job == 'daily' and fresh and retry_pending
+                        and marker.exists() and marker.read_text().strip() == today
+                        and not self.manifest.exists()
+                        and self.pending_upstreams_still_down(pending)):
+                    return
                 if scheduled and fresh and marker.exists() and marker.read_text().strip() == today and not retry_pending:
                     print(f'SKIP: {self.job} already verified for {today}', flush=True)
                     return
