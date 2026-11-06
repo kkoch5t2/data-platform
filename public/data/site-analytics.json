@@ -1,152 +1,202 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-10-20T00:05:50Z",
+  "generatedAt": "2026-11-06T12:02:02Z",
   "range": {
     "days": 7,
-    "start": "2026-10-13T00:05:50Z",
-    "end": "2026-10-20T00:05:50Z"
+    "start": "2026-10-30T12:02:02Z",
+    "end": "2026-11-06T12:02:02Z"
   },
-  "pageviews": 2609,
-  "visits": 612,
+  "pageviews": 1432,
+  "visits": 359,
   "topPages": [
     {
       "path": "/transport/",
-      "pageviews": 1100,
-      "visits": 190
+      "pageviews": 723,
+      "visits": 141
     },
     {
       "path": "/procurement/",
-      "pageviews": 270,
-      "visits": 10
+      "pageviews": 201,
+      "visits": 17
     },
     {
       "path": "/regional/stays/",
-      "pageviews": 240,
-      "visits": 30
+      "pageviews": 138,
+      "visits": 42
     },
     {
       "path": "/economy-prices/",
-      "pageviews": 130,
-      "visits": 20
-    },
-    {
-      "path": "/",
-      "pageviews": 110,
-      "visits": 90
-    },
-    {
-      "path": "/realestate/",
-      "pageviews": 90,
-      "visits": 70
-    },
-    {
-      "path": "/unlisted-companies/",
-      "pageviews": 80,
-      "visits": 80
+      "pageviews": 113,
+      "visits": 8
     },
     {
       "path": "/regional/weather/",
-      "pageviews": 60,
-      "visits": 20
+      "pageviews": 110,
+      "visits": 15
     },
     {
-      "path": "/listed-companies/",
+      "path": "/unlisted-companies/",
+      "pageviews": 33,
+      "visits": 33
+    },
+    {
+      "path": "/topics/",
       "pageviews": 30,
       "visits": 30
     },
     {
-      "path": "/procurement/technologies/it-hardware/",
-      "pageviews": 10,
+      "path": "/",
+      "pageviews": 27,
+      "visits": 26
+    },
+    {
+      "path": "/listed-companies/",
+      "pageviews": 17,
+      "visits": 17
+    },
+    {
+      "path": "/realestate/",
+      "pageviews": 16,
+      "visits": 16
+    },
+    {
+      "path": "/procurement/years/2024/technologies/network/",
+      "pageviews": 6,
       "visits": 0
+    },
+    {
+      "path": "/economy-prices/indicators/housing/",
+      "pageviews": 2,
+      "visits": 0
+    },
+    {
+      "path": "/energy/prefectures/%E5%A4%A7%E9%98%AA%E5%BA%9C/",
+      "pageviews": 2,
+      "visits": 2
+    },
+    {
+      "path": "/procurement/years/2026/",
+      "pageviews": 2,
+      "visits": 2
+    },
+    {
+      "path": "/procurement/years/2022/markets/leasing/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "path": "/procurement/years/2024/markets/facility-management/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "path": "/employment-economy/prefectures/%E6%A0%83%E6%9C%A8%E7%9C%8C/",
+      "pageviews": 1,
+      "visits": 0
+    },
+    {
+      "path": "/procurement/years/2026/markets/facility-management/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "path": "/employment-economy/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "path": "/economy-prices/prefectures/%E7%A7%8B%E7%94%B0%E7%9C%8C/",
+      "pageviews": 1,
+      "visits": 1
     },
     {
       "path": "/about-data/",
-      "pageviews": 10,
-      "visits": 10
+      "pageviews": 1,
+      "visits": 1
     },
     {
-      "path": "/procurement/years/2022/technologies/it-hardware/",
-      "pageviews": 10,
-      "visits": 10
+      "path": "/procurement/markets/facility-management/",
+      "pageviews": 1,
+      "visits": 1
     },
     {
-      "path": "/agriculture/",
-      "pageviews": 10,
+      "path": "/procurement/years/2026/markets/research-consulting/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "path": "/economy-prices/prefectures/%E6%84%9B%E5%AA%9B%E7%9C%8C/",
+      "pageviews": 1,
       "visits": 0
     },
     {
-      "path": "/regional/projections/",
-      "pageviews": 10,
-      "visits": 10
+      "path": "/procurement/years/2026/markets/outsourcing-staffing/",
+      "pageviews": 1,
+      "visits": 1
     },
     {
-      "path": "/regional/",
-      "pageviews": 10,
-      "visits": 10
-    },
-    {
-      "path": "/listed-companies/compare/",
-      "pageviews": 10,
-      "visits": 0
+      "path": "/procurement/years/2025/markets/facility-management/",
+      "pageviews": 1,
+      "visits": 1
     }
   ],
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 1997,
+      "pageviews": 1073,
       "visits": 0
     },
     {
-      "host": "www.google.com",
-      "pageviews": 6,
-      "visits": 6
-    },
-    {
       "host": "www.bing.com",
-      "pageviews": 3,
-      "visits": 3
+      "pageviews": 18,
+      "visits": 18
     },
     {
-      "host": "search.google.com",
-      "pageviews": 2,
-      "visits": 2
+      "host": "www.google.com",
+      "pageviews": 4,
+      "visits": 4
     }
   ],
   "daily": [
     {
-      "date": "2026-10-13",
-      "pageviews": 267,
-      "visits": 63
+      "date": "2026-10-30",
+      "pageviews": 4,
+      "visits": 2
     },
     {
-      "date": "2026-10-14",
-      "pageviews": 721,
-      "visits": 147
+      "date": "2026-10-31",
+      "pageviews": 182,
+      "visits": 53
     },
     {
-      "date": "2026-10-15",
-      "pageviews": 421,
-      "visits": 104
+      "date": "2026-11-01",
+      "pageviews": 179,
+      "visits": 46
     },
     {
-      "date": "2026-10-16",
-      "pageviews": 476,
-      "visits": 98
+      "date": "2026-11-02",
+      "pageviews": 283,
+      "visits": 89
     },
     {
-      "date": "2026-10-17",
-      "pageviews": 253,
-      "visits": 67
+      "date": "2026-11-03",
+      "pageviews": 175,
+      "visits": 45
     },
     {
-      "date": "2026-10-18",
-      "pageviews": 204,
-      "visits": 57
+      "date": "2026-11-04",
+      "pageviews": 251,
+      "visits": 43
     },
     {
-      "date": "2026-10-19",
-      "pageviews": 267,
-      "visits": 76
+      "date": "2026-11-05",
+      "pageviews": 182,
+      "visits": 39
+    },
+    {
+      "date": "2026-11-06",
+      "pageviews": 176,
+      "visits": 42
     }
   ],
   "history": [
@@ -279,6 +329,41 @@
       "date": "2026-10-19",
       "pageviews": 267,
       "visits": 76
+    },
+    {
+      "date": "2026-10-31",
+      "pageviews": 182,
+      "visits": 53
+    },
+    {
+      "date": "2026-11-01",
+      "pageviews": 179,
+      "visits": 46
+    },
+    {
+      "date": "2026-11-02",
+      "pageviews": 283,
+      "visits": 89
+    },
+    {
+      "date": "2026-11-03",
+      "pageviews": 175,
+      "visits": 45
+    },
+    {
+      "date": "2026-11-04",
+      "pageviews": 251,
+      "visits": 43
+    },
+    {
+      "date": "2026-11-05",
+      "pageviews": 182,
+      "visits": 39
+    },
+    {
+      "date": "2026-11-06",
+      "pageviews": 176,
+      "visits": 42
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
