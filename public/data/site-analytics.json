@@ -1,63 +1,68 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-11-06T12:02:02Z",
+  "generatedAt": "2026-11-06T21:57:20Z",
   "range": {
     "days": 7,
-    "start": "2026-10-30T12:02:02Z",
-    "end": "2026-11-06T12:02:02Z"
+    "start": "2026-10-30T21:57:20Z",
+    "end": "2026-11-06T21:57:20Z"
   },
-  "pageviews": 1432,
-  "visits": 359,
+  "pageviews": 1664,
+  "visits": 421,
   "topPages": [
     {
       "path": "/transport/",
-      "pageviews": 723,
-      "visits": 141
+      "pageviews": 820,
+      "visits": 158
     },
     {
       "path": "/procurement/",
-      "pageviews": 201,
-      "visits": 17
+      "pageviews": 250,
+      "visits": 20
     },
     {
       "path": "/regional/stays/",
-      "pageviews": 138,
-      "visits": 42
-    },
-    {
-      "path": "/economy-prices/",
-      "pageviews": 113,
-      "visits": 8
+      "pageviews": 155,
+      "visits": 48
     },
     {
       "path": "/regional/weather/",
-      "pageviews": 110,
-      "visits": 15
+      "pageviews": 138,
+      "visits": 22
+    },
+    {
+      "path": "/economy-prices/",
+      "pageviews": 123,
+      "visits": 10
     },
     {
       "path": "/unlisted-companies/",
-      "pageviews": 33,
-      "visits": 33
+      "pageviews": 37,
+      "visits": 37
     },
     {
       "path": "/topics/",
-      "pageviews": 30,
-      "visits": 30
+      "pageviews": 35,
+      "visits": 35
     },
     {
       "path": "/",
-      "pageviews": 27,
-      "visits": 26
-    },
-    {
-      "path": "/listed-companies/",
-      "pageviews": 17,
-      "visits": 17
+      "pageviews": 31,
+      "visits": 30
     },
     {
       "path": "/realestate/",
-      "pageviews": 16,
-      "visits": 16
+      "pageviews": 21,
+      "visits": 21
+    },
+    {
+      "path": "/listed-companies/",
+      "pageviews": 20,
+      "visits": 20
+    },
+    {
+      "path": "/listed-companies/compare/",
+      "pageviews": 6,
+      "visits": 2
     },
     {
       "path": "/procurement/years/2024/technologies/network/",
@@ -65,9 +70,9 @@
       "visits": 0
     },
     {
-      "path": "/economy-prices/indicators/housing/",
+      "path": "/procurement/years/2026/",
       "pageviews": 2,
-      "visits": 0
+      "visits": 2
     },
     {
       "path": "/energy/prefectures/%E5%A4%A7%E9%98%AA%E5%BA%9C/",
@@ -75,27 +80,22 @@
       "visits": 2
     },
     {
-      "path": "/procurement/years/2026/",
+      "path": "/regional/projections/",
       "pageviews": 2,
       "visits": 2
     },
     {
-      "path": "/procurement/years/2022/markets/leasing/",
-      "pageviews": 1,
-      "visits": 1
+      "path": "/regional/",
+      "pageviews": 2,
+      "visits": 2
     },
     {
-      "path": "/procurement/years/2024/markets/facility-management/",
-      "pageviews": 1,
-      "visits": 1
-    },
-    {
-      "path": "/employment-economy/prefectures/%E6%A0%83%E6%9C%A8%E7%9C%8C/",
-      "pageviews": 1,
+      "path": "/economy-prices/indicators/housing/",
+      "pageviews": 2,
       "visits": 0
     },
     {
-      "path": "/procurement/years/2026/markets/facility-management/",
+      "path": "/procurement/years/2022/markets/leasing/",
       "pageviews": 1,
       "visits": 1
     },
@@ -110,7 +110,7 @@
       "visits": 1
     },
     {
-      "path": "/about-data/",
+      "path": "/procurement/years/2026/markets/facility-management/",
       "pageviews": 1,
       "visits": 1
     },
@@ -125,9 +125,24 @@
       "visits": 1
     },
     {
+      "path": "/procurement/years/2024/markets/facility-management/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "path": "/employment-economy/prefectures/%E6%A0%83%E6%9C%A8%E7%9C%8C/",
+      "pageviews": 1,
+      "visits": 0
+    },
+    {
       "path": "/economy-prices/prefectures/%E6%84%9B%E5%AA%9B%E7%9C%8C/",
       "pageviews": 1,
       "visits": 0
+    },
+    {
+      "path": "/about-data/",
+      "pageviews": 1,
+      "visits": 1
     },
     {
       "path": "/procurement/years/2026/markets/outsourcing-staffing/",
@@ -143,7 +158,7 @@
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 1073,
+      "pageviews": 1243,
       "visits": 0
     },
     {
@@ -158,11 +173,6 @@
     }
   ],
   "daily": [
-    {
-      "date": "2026-10-30",
-      "pageviews": 4,
-      "visits": 2
-    },
     {
       "date": "2026-10-31",
       "pageviews": 182,
@@ -195,8 +205,8 @@
     },
     {
       "date": "2026-11-06",
-      "pageviews": 176,
-      "visits": 42
+      "pageviews": 412,
+      "visits": 106
     }
   ],
   "history": [
@@ -362,8 +372,8 @@
     },
     {
       "date": "2026-11-06",
-      "pageviews": 176,
-      "visits": 42
+      "pageviews": 412,
+      "visits": 106
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
