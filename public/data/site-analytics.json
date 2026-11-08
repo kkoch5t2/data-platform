@@ -1,43 +1,43 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-11-07T21:55:08Z",
+  "generatedAt": "2026-11-08T22:16:17Z",
   "range": {
     "days": 7,
-    "start": "2026-10-31T21:55:08Z",
-    "end": "2026-11-07T21:55:08Z"
+    "start": "2026-11-01T22:16:17Z",
+    "end": "2026-11-08T22:16:17Z"
   },
-  "pageviews": 1897,
-  "visits": 479,
+  "pageviews": 1934,
+  "visits": 494,
   "topPages": [
     {
       "path": "/transport/",
-      "pageviews": 915,
-      "visits": 175
+      "pageviews": 928,
+      "visits": 178
     },
     {
       "path": "/procurement/",
-      "pageviews": 302,
-      "visits": 23
-    },
-    {
-      "path": "/regional/stays/",
-      "pageviews": 172,
-      "visits": 55
+      "pageviews": 298,
+      "visits": 24
     },
     {
       "path": "/regional/weather/",
-      "pageviews": 168,
-      "visits": 27
+      "pageviews": 182,
+      "visits": 33
+    },
+    {
+      "path": "/regional/stays/",
+      "pageviews": 174,
+      "visits": 55
     },
     {
       "path": "/economy-prices/",
-      "pageviews": 133,
-      "visits": 12
+      "pageviews": 143,
+      "visits": 14
     },
     {
       "path": "/unlisted-companies/",
-      "pageviews": 42,
-      "visits": 42
+      "pageviews": 43,
+      "visits": 43
     },
     {
       "path": "/topics/",
@@ -45,19 +45,19 @@
       "visits": 36
     },
     {
-      "path": "/",
-      "pageviews": 32,
-      "visits": 32
+      "path": "/realestate/",
+      "pageviews": 30,
+      "visits": 30
     },
     {
-      "path": "/realestate/",
-      "pageviews": 27,
-      "visits": 27
+      "path": "/",
+      "pageviews": 30,
+      "visits": 30
     },
     {
       "path": "/listed-companies/",
-      "pageviews": 23,
-      "visits": 23
+      "pageviews": 21,
+      "visits": 21
     },
     {
       "path": "/listed-companies/compare/",
@@ -65,29 +65,19 @@
       "visits": 4
     },
     {
+      "path": "/regional/",
+      "pageviews": 6,
+      "visits": 6
+    },
+    {
       "path": "/procurement/years/2024/technologies/network/",
-      "pageviews": 7,
+      "pageviews": 6,
       "visits": 0
     },
     {
-      "path": "/regional/",
-      "pageviews": 4,
-      "visits": 4
-    },
-    {
       "path": "/regional/projections/",
-      "pageviews": 3,
-      "visits": 3
-    },
-    {
-      "path": "/energy/prefectures/%E5%A4%A7%E9%98%AA%E5%BA%9C/",
-      "pageviews": 2,
-      "visits": 2
-    },
-    {
-      "path": "/procurement/years/2026/",
-      "pageviews": 2,
-      "visits": 2
+      "pageviews": 5,
+      "visits": 5
     },
     {
       "path": "/economy-prices/indicators/housing/",
@@ -95,37 +85,22 @@
       "visits": 0
     },
     {
-      "path": "/economy-prices/prefectures/%E6%84%9B%E5%AA%9B%E7%9C%8C/",
-      "pageviews": 1,
-      "visits": 0
+      "path": "/procurement/years/2026/",
+      "pageviews": 2,
+      "visits": 2
     },
     {
-      "path": "/procurement/years/2025/markets/facility-management/",
-      "pageviews": 1,
-      "visits": 1
+      "path": "/energy/prefectures/%E5%A4%A7%E9%98%AA%E5%BA%9C/",
+      "pageviews": 2,
+      "visits": 2
     },
     {
-      "path": "/procurement/years/2026/markets/research-consulting/",
-      "pageviews": 1,
-      "visits": 1
-    },
-    {
-      "path": "/procurement/markets/facility-management/",
+      "path": "/procurement/years/2025/markets/construction/",
       "pageviews": 1,
       "visits": 1
     },
     {
-      "path": "/economy-prices/prefectures/%E7%A7%8B%E7%94%B0%E7%9C%8C/",
-      "pageviews": 1,
-      "visits": 1
-    },
-    {
-      "path": "/topics",
-      "pageviews": 1,
-      "visits": 1
-    },
-    {
-      "path": "/employment-economy/",
+      "path": "/procurement/years/2022/markets/leasing/",
       "pageviews": 1,
       "visits": 1
     },
@@ -135,17 +110,12 @@
       "visits": 1
     },
     {
-      "path": "/employment-economy/prefectures/%E6%A0%83%E6%9C%A8%E7%9C%8C/",
-      "pageviews": 1,
-      "visits": 0
-    },
-    {
-      "path": "/procurement/years/2026/markets/outsourcing-staffing/",
+      "path": "/employment-economy/",
       "pageviews": 1,
       "visits": 1
     },
     {
-      "path": "/about-data/",
+      "path": "/economy-prices/prefectures/%E7%A7%8B%E7%94%B0%E7%9C%8C/",
       "pageviews": 1,
       "visits": 1
     },
@@ -155,7 +125,37 @@
       "visits": 1
     },
     {
-      "path": "/procurement/years/2025/markets/construction/",
+      "path": "/procurement/markets/facility-management/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "path": "/employment-economy/prefectures/%E6%A0%83%E6%9C%A8%E7%9C%8C/",
+      "pageviews": 1,
+      "visits": 0
+    },
+    {
+      "path": "/about-data/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "path": "/economy-prices/prefectures/%E6%84%9B%E5%AA%9B%E7%9C%8C/",
+      "pageviews": 1,
+      "visits": 0
+    },
+    {
+      "path": "/procurement/years/2026/markets/outsourcing-staffing/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "path": "/procurement/years/2025/markets/facility-management/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "path": "/topics",
       "pageviews": 1,
       "visits": 1
     }
@@ -163,13 +163,13 @@
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 1418,
+      "pageviews": 1440,
       "visits": 0
     },
     {
       "host": "www.bing.com",
-      "pageviews": 19,
-      "visits": 19
+      "pageviews": 21,
+      "visits": 21
     },
     {
       "host": "www.google.com",
@@ -180,8 +180,8 @@
   "daily": [
     {
       "date": "2026-11-01",
-      "pageviews": 179,
-      "visits": 46
+      "pageviews": 3,
+      "visits": 3
     },
     {
       "date": "2026-11-02",
@@ -210,8 +210,13 @@
     },
     {
       "date": "2026-11-07",
-      "pageviews": 215,
-      "visits": 60
+      "pageviews": 414,
+      "visits": 115
+    },
+    {
+      "date": "2026-11-08",
+      "pageviews": 14,
+      "visits": 3
     }
   ],
   "history": [
@@ -382,8 +387,13 @@
     },
     {
       "date": "2026-11-07",
-      "pageviews": 215,
-      "visits": 60
+      "pageviews": 414,
+      "visits": 115
+    },
+    {
+      "date": "2026-11-08",
+      "pageviews": 14,
+      "visits": 3
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
