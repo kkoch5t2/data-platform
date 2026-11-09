@@ -169,19 +169,19 @@
     "yokohama_procurement": {
       "label": "横浜市 入札公告・契約結果",
       "status": "ok",
-      "startedAt": "2026-11-08T21:18:13.880058+00:00",
-      "finishedAt": "2026-11-08T22:00:43.994470+00:00",
-      "durationSeconds": 2550.11,
+      "startedAt": "2026-11-09T21:18:29.963098+00:00",
+      "finishedAt": "2026-11-09T21:54:09.377502+00:00",
+      "durationSeconds": 2139.41,
       "metrics": {
         "records": 4563,
         "added": 0,
         "duplicates": 4563,
         "bulletins": 45,
         "years": 1,
-        "resultRows": 3754,
-        "resultAdded": 0,
-        "resultUpdated": 3754,
-        "resultAmounts": 3754,
+        "resultRows": 3774,
+        "resultAdded": 15,
+        "resultUpdated": 3759,
+        "resultAmounts": 3774,
         "resultPages": 80,
         "resultNoAward": 200
       },
@@ -204,9 +204,9 @@
     "sapporo_procurement": {
       "label": "札幌市 入札等結果一覧",
       "status": "ok",
-      "startedAt": "2026-11-08T22:00:44.135905+00:00",
-      "finishedAt": "2026-11-08T22:01:47.929898+00:00",
-      "durationSeconds": 63.79,
+      "startedAt": "2026-11-09T21:54:09.529360+00:00",
+      "finishedAt": "2026-11-09T21:55:12.553468+00:00",
+      "durationSeconds": 63.02,
       "metrics": {
         "records": 763,
         "upserted": 763,
@@ -219,12 +219,12 @@
     "fukuoka_procurement": {
       "label": "福岡市 財政局契約課 入札結果",
       "status": "ok",
-      "startedAt": "2026-11-08T22:02:59.756384+00:00",
-      "finishedAt": "2026-11-08T22:04:19.704531+00:00",
-      "durationSeconds": 79.95,
+      "startedAt": "2026-11-09T21:56:23.854261+00:00",
+      "finishedAt": "2026-11-09T21:57:36.351479+00:00",
+      "durationSeconds": 72.5,
       "metrics": {
-        "records": 3469,
-        "upserted": 3469,
+        "records": 3473,
+        "upserted": 3473,
         "years": 1,
         "startYear": 2026,
         "endYear": 2026
@@ -250,32 +250,32 @@
     "chiba_procurement": {
       "label": "千葉市 入札（見積）結果",
       "status": "ok",
-      "startedAt": "2026-11-08T22:04:19.851116+00:00",
-      "finishedAt": "2026-11-08T22:05:26.636313+00:00",
-      "durationSeconds": 66.79,
+      "startedAt": "2026-11-09T21:57:36.490355+00:00",
+      "finishedAt": "2026-11-09T21:58:45.773010+00:00",
+      "durationSeconds": 69.28,
       "metrics": {
-        "records": 477,
-        "upserted": 477,
+        "records": 480,
+        "upserted": 480,
         "pages": 40,
         "duplicatesRemoved": 7,
         "startDate": "2023-10-19",
-        "endDate": "2026-11-05"
+        "endDate": "2026-11-06"
       },
       "previousRecordCount": 477
     },
     "kyoto_procurement": {
       "label": "京都市 電子入札執行結果",
       "status": "ok",
-      "startedAt": "2026-11-08T22:05:26.772307+00:00",
-      "finishedAt": "2026-11-08T22:06:34.503153+00:00",
-      "durationSeconds": 67.73,
+      "startedAt": "2026-11-09T21:58:45.911839+00:00",
+      "finishedAt": "2026-11-09T22:00:03.559031+00:00",
+      "durationSeconds": 77.65,
       "metrics": {
-        "records": 1666,
-        "upserted": 1666,
+        "records": 1673,
+        "upserted": 1673,
         "pages": 14,
         "unavailablePages": 0,
         "startDate": "2026-01-06",
-        "endDate": "2026-11-05"
+        "endDate": "2026-11-06"
       },
       "previousRecordCount": 1666
     },
@@ -341,25 +341,25 @@
     "geps_awards": {
       "label": "調達ポータル 落札実績オープンデータ",
       "status": "ok",
-      "startedAt": "2026-11-08T21:15:12.790764+00:00",
-      "finishedAt": "2026-11-08T21:16:05.032633+00:00",
-      "durationSeconds": 52.24,
+      "startedAt": "2026-11-09T21:15:12.290747+00:00",
+      "finishedAt": "2026-11-09T21:16:11.088071+00:00",
+      "durationSeconds": 58.8,
       "metrics": {
         "records": 316168,
         "fetched": 51031,
-        "removedStale": 10,
+        "removedStale": 0,
         "years": 2,
         "firstDate": "2025-04-01",
         "lastDate": "2026-11-06"
       },
-      "previousRecordCount": 315951
+      "previousRecordCount": 316168
     },
     "kawasaki_procurement": {
       "label": "川崎市 入札情報・落札結果",
       "status": "ok",
-      "startedAt": "2026-11-08T22:06:34.649264+00:00",
-      "finishedAt": "2026-11-08T22:07:51.832890+00:00",
-      "durationSeconds": 77.18,
+      "startedAt": "2026-11-09T22:00:03.708750+00:00",
+      "finishedAt": "2026-11-09T22:01:18.451520+00:00",
+      "durationSeconds": 74.74,
       "metrics": {
         "records": 264,
         "upserted": 264,
@@ -379,12 +379,12 @@
     "sendai_procurement": {
       "label": "仙台市 入札・契約結果 / 本庁契約課発注情報",
       "status": "ok",
-      "startedAt": "2026-11-08T22:07:53.304489+00:00",
-      "finishedAt": "2026-11-08T22:10:07.128780+00:00",
-      "durationSeconds": 133.82,
+      "startedAt": "2026-11-09T22:01:18.974751+00:00",
+      "finishedAt": "2026-11-09T22:03:00.390566+00:00",
+      "durationSeconds": 101.42,
       "metrics": {
-        "records": 1900,
-        "upserted": 1900,
+        "records": 1904,
+        "upserted": 1904,
         "cancelled": 1,
         "legacyDeduped": 0,
         "years": 1,
@@ -413,14 +413,14 @@
     "shokuba": {
       "label": "厚生労働省 しょくばらぼ",
       "status": "ok",
-      "startedAt": "2026-11-08T22:12:09.946951+00:00",
-      "finishedAt": "2026-11-08T22:12:38.930101+00:00",
-      "durationSeconds": 28.98,
+      "startedAt": "2026-11-09T22:05:06.935238+00:00",
+      "finishedAt": "2026-11-09T22:05:33.288268+00:00",
+      "durationSeconds": 26.35,
       "metrics": {
         "records": 155328,
         "usableCompanies": 22809,
-        "sourceDate": "2026-11-08",
-        "sha256": "73b13ba75a1712d98484e3ed87b21312b62a247b61240b261e1b69086523012f"
+        "sourceDate": "2026-11-09",
+        "sha256": "a1374e852a99bcb3953793e6368ac99ae0f1dbcf673763238760297604f0c4b1"
       },
       "previousRecordCount": 155328
     },
