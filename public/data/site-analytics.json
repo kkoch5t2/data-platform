@@ -1,63 +1,63 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-11-09T22:06:49Z",
+  "generatedAt": "2026-11-10T21:45:42Z",
   "range": {
     "days": 7,
-    "start": "2026-11-02T22:06:49Z",
-    "end": "2026-11-09T22:06:49Z"
+    "start": "2026-11-03T21:45:42Z",
+    "end": "2026-11-10T21:45:42Z"
   },
-  "pageviews": 1855,
-  "visits": 464,
+  "pageviews": 2062,
+  "visits": 524,
   "topPages": [
     {
       "path": "/transport/",
-      "pageviews": 894,
-      "visits": 160
+      "pageviews": 993,
+      "visits": 181
     },
     {
       "path": "/procurement/",
-      "pageviews": 276,
-      "visits": 22
+      "pageviews": 308,
+      "visits": 26
     },
     {
       "path": "/regional/weather/",
-      "pageviews": 175,
-      "visits": 34
+      "pageviews": 201,
+      "visits": 39
     },
     {
       "path": "/regional/stays/",
-      "pageviews": 163,
-      "visits": 51
+      "pageviews": 179,
+      "visits": 57
     },
     {
       "path": "/economy-prices/",
-      "pageviews": 149,
-      "visits": 14
+      "pageviews": 159,
+      "visits": 16
     },
     {
       "path": "/unlisted-companies/",
-      "pageviews": 38,
-      "visits": 38
+      "pageviews": 41,
+      "visits": 41
     },
     {
       "path": "/topics/",
+      "pageviews": 41,
+      "visits": 41
+    },
+    {
+      "path": "/realestate/",
       "pageviews": 35,
       "visits": 35
     },
     {
-      "path": "/realestate/",
-      "pageviews": 30,
-      "visits": 30
-    },
-    {
       "path": "/",
-      "pageviews": 27,
-      "visits": 27
+      "pageviews": 29,
+      "visits": 29
     },
     {
       "path": "/listed-companies/",
-      "pageviews": 23,
-      "visits": 23
+      "pageviews": 24,
+      "visits": 24
     },
     {
       "path": "/listed-companies/compare/",
@@ -66,22 +66,17 @@
     },
     {
       "path": "/regional/",
-      "pageviews": 8,
-      "visits": 8
+      "pageviews": 10,
+      "visits": 10
     },
     {
       "path": "/regional/projections/",
-      "pageviews": 7,
-      "visits": 7
+      "pageviews": 9,
+      "visits": 9
     },
     {
       "path": "/procurement/years/2024/technologies/network/",
       "pageviews": 6,
-      "visits": 0
-    },
-    {
-      "path": "/economy-prices/indicators/housing/",
-      "pageviews": 2,
       "visits": 0
     },
     {
@@ -90,12 +85,27 @@
       "visits": 2
     },
     {
+      "path": "/economy-prices/indicators/housing/",
+      "pageviews": 2,
+      "visits": 0
+    },
+    {
       "path": "/procurement/years/2026/",
       "pageviews": 2,
       "visits": 2
     },
     {
+      "path": "/about-data/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
       "path": "/procurement/years/2025/markets/it-digital/",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
+      "path": "/procurement/years/2026/markets/outsourcing-staffing/",
       "pageviews": 1,
       "visits": 1
     },
@@ -115,12 +125,7 @@
       "visits": 1
     },
     {
-      "path": "/about-data/",
-      "pageviews": 1,
-      "visits": 1
-    },
-    {
-      "path": "/procurement/years/2026/markets/outsourcing-staffing/",
+      "path": "/procurement/years/2024/markets/construction/",
       "pageviews": 1,
       "visits": 1
     },
@@ -133,13 +138,13 @@
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 1393,
+      "pageviews": 1538,
       "visits": 0
     },
     {
       "host": "www.bing.com",
-      "pageviews": 15,
-      "visits": 15
+      "pageviews": 13,
+      "visits": 13
     },
     {
       "host": "www.google.com",
@@ -150,8 +155,8 @@
   "daily": [
     {
       "date": "2026-11-03",
-      "pageviews": 175,
-      "visits": 45
+      "pageviews": 2,
+      "visits": 2
     },
     {
       "date": "2026-11-04",
@@ -160,7 +165,7 @@
     },
     {
       "date": "2026-11-05",
-      "pageviews": 180,
+      "pageviews": 182,
       "visits": 39
     },
     {
@@ -180,8 +185,13 @@
     },
     {
       "date": "2026-11-09",
-      "pageviews": 10,
-      "visits": 9
+      "pageviews": 209,
+      "visits": 67
+    },
+    {
+      "date": "2026-11-10",
+      "pageviews": 179,
+      "visits": 45
     }
   ],
   "history": [
@@ -342,7 +352,7 @@
     },
     {
       "date": "2026-11-05",
-      "pageviews": 180,
+      "pageviews": 182,
       "visits": 39
     },
     {
@@ -362,8 +372,13 @@
     },
     {
       "date": "2026-11-09",
-      "pageviews": 10,
-      "visits": 9
+      "pageviews": 209,
+      "visits": 67
+    },
+    {
+      "date": "2026-11-10",
+      "pageviews": 179,
+      "visits": 45
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
