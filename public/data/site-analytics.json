@@ -1,63 +1,63 @@
 {
   "host": "datlume.com",
-  "generatedAt": "2026-11-10T21:45:42Z",
+  "generatedAt": "2026-11-11T21:59:30Z",
   "range": {
     "days": 7,
-    "start": "2026-11-03T21:45:42Z",
-    "end": "2026-11-10T21:45:42Z"
+    "start": "2026-11-04T21:59:30Z",
+    "end": "2026-11-11T21:59:30Z"
   },
-  "pageviews": 2062,
-  "visits": 524,
+  "pageviews": 2181,
+  "visits": 578,
   "topPages": [
     {
       "path": "/transport/",
-      "pageviews": 993,
-      "visits": 181
+      "pageviews": 1110,
+      "visits": 202
     },
     {
       "path": "/procurement/",
-      "pageviews": 308,
-      "visits": 26
+      "pageviews": 338,
+      "visits": 27
     },
     {
       "path": "/regional/weather/",
-      "pageviews": 201,
-      "visits": 39
+      "pageviews": 226,
+      "visits": 46
     },
     {
       "path": "/regional/stays/",
-      "pageviews": 179,
-      "visits": 57
+      "pageviews": 199,
+      "visits": 66
     },
     {
       "path": "/economy-prices/",
-      "pageviews": 159,
+      "pageviews": 70,
       "visits": 16
     },
     {
       "path": "/unlisted-companies/",
-      "pageviews": 41,
-      "visits": 41
+      "pageviews": 45,
+      "visits": 45
     },
     {
       "path": "/topics/",
-      "pageviews": 41,
-      "visits": 41
+      "pageviews": 42,
+      "visits": 42
     },
     {
       "path": "/realestate/",
-      "pageviews": 35,
-      "visits": 35
+      "pageviews": 38,
+      "visits": 38
     },
     {
       "path": "/",
-      "pageviews": 29,
-      "visits": 29
+      "pageviews": 33,
+      "visits": 33
     },
     {
       "path": "/listed-companies/",
-      "pageviews": 24,
-      "visits": 24
+      "pageviews": 28,
+      "visits": 28
     },
     {
       "path": "/listed-companies/compare/",
@@ -65,14 +65,14 @@
       "visits": 4
     },
     {
-      "path": "/regional/",
+      "path": "/regional/projections/",
       "pageviews": 10,
       "visits": 10
     },
     {
-      "path": "/regional/projections/",
-      "pageviews": 9,
-      "visits": 9
+      "path": "/regional/",
+      "pageviews": 10,
+      "visits": 10
     },
     {
       "path": "/procurement/years/2024/technologies/network/",
@@ -90,11 +90,6 @@
       "visits": 0
     },
     {
-      "path": "/procurement/years/2026/",
-      "pageviews": 2,
-      "visits": 2
-    },
-    {
       "path": "/about-data/",
       "pageviews": 1,
       "visits": 1
@@ -105,7 +100,7 @@
       "visits": 1
     },
     {
-      "path": "/procurement/years/2026/markets/outsourcing-staffing/",
+      "path": "/procurement/years/2026/",
       "pageviews": 1,
       "visits": 1
     },
@@ -125,6 +120,11 @@
       "visits": 1
     },
     {
+      "path": "/regional",
+      "pageviews": 1,
+      "visits": 1
+    },
+    {
       "path": "/procurement/years/2024/markets/construction/",
       "pageviews": 1,
       "visits": 1
@@ -138,30 +138,25 @@
   "topReferrers": [
     {
       "host": "datlume.com",
-      "pageviews": 1538,
+      "pageviews": 1603,
       "visits": 0
     },
     {
       "host": "www.bing.com",
-      "pageviews": 13,
-      "visits": 13
+      "pageviews": 10,
+      "visits": 10
     },
     {
       "host": "www.google.com",
-      "pageviews": 2,
-      "visits": 2
+      "pageviews": 1,
+      "visits": 1
     }
   ],
   "daily": [
     {
-      "date": "2026-11-03",
+      "date": "2026-11-04",
       "pageviews": 2,
       "visits": 2
-    },
-    {
-      "date": "2026-11-04",
-      "pageviews": 251,
-      "visits": 43
     },
     {
       "date": "2026-11-05",
@@ -190,8 +185,13 @@
     },
     {
       "date": "2026-11-10",
-      "pageviews": 179,
-      "visits": 45
+      "pageviews": 375,
+      "visits": 101
+    },
+    {
+      "date": "2026-11-11",
+      "pageviews": 174,
+      "visits": 41
     }
   ],
   "history": [
@@ -377,8 +377,13 @@
     },
     {
       "date": "2026-11-10",
-      "pageviews": 179,
-      "visits": 45
+      "pageviews": 375,
+      "visits": 101
+    },
+    {
+      "date": "2026-11-11",
+      "pageviews": 174,
+      "visits": 41
     }
   ],
   "measurement": "Cloudflare Web Analytics (RUM)",
