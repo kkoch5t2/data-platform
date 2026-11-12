@@ -396,17 +396,17 @@
     "wikipedia_topics": {
       "label": "Wikimedia Analytics API 日本語版Wikipedia Pageviews",
       "status": "ok",
-      "startedAt": "2026-11-11T05:15:05.998141+00:00",
-      "finishedAt": "2026-11-11T05:15:36.786185+00:00",
-      "durationSeconds": 30.79,
+      "startedAt": "2026-11-12T05:15:05.796347+00:00",
+      "finishedAt": "2026-11-12T05:15:39.027313+00:00",
+      "durationSeconds": 33.23,
       "metrics": {
         "records": 100,
         "sourceArticles": 994,
         "windowDays": 14,
-        "latestDate": "2026-11-10",
-        "categories": 12,
-        "newsLinked": 11,
-        "youtubeMatched": 8
+        "latestDate": "2026-11-11",
+        "categories": 13,
+        "newsLinked": 12,
+        "youtubeMatched": 7
       },
       "previousRecordCount": 100
     },
