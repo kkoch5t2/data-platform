@@ -169,21 +169,21 @@
     "yokohama_procurement": {
       "label": "横浜市 入札公告・契約結果",
       "status": "ok",
-      "startedAt": "2026-11-11T21:18:12.949340+00:00",
-      "finishedAt": "2026-11-11T21:46:28.603925+00:00",
-      "durationSeconds": 1695.65,
+      "startedAt": "2026-11-12T21:18:11.710082+00:00",
+      "finishedAt": "2026-11-12T21:53:43.619905+00:00",
+      "durationSeconds": 2131.91,
       "metrics": {
         "records": 4621,
         "added": 0,
         "duplicates": 4621,
         "bulletins": 46,
         "years": 1,
-        "resultRows": 3836,
-        "resultAdded": 42,
-        "resultUpdated": 3794,
-        "resultAmounts": 3836,
-        "resultPages": 81,
-        "resultNoAward": 202
+        "resultRows": 3849,
+        "resultAdded": 13,
+        "resultUpdated": 3836,
+        "resultAmounts": 3849,
+        "resultPages": 82,
+        "resultNoAward": 203
       },
       "previousRecordCount": 4621
     },
@@ -219,17 +219,17 @@
     "fukuoka_procurement": {
       "label": "福岡市 財政局契約課 入札結果",
       "status": "ok",
-      "startedAt": "2026-11-11T21:48:53.867510+00:00",
-      "finishedAt": "2026-11-11T21:50:31.078246+00:00",
-      "durationSeconds": 97.21,
+      "startedAt": "2026-11-12T21:56:04.173082+00:00",
+      "finishedAt": "2026-11-12T21:57:25.018372+00:00",
+      "durationSeconds": 80.85,
       "metrics": {
-        "records": 3545,
-        "upserted": 3545,
+        "records": 3579,
+        "upserted": 3579,
         "years": 1,
         "startYear": 2026,
         "endYear": 2026
       },
-      "previousRecordCount": 3523
+      "previousRecordCount": 3545
     },
     "kobe_procurement": {
       "label": "神戸市 入札結果",
@@ -250,12 +250,12 @@
     "chiba_procurement": {
       "label": "千葉市 入札（見積）結果",
       "status": "ok",
-      "startedAt": "2026-11-11T21:50:31.221610+00:00",
-      "finishedAt": "2026-11-11T21:51:38.521313+00:00",
-      "durationSeconds": 67.3,
+      "startedAt": "2026-11-12T21:57:25.155882+00:00",
+      "finishedAt": "2026-11-12T21:58:31.803497+00:00",
+      "durationSeconds": 66.65,
       "metrics": {
-        "records": 480,
-        "upserted": 480,
+        "records": 481,
+        "upserted": 481,
         "pages": 40,
         "duplicatesRemoved": 7,
         "startDate": "2023-10-19",
@@ -266,18 +266,18 @@
     "kyoto_procurement": {
       "label": "京都市 電子入札執行結果",
       "status": "ok",
-      "startedAt": "2026-11-11T21:51:38.662313+00:00",
-      "finishedAt": "2026-11-11T21:52:46.563551+00:00",
-      "durationSeconds": 67.9,
+      "startedAt": "2026-11-12T21:58:31.939594+00:00",
+      "finishedAt": "2026-11-12T21:59:48.287987+00:00",
+      "durationSeconds": 76.35,
       "metrics": {
-        "records": 1684,
-        "upserted": 1684,
+        "records": 1691,
+        "upserted": 1691,
         "pages": 14,
         "unavailablePages": 0,
         "startDate": "2026-01-06",
-        "endDate": "2026-11-10"
+        "endDate": "2026-11-11"
       },
-      "previousRecordCount": 1676
+      "previousRecordCount": 1684
     },
     "social_population": {
       "label": "e-Stat 統計ダッシュボード（社会・人口統計体系）",
@@ -341,9 +341,9 @@
     "geps_awards": {
       "label": "調達ポータル 落札実績オープンデータ",
       "status": "ok",
-      "startedAt": "2026-11-11T21:15:11.670925+00:00",
-      "finishedAt": "2026-11-11T21:16:07.116096+00:00",
-      "durationSeconds": 55.45,
+      "startedAt": "2026-11-12T21:15:12.381499+00:00",
+      "finishedAt": "2026-11-12T21:16:05.977516+00:00",
+      "durationSeconds": 53.6,
       "metrics": {
         "records": 316281,
         "fetched": 51144,
@@ -357,14 +357,14 @@
     "kawasaki_procurement": {
       "label": "川崎市 入札情報・落札結果",
       "status": "ok",
-      "startedAt": "2026-11-11T21:52:46.715815+00:00",
-      "finishedAt": "2026-11-11T21:54:15.542314+00:00",
-      "durationSeconds": 88.83,
+      "startedAt": "2026-11-12T21:59:48.437441+00:00",
+      "finishedAt": "2026-11-12T22:01:19.320794+00:00",
+      "durationSeconds": 90.88,
       "metrics": {
-        "records": 268,
-        "upserted": 268,
+        "records": 269,
+        "upserted": 269,
         "requests": 0,
-        "trafficRecords": 119,
+        "trafficRecords": 120,
         "hospitalRecords": 149,
         "epcUnavailable": 1,
         "epcErrors": [
@@ -374,24 +374,24 @@
         "startYear": 2026,
         "endYear": 2026
       },
-      "previousRecordCount": 264
+      "previousRecordCount": 268
     },
     "sendai_procurement": {
       "label": "仙台市 入札・契約結果 / 本庁契約課発注情報",
       "status": "ok",
-      "startedAt": "2026-11-11T21:54:16.062565+00:00",
-      "finishedAt": "2026-11-11T21:55:39.669874+00:00",
-      "durationSeconds": 83.61,
+      "startedAt": "2026-11-12T22:01:20.205733+00:00",
+      "finishedAt": "2026-11-12T22:02:52.883965+00:00",
+      "durationSeconds": 92.68,
       "metrics": {
-        "records": 1913,
-        "upserted": 1913,
+        "records": 1914,
+        "upserted": 1914,
         "cancelled": 1,
         "legacyDeduped": 0,
         "years": 1,
         "startYear": 2026,
         "endYear": 2026
       },
-      "previousRecordCount": 1911
+      "previousRecordCount": 1913
     },
     "wikipedia_topics": {
       "label": "Wikimedia Analytics API 日本語版Wikipedia Pageviews",
@@ -413,16 +413,16 @@
     "shokuba": {
       "label": "厚生労働省 しょくばらぼ",
       "status": "ok",
-      "startedAt": "2026-11-11T21:57:39.057547+00:00",
-      "finishedAt": "2026-11-11T21:58:13.891924+00:00",
-      "durationSeconds": 34.83,
+      "startedAt": "2026-11-12T22:04:55.113482+00:00",
+      "finishedAt": "2026-11-12T22:05:20.528462+00:00",
+      "durationSeconds": 25.41,
       "metrics": {
-        "records": 155343,
-        "usableCompanies": 22817,
-        "sourceDate": "2026-11-11",
-        "sha256": "9b08614a4a1bc327ed361f0ab89ab8e07f7f2632646bb2923d756184e6f76e81"
+        "records": 155353,
+        "usableCompanies": 22820,
+        "sourceDate": "2026-11-12",
+        "sha256": "36b60125adcf2583d416cf40122ebeafec74bc4eff579112a989270fbb884878"
       },
-      "previousRecordCount": 155338
+      "previousRecordCount": 155343
     },
     "ipss_population": {
       "label": "社人研 地域別将来推計人口（2023年推計）",
