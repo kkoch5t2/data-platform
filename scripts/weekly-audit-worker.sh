@@ -2,7 +2,7 @@
 # Runs only inside an isolated workspace owned by scheduled-refresh.py.
 set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH"
+export PATH="$HOME/.nvm/versions/node/v22.23.5/bin:$PATH"
 cd "$ROOT"
 run_step() { echo "--- step: $1 ---"; shift; "$@"; }
 run_step "listed-salary-validation" npm run validate:listed-salary
