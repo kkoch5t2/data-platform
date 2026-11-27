@@ -4,7 +4,7 @@
 
 ## 1. 運用環境
 - Ubuntu 正本: `$HOME/Sites/public-market-data`
-- Node.js: 22系
+- Node.js: Astro 7.4.13 の実行には 22.23.4 以上が必要。Ubuntu の自動更新・監査・デプロイでは NVM の 22.23.5 を使用するため、適用前に `nvm install 22.23.5` を実行する。
 - デプロイ先: Cloudflare Pages project `datlume`
 - 本番: `https://datlume.com/`
 - コード正本: GitHub `main`

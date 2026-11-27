@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
-export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH"
+export PATH="$HOME/.nvm/versions/node/v22.23.5/bin:$PATH"
 STATE_DIR="$ROOT/data/automation"
 RELEASE_LOCK="$STATE_DIR/release.lock"
 mkdir -p "$STATE_DIR"

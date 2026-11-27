@@ -58,7 +58,7 @@ Webアクセス時にEDINETやJETRO等の外部APIへ問い合わせる設計で
 - Python 3
 - SQLite
 - Playwright
-- Node.js 22+
+- Node.js 22.23.4+
 - Cloudflare Pages / Pages Functions
 
 ## データ方針

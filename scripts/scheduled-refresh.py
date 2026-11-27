@@ -110,7 +110,7 @@ class Refresh:
         runtime = self.root / '.venv/bin'
         if (runtime / 'python3').exists():
             self.env['PATH'] = str(runtime) + ':' + self.env['PATH']
-        self.env['PATH'] = str(Path.home() / '.nvm/versions/node/v22.23.2/bin') + ':' + self.env['PATH']
+        self.env['PATH'] = str(Path.home() / '.nvm/versions/node/v22.23.5/bin') + ':' + self.env['PATH']
 
     def git(self, *args, cwd=None, check=True):
         r = subprocess.run(['git', *args], cwd=cwd or self.root, capture_output=True, check=check)
