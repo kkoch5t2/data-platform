@@ -113,7 +113,13 @@ def main() -> int:
         if not category.get("key") or not category.get("label"):
             fail(f"weekly category missing for {row.get('article')}")
 
-    checked_reasons = [row.get("reason") for row in rising if row.get("reason")]
+    # News enrichment also fills unused rising slots with new top-20 entries.
+    # Top is the canonical unique article list; rising repeats a subset.
+    top_by_article = {row["article"]: row for row in top}
+    for row in rising:
+        if row.get("reason") != top_by_article[row["article"]].get("reason"):
+            fail(f"rising news reason differs from top: {row['article']}")
+    checked_reasons = [row["reason"] for row in top if row.get("reason")]
     for reason in checked_reasons:
         if reason.get("status") not in {"candidate", "unconfirmed", "unavailable"}:
             fail(f"invalid news reason status: {reason.get('status')}")
@@ -176,6 +182,8 @@ def main() -> int:
         fail("summary latestTop100Views mismatch")
     if summary.get("categoryCount") != len(categories):
         fail("summary categoryCount mismatch")
+    if summary.get("newsCheckedCount") != len(checked_reasons):
+        fail(f"summary newsCheckedCount mismatch: {summary.get('newsCheckedCount')} != {len(checked_reasons)}")
     linked = sum(1 for reason in checked_reasons if reason.get("status") == "candidate")
     if summary.get("newsLinkedCount") != linked:
         fail(f"summary newsLinkedCount mismatch: {summary.get('newsLinkedCount')} != {linked}")

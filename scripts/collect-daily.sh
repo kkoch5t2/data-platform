@@ -33,6 +33,7 @@ run_step() {
     shokuba-workplace) rm -f "$STEP_DIR/shokuba-health" ;;
     weekly-reinfolib-transactions) rm -f "$STEP_DIR/weekly-reinfolib-health" ;;
     monthly-public-transport) rm -f "$STEP_DIR/monthly-public-transport-audit" "$STEP_DIR/monthly-public-transport-health" ;;
+    monthly-agriculture-output) rm -f "$STEP_DIR/monthly-agriculture-output-audit" "$STEP_DIR/monthly-agriculture-output-health" ;;
     monthly-jma-weather) rm -f "$STEP_DIR/monthly-jma-weather-audit" "$STEP_DIR/monthly-jma-weather-health" ;;
     monthly-*) rm -f "$STEP_DIR/$CURRENT_STEP-health" ;;
   esac
@@ -354,6 +355,16 @@ if [[ ! -f "$TRANSPORT_MARKER" ]] || ! grep -qx "$MONTH" "$TRANSPORT_MARKER"; th
       printf '%s\n' "$MONTH" > "$TRANSPORT_MARKER"
     fi
   fi
+fi
+
+# Agriculture is registered as monthly; refresh the official workbook even
+# when other monthly sources have already completed.
+AGRICULTURE_MARKER="$STATE_DIR/last-agriculture-output-refresh"
+if [[ ! -f "$AGRICULTURE_MARKER" ]] || ! grep -qx "$MONTH" "$AGRICULTURE_MARKER"; then
+  run_step "monthly-agriculture-output" python3 collector/collect_agriculture_output.py --refresh
+  run_step "monthly-agriculture-output-audit" npm run audit:agriculture-output
+  run_step "monthly-agriculture-output-health" python3 collector/check_health.py --source agriculture_output
+  printf '%s\n' "$MONTH" > "$AGRICULTURE_MARKER"
 fi
 
 JMA_MARKER="$STATE_DIR/last-jma-weather-refresh"

@@ -21,12 +21,13 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 MARKERS = ('last-success-date', 'last-listed-master-refresh', 'last-monthly-refresh',
            'last-monthly-secondary-refresh', 'last-ipss-population-refresh',
-           'last-gbiz-activity-refresh', 'last-lodging-statistics-refresh', 'last-jma-weather-refresh', 'last-public-transport-refresh', 'last-reinfolib-check')
+           'last-gbiz-activity-refresh', 'last-lodging-statistics-refresh', 'last-jma-weather-refresh', 'last-public-transport-refresh', 'last-reinfolib-check',
+           'last-agriculture-output-refresh')
 SUCCESS = {'daily': 'last-success-date', 'topics': 'last-wikipedia-success-date',
            'weekly': 'last-weekly-success-date'}
 LOCKS = {'daily': 'daily-refresh.lock', 'topics': 'wikipedia-topics-refresh.lock',
          'weekly': 'weekly-audit.lock'}
-RUNTIME_PATTERNS = ('data/raw/shokuba/workplace.sqlite', 'data/raw/listed-companies/normalized/**/*',
+RUNTIME_PATTERNS = ('data/raw/agriculture-output/2024-detail.xlsx', 'data/raw/shokuba/workplace.sqlite', 'data/raw/listed-companies/normalized/**/*',
                     'data/raw/listed-companies/documents-index.json',
                     'data/raw/company-registry/gbiz/Hojokinjoho_UTF-8_*.zip',
                     'data/raw/company-registry/gbiz/Tokkyojoho_UTF-8_*.zip')
