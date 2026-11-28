@@ -362,8 +362,11 @@ fi
 AGRICULTURE_MARKER="$STATE_DIR/last-agriculture-output-refresh"
 if [[ ! -f "$AGRICULTURE_MARKER" ]] || ! grep -qx "$MONTH" "$AGRICULTURE_MARKER"; then
   run_step "monthly-agriculture-output" python3 collector/collect_agriculture_output.py --refresh
-  run_step "monthly-agriculture-output-audit" npm run audit:agriculture-output
-  run_step "monthly-agriculture-output-health" python3 collector/check_health.py --source agriculture_output
+  if ! run_step "monthly-agriculture-output-audit" npm run audit:agriculture-output ||
+     ! run_step "monthly-agriculture-output-health" python3 collector/check_health.py --source agriculture_output; then
+    rm -f "$STEP_DIR/monthly-agriculture-output" "$STEP_DIR/monthly-agriculture-output-audit" "$STEP_DIR/monthly-agriculture-output-health"
+    exit 25
+  fi
   printf '%s\n' "$MONTH" > "$AGRICULTURE_MARKER"
 fi
 

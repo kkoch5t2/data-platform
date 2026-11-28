@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 import fcntl
 import importlib.util
 import json
@@ -27,10 +27,11 @@ SUCCESS = {'daily': 'last-success-date', 'topics': 'last-wikipedia-success-date'
            'weekly': 'last-weekly-success-date'}
 LOCKS = {'daily': 'daily-refresh.lock', 'topics': 'wikipedia-topics-refresh.lock',
          'weekly': 'weekly-audit.lock'}
-RUNTIME_PATTERNS = ('data/raw/agriculture-output/2024-detail.xlsx', 'data/raw/shokuba/workplace.sqlite', 'data/raw/listed-companies/normalized/**/*',
+LEGACY_RUNTIME_PATTERNS = ('data/raw/shokuba/workplace.sqlite', 'data/raw/listed-companies/normalized/**/*',
                     'data/raw/listed-companies/documents-index.json',
                     'data/raw/company-registry/gbiz/Hojokinjoho_UTF-8_*.zip',
                     'data/raw/company-registry/gbiz/Tokkyojoho_UTF-8_*.zip')
+RUNTIME_PATTERNS = (*LEGACY_RUNTIME_PATTERNS, 'data/raw/agriculture-output/2024-detail.xlsx')
 ROUTES = '/,/realestate/,/topics/,/procurement/,/regional/stays/,/regional/weather/,/transport/,/listed-companies/,/listed-companies/7203/,/unlisted-companies/'
 
 
@@ -40,6 +41,17 @@ def module(root, name):
     spec.loader.exec_module(result)
     result.ROOT = root
     return result
+
+
+def weekly_due(today, last_success):
+    """Sunday remains the normal audit day; missed Sunday is retried daily."""
+    current = date.fromisoformat(today)
+    sunday = current - timedelta(days=(current.weekday() + 1) % 7)
+    try:
+        last = date.fromisoformat(last_success)
+    except (TypeError, ValueError):
+        return True
+    return not (sunday <= last <= current)
 
 
 def atomic_json(path, value):
@@ -251,8 +263,8 @@ class Refresh:
                 if stale_dates.exists():
                     copy_file(stale_dates, self.markers / 'source-stale-since.json')
 
-    def runtime_files(self):
-        return {p.relative_to(self.root).as_posix(): p for pattern in RUNTIME_PATTERNS
+    def runtime_files(self, patterns=RUNTIME_PATTERNS):
+        return {p.relative_to(self.root).as_posix(): p for pattern in patterns
                 for p in self.root.glob(pattern) if p.is_file()}
 
     def snapshot(self):
@@ -282,6 +294,7 @@ class Refresh:
         atomic_json(self.manifest, {'phase': 'collecting', 'base': self.base,
                                    'day': datetime.now(ZoneInfo('Asia/Tokyo')).date().isoformat(),
                                    'workspace': str(self.workspace), 'runtimeFiles': sorted(records),
+                                   'runtimePatterns': list(RUNTIME_PATTERNS),
                                    'databaseExisted': (self.root / 'data/public_it.db').exists(),
                                    'beforeRecords': json.loads((self.root / 'src/data/summary.json').read_text()).get('records')
                                    if (self.root / 'src/data/summary.json').exists() else None})
@@ -358,7 +371,9 @@ class Refresh:
             if not entry.get('databaseExisted', True):
                 for suffix in ('', '-journal', '-wal', '-shm'):
                     Path(str(self.root / 'data/public_it.db') + suffix).unlink(missing_ok=True)
-            for rel, path in self.runtime_files().items():
+            # Legacy manifests predate agriculture; do not delete files they never tracked.
+            patterns = entry.get('runtimePatterns', LEGACY_RUNTIME_PATTERNS)
+            for rel, path in self.runtime_files(patterns).items():
                 if rel not in entries:
                     path.unlink()
             for rel in entries:
@@ -604,6 +619,12 @@ class Refresh:
                 raise RuntimeError('Scheduled updates are authorized only on the production Ubuntu host')
             if self.job == 'daily' and datetime.now(ZoneInfo('Asia/Tokyo')).hour < 6:
                 return
+            if self.job == 'weekly':
+                success = self.state / SUCCESS['weekly']
+                last = success.read_text().strip() if success.exists() else None
+                if not weekly_due(today, last):
+                    print('SKIP: weekly audit already verified since Sunday', flush=True)
+                    return
         with lock(self.state / LOCKS[self.job], blocking=False) as acquired:
             if not acquired:
                 print(f'SKIP: {self.job} is already running', flush=True)

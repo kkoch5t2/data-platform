@@ -24,7 +24,7 @@
 15 6-13,15-23 * * * $HOME/Sites/public-market-data/scripts/daily-refresh.sh --scheduled >/dev/null 2>&1
 15 14-23 * * * $HOME/Sites/public-market-data/scripts/refresh-wikipedia-topics.sh --scheduled >/dev/null 2>&1
 @reboot /bin/bash -lc 'sleep 120; $HOME/Sites/public-market-data/scripts/daily-refresh.sh --scheduled' >/dev/null 2>&1
-30 3 * * 0 $HOME/Sites/public-market-data/scripts/weekly-audit.sh >/dev/null 2>&1
+30 3 * * * $HOME/Sites/public-market-data/scripts/weekly-audit.sh >/dev/null 2>&1
 ```
 
 ## 3. 日次処理フロー
@@ -79,7 +79,7 @@ python3 scripts/check-gsc-sitemap.py
 GUIブラウザが使える端末での初回認証は `--authorize`。ヘッドレス端末では `--headless-start` で認証URLを発行し、Google同意後のlocalhost callback URLを `--complete-stdin` へ標準入力してtokenを保存する。
 
 ## 4. 週次監査
-`scripts/weekly-audit.sh` は週1回、日次とは別の隔離worktreeで以下を実行する。DBと正規化データを使う間は日次と共通のupdate.lockを保持し、失敗時は復元する。公開用ファイルの生成がGit正本へ未コミット変更を残すことはない。週次監査自体は本番へdeployしない。
+`scripts/weekly-audit.sh` は週1回、日次とは別の隔離worktreeで以下を実行する。DBと正規化データを使う間は日次と共通のupdate.lockを保持し、失敗時は復元する。公開用ファイルの生成がGit正本へ未コミット変更を残すことはない。週次監査自体は本番へdeployしない。通常は日曜03:30に監査し、日次トランザクションの保留などで成功しなかった週は翌日以降03:30に再試行する。日曜以降に成功済みなら収集・監査を再実行せずスキップする。既存の共通排他と8日間の成功監視を維持する。
 - 平均年間給与外れ値検証
 - 主要株主のpresentation補完検証
 - 上場企業正規化データ監査
