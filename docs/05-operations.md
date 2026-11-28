@@ -229,3 +229,5 @@ collect:reinfolib-historyは年×都道府県原本キャッシュから履歴�
 
 ## 農業・食の産地（2026-10-10）
 `.venv/bin/python collector/collect_agriculture_output.py --refresh` で農水省2024年版を再取得し、原本を `data/raw/agriculture-output/`、公開用を `public/data/agriculture-output.json` に生成する。日次処理内の独立月次マーカーで公式原本を再取得し、全セル監査と鮮度検査の成功後にのみ月次完了を記録する。失敗時は公開を止めて再試行し、原本はトランザクションの復元対象とする。新しい年が公開されたときはURL・年度・対象市町村・品目のスキーマ、推計の按分基準、訂正の有無を確認してから更新する。新旧年の市町村合併・推計基準変更を無視した連続グラフは作らない。
+
+札幌市の公式年度一覧PDFの取得には `.venv/bin/python -m pip install -r collector/requirements-sapporo.txt` でPDF表抽出依存を導入する。列・日付・金額・契約同一性の検証に失敗した場合は以前の正常データを保持する。

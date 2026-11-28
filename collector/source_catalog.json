@@ -167,7 +167,7 @@
       "frequency": "daily",
       "maxAgeHours": 48,
       "minRecords": 100,
-      "acquisition": "official-municipal-xlsx",
+      "acquisition": "official-municipal-xlsx-or-pdf",
       "command": [
         "python3",
         "collector/collect_sapporo_procurement.py"
