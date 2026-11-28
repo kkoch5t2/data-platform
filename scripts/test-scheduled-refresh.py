@@ -288,7 +288,7 @@ exit 0
             for name in ('last-monthly-refresh', 'last-monthly-secondary-refresh',
                          'last-ipss-population-refresh', 'last-gbiz-activity-refresh',
                          'last-lodging-statistics-refresh', 'last-jma-weather-refresh',
-                         'last-public-transport-refresh'):
+                         'last-public-transport-refresh', 'last-agriculture-output-refresh'):
                 (markers / name).write_text(month + '\n')
             (markers / 'last-reinfolib-check').write_text(week + '\n')
             log = root / 'calls'
@@ -468,7 +468,7 @@ exit 0
             for name in ('last-monthly-refresh', 'last-monthly-secondary-refresh',
                          'last-ipss-population-refresh', 'last-gbiz-activity-refresh',
                          'last-lodging-statistics-refresh', 'last-jma-weather-refresh',
-                         'last-public-transport-refresh'):
+                         'last-public-transport-refresh', 'last-agriculture-output-refresh'):
                 (markers / name).write_text(month + '\n')
             (markers / 'last-reinfolib-check').write_text(datetime.now().strftime('%G-W%V') + '\n')
             log = root / 'calls'
@@ -657,6 +657,7 @@ with sqlite3.connect(p/'data/public_it.db') as db: db.execute('insert into procu
                                'kawasaki_procurement', 'sendai_procurement'):
                     (root / f'collector/collect_{source}.py').write_text('')
                 (root / 'collector/check_health.py').write_text('raise SystemExit(1)' if failure == 'health' else '')
+                (root / 'data/automation/last-agriculture-output-refresh').write_text(datetime.now().strftime('%Y-%m') + '\n')
                 (root / 'scripts/check-procurement-regression.py').write_text('raise SystemExit(1)' if failure == 'regression' else '')
                 (root / 'collector/collect_land_prices.py').write_text('raise SystemExit(1)')
                 git(root, 'add', 'collector', 'scripts/check-procurement-regression.py'); git(root, 'commit', '-qm', 'worker fixtures'); git(root, 'push', '-q')
