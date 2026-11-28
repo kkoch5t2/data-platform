@@ -14,6 +14,7 @@ EXACT_PATHS = {
     "src/data/procurements.ts",
     "src/data/summary.ts",
     "src/data/sources.json",
+    "public/data/agriculture-output.json",
     "public/data/business-industry-2026.json",
     "public/data/business-industry-history.json",
     "public/data/crime-prefecture-2025.json",

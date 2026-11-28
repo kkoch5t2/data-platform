@@ -181,3 +181,5 @@ test:hazard-tilesとe2e:hazard-tilesは404/200/503/403/通信/不正画像、中
 
 ## サイト統計の集計監査
 `python3 scripts/test-cloudflare-web-analytics.py` は7日間のローリング期間のUTC境界分割、想定外日付の拒否、部分日の履歴上書き防止を検証する。`audit:data` は公開PV・Visitsと日別合計の一致、日付の一意性と非負値を確認する。
+
+話題トピックのニュース監査では急上昇一覧と新規上位記事を含む正本の top から一意に検査・連携件数を数え、急上昇一覧の reason が正本と一致することも検査する。

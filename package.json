@@ -84,6 +84,7 @@
     "audit:jma-weather": "node scripts/run-python.cjs scripts/audit-jma-weather.py",
     "e2e:jma-weather": "node scripts/e2e-jma-weather.cjs",
     "collect:public-transport": "node scripts/run-python.cjs collector/collect_public_transport.py",
+    "e2e:agriculture": "node scripts/e2e-agriculture.cjs",
     "audit:agriculture-output": "node scripts/run-python.cjs scripts/audit-agriculture-output.py",
     "audit:public-transport": "node scripts/run-python.cjs scripts/audit-public-transport.py",
     "e2e:public-transport": "node scripts/e2e-public-transport.cjs",
