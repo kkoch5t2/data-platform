@@ -105,6 +105,30 @@ class SmallRefresh(refresh.Refresh):
 
 
 class Tests(unittest.TestCase):
+    def test_weekly_catchup_keeps_sunday_and_retries_overdue(self):
+        self.assertTrue(refresh.weekly_due('2026-11-22', '2026-11-15'))
+        self.assertTrue(refresh.weekly_due('2026-11-24', '2026-11-15'))
+        self.assertFalse(refresh.weekly_due('2026-11-25', '2026-11-24'))
+        self.assertTrue(refresh.weekly_due('2026-11-29', '2026-11-24'))
+        self.assertTrue(refresh.weekly_due('2026-11-25', None))
+        self.assertTrue(refresh.weekly_due('2026-11-25', 'invalid'))
+
+    def test_legacy_manifest_keeps_newly_tracked_agriculture_raw(self):
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Fixture(directory)
+            runner = SmallRefresh(fixture.root, 'daily')
+            runner.failure = 'release-check'
+            with self.assertRaises(RuntimeError):
+                runner.run()
+            path = fixture.root / 'data/raw/agriculture-output/2024-detail.xlsx'
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b'original workbook')
+            manifest = json.loads(runner.manifest.read_text())
+            manifest.pop('runtimePatterns', None)
+            runner.manifest.write_text(json.dumps(manifest))
+            runner.recover()
+            self.assertEqual(path.read_bytes(), b'original workbook')
+
     def test_scheduled_host_rename_requires_matching_permission(self):
         class GuardPassed(Exception):
             pass
