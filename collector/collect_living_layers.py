@@ -8,7 +8,7 @@ OUT = ROOT / 'public' / 'data'
 UA = {'User-Agent':'Mozilla/5.0 PublicMarketData/1.0'}
 SSDSE_A = 'https://www.nstac.go.jp/files/SSDSE-A-2026.csv'
 SSDSE_E = 'https://www.nstac.go.jp/files/SSDSE-E-2026.csv'
-CRIME = 'https://www.npa.go.jp/publications/whitepaper/r08/toukei/02/1.csv'
+CRIME = 'https://www.npa.go.jp/hakusyo/r08/toukei/02/1.csv'
 ACCIDENT = 'https://www.npa.go.jp/publications/statistics/koutsuu/opendata/2024/honhyo_2024.csv'
 SCHOOL = 'https://nlftp.mlit.go.jp/ksj/gml/data/P29/P29-23/P29-23_GML.zip'
 HOSPITAL = 'https://nlftp.mlit.go.jp/ksj/gml/data/P04/P04-20/P04-20_GML.zip'
@@ -167,6 +167,12 @@ def build_crime(stats):
             pref=resolve(b)
         value=to_int(r[3])
         if pref and value and pref not in counts: counts[pref]=value
+    # Reject incomplete or misidentified prefecture totals before publication.
+    if len(counts) != 47 or set(counts) != set(pop):
+        raise ValueError(f"Crime prefecture coverage mismatch: {len(counts)} records")
+    national = next(to_int(r[3]) for r in rows[5:] if len(r) > 3 and r[0].strip() == '全国総数')
+    if sum(counts.values()) != national:
+        raise ValueError(f"Crime national total mismatch: {sum(counts.values())} != {national}")
     coords=defaultdict(list)
     for s in stats:
         if 'lon' in s: coords[s['prefecture']].append((s['lon'],s['lat']))

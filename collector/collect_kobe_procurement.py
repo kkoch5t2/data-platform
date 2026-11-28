@@ -98,12 +98,15 @@ def collect_type_year(year, typ, workers):
     params = search_params(year); endpoint = BASE + f'results{typ}.php'
     first = fetch(endpoint, params); total = parse_total(first); rows = parse_list(first, typ)
     (RAW / f'{year}-{typ}-page0.html').write_text(first, encoding='utf-8')
+    # The public results endpoint uses one-based offsets (26, 51, ...).
+    if len(rows) != min(25, total):
+        raise RuntimeError(f'Kobe {year} {TYPES[typ]} first page parsed {len(rows)} != expected {min(25, total)}')
     pages = math.ceil(total / 25) if total else 0
     if pages > 1:
         urls = []
         q = urllib.parse.urlencode({'rnum': '25', 'fromyy': year, 'frommm': '01', 'fromdd': '01', 'toyy': year, 'tomm': '12', 'todd': '31'})
         for p in range(1, pages):
-            urls.append((p, endpoint + f'?start={p * 25}&' + q))
+            urls.append((p, endpoint + f'?start={p * 25 + 1}&' + q))
         with ThreadPoolExecutor(max_workers=workers) as ex:
             futs = {ex.submit(fetch, u): (p, u) for p, u in urls}; page_data = {}
             for fut in as_completed(futs):
