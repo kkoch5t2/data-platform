@@ -289,8 +289,9 @@ def save(conn, items):
 
 def main(years, do_export=True):
     files = [x for x in discover_files() if x[1] in years]
-    if not files:
-        raise RuntimeError(f'no Sapporo annual Excel/PDF files found for {years}')
+    expected = {(kind, year) for year in years for kind in ('k', 'z')}
+    if {(kind, year) for kind, year, _ in files} != expected:
+        raise RuntimeError(f'incomplete Sapporo annual Excel/PDF files for {years}')
     conn = sqlite3.connect(DB_PATH)
     init_db(conn)
     items, pdf_items = [], []
