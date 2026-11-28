@@ -433,7 +433,7 @@ class Refresh:
         self.command(['npm', 'run', 'e2e:lodging-statistics'], extra_env={'E2E_BASE_URL': base})
         self.command(['npm', 'run', 'e2e:public-transport'], extra_env={'E2E_BASE_URL': base})
         if self.job == 'daily':
-            for script in ('e2e:retail-history', 'e2e:ipss-population', 'e2e:jma-weather', 'e2e:reinfolib-history'):
+            for script in ('e2e:retail-history', 'e2e:ipss-population', 'e2e:jma-weather', 'e2e:reinfolib-history', 'e2e:agriculture'):
                 self.command(['npm', 'run', script], extra_env={'E2E_BASE_URL': base})
 
     def checks(self):
